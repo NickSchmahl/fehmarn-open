@@ -1,0 +1,50 @@
+# Compiled
+target/
+*.class
+
+# Maven
+.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# VS Code
+.vscode/
+
+# Eclipse
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+# Spring Boot
+spring-shell.log
+
+# Logs
+logs/
+*.log
+
+# SQLite Datenbank
+*.db
+*.sqlite
+*.sqlite3
+
+# Umgebungsvariablen
+.env
+.env.local
+.env.*.local
+
+# Uploads (Flyer etc.)
+uploads/
+
+# OS
+.DS_Store
+Thumbs.db

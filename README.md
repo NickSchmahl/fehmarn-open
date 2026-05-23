@@ -55,4 +55,46 @@ Bezahlung erfolgt ausschließlich vor Ort. Keine Online-Zahlung.
 
 ## Lokale Entwicklung
 
-Voraussetzungen und Setup-Anleitung folgen mit Projektaufbau.
+### Voraussetzungen
+
+- Java 21+
+- Maven
+- Node.js 20+
+- Angular CLI (`npm install -g @angular/cli`)
+
+---
+
+### Backend starten
+
+```bash
+# Umgebungsvariablen setzen
+export ADMIN_USERNAME=admin
+export ADMIN_PASSWORD=sicheresPasswort123
+
+# Anwendung starten
+./mvnw spring-boot:run
+```
+
+Das Backend läuft anschließend auf `http://localhost:8080`.  
+Die SQLite-Datenbank (`fehmarnopen.db`) wird beim ersten Start automatisch angelegt.
+
+---
+
+### Frontend starten
+
+```bash
+cd frontend
+npm install
+ng serve
+```
+
+Das Frontend läuft anschließend auf `http://localhost:4200`.  
+API-Requests an `/api/...` werden automatisch an das Backend weitergeleitet (Proxy-Config).
+
+---
+
+### Hinweise
+
+- Backend muss laufen bevor das Frontend API-Calls macht
+- `ADMIN_PASSWORD` ist eine Pflichtangabe – das Backend startet nicht ohne diese Variable
+- Der Admin-User wird beim ersten Start automatisch angelegt, bei weiteren Starts übersprungen

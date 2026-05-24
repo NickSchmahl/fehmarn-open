@@ -64,16 +64,41 @@ Bezahlung erfolgt ausschließlich vor Ort. Keine Online-Zahlung.
 
 ---
 
-### Backend starten
+### Backend
+
+#### Admin-Accounts
+
+Beim ersten Start werden automatisch ein oder mehrere Admin-Accounts angelegt.
+Die Anzahl der Accounts ist flexibel – für jeden Account werden zwei Umgebungsvariablen benötigt.
+
+#### Umgebungsvariablen
+
+| Variable              | Pflicht | Default  | Beschreibung                    |
+|-----------------------|---------|----------|---------------------------------|
+| `ADMIN_1_USERNAME`    | ❌ nein | `admin1` | Benutzername des ersten Admins  |
+| `ADMIN_1_PASSWORD`    | ✅ ja   | –        | Passwort des ersten Admins      |
+| `ADMIN_2_USERNAME`    | ❌ nein | `admin2` | Benutzername des zweiten Admins |
+| `ADMIN_2_PASSWORD`    | ✅ ja   | –        | Passwort des zweiten Admins     |
+
+> Weitere Accounts können durch Erweiterung der `application.yaml` hinzugefügt werden.
+
+#### Start
 
 ```bash
-# Umgebungsvariablen setzen
-export ADMIN_USERNAME=admin
-export ADMIN_PASSWORD=sicheresPasswort123
+# Einzelner Admin
+export ADMIN_1_PASSWORD=sicheresPasswort123
+./mvnw spring-boot:run
 
-# Anwendung starten
+# Mehrere Admins
+export ADMIN_1_USERNAME=alice
+export ADMIN_1_PASSWORD=sicheresPasswort123
+export ADMIN_2_USERNAME=bob
+export ADMIN_2_PASSWORD=nochSichereres456
 ./mvnw spring-boot:run
 ```
+
+> ⚠️ Die Anwendung startet **nicht**, wenn für einen konfigurierten Account kein Passwort gesetzt ist.
+> Wird ein Benutzername bereits in der Datenbank gefunden, wird er übersprungen (idempotent).
 
 Das Backend läuft anschließend auf `http://localhost:8080`.  
 Die SQLite-Datenbank (`fehmarnopen.db`) wird beim ersten Start automatisch angelegt.

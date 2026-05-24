@@ -1,4 +1,6 @@
 import { Routes } from '@angular/router';
+import {AdminLoginComponent} from './pages/login/login.component';
+import {authGuard} from './auth/guard/auth.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'anmeldung', pathMatch: 'full' },
@@ -19,6 +21,10 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./pages/flyer/flyer')
         .then(m => m.Flyer)
+  },
+  {
+    path: 'admin/login',
+    component: AdminLoginComponent,
   },
   { path: '**', redirectTo: 'anmeldung' }
 ];

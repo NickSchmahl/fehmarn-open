@@ -1,10 +1,9 @@
 package de.dart.fehmarnopen.entity;
 
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "teilnehmer")

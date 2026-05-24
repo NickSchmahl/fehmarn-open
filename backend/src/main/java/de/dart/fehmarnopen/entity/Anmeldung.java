@@ -1,10 +1,9 @@
 package de.dart.fehmarnopen.entity;
 
 import jakarta.persistence.*;
+import java.util.UUID;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.util.UUID;
 
 @Entity
 @Table(name = "anmeldung")

@@ -4,14 +4,13 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import java.nio.charset.StandardCharsets;
+import java.util.Date;
+import javax.crypto.SecretKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import javax.crypto.SecretKey;
-import java.nio.charset.StandardCharsets;
-import java.util.Date;
 
 @Service
 public class JwtService {
@@ -77,15 +76,12 @@ public class JwtService {
     private static SecretKey buildKey(String secret) {
         if (secret == null || secret.isBlank()) {
             throw new IllegalStateException(
-                    "JWT_SECRET ist nicht gesetzt. " +
-                            "Bitte die Umgebungsvariable JWT_SECRET setzen."
-            );
+                    "JWT_SECRET ist nicht gesetzt. " + "Bitte die Umgebungsvariable JWT_SECRET setzen.");
         }
         byte[] keyBytes = secret.getBytes(StandardCharsets.UTF_8);
         if (keyBytes.length < 32) {
             throw new IllegalStateException(
-                    "JWT_SECRET ist zu kurz – mindestens 32 Zeichen erforderlich (HMAC-SHA256)."
-            );
+                    "JWT_SECRET ist zu kurz – mindestens 32 Zeichen erforderlich (HMAC-SHA256).");
         }
         return Keys.hmacShaKeyFor(keyBytes);
     }

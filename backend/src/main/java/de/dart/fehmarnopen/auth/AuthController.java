@@ -17,9 +17,8 @@ public class AuthController {
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
 
-    public AuthController(AdminUserRepository adminUserRepository,
-                          JwtService jwtService,
-                          PasswordEncoder passwordEncoder) {
+    public AuthController(
+            AdminUserRepository adminUserRepository, JwtService jwtService, PasswordEncoder passwordEncoder) {
         this.adminUserRepository = adminUserRepository;
         this.jwtService = jwtService;
         this.passwordEncoder = passwordEncoder;
@@ -29,7 +28,8 @@ public class AuthController {
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
         // Bewusst keine Unterscheidung zwischen "User nicht gefunden"
         // und "falsches Passwort" – verhindert User-Enumeration
-        return adminUserRepository.findByBenutzername(request.getUsername())
+        return adminUserRepository
+                .findByBenutzername(request.getUsername())
                 .filter(user -> passwordEncoder.matches(request.getPassword(), user.getPassword()))
                 .map(user -> {
                     String token = jwtService.generateToken(user.getUsername());

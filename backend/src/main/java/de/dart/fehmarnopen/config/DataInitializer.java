@@ -2,6 +2,7 @@ package de.dart.fehmarnopen.config;
 
 import de.dart.fehmarnopen.entity.AdminUser;
 import de.dart.fehmarnopen.repository.AdminUserRepository;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
@@ -10,8 +11,6 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
-
-import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -32,9 +31,7 @@ public class DataInitializer implements CommandLineRunner {
 
         for (AdminProperties.Account account : accounts) {
             if (!StringUtils.hasText(account.getPassword())) {
-                throw new IllegalStateException(
-                        "Kein Passwort für Admin '" + account.getUsername() + "' gesetzt."
-                );
+                throw new IllegalStateException("Kein Passwort für Admin '" + account.getUsername() + "' gesetzt.");
             }
 
             if (adminUserRepository.existsByBenutzername(account.getUsername())) {

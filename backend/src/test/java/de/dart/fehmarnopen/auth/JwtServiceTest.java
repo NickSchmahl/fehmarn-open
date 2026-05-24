@@ -1,8 +1,8 @@
 package de.dart.fehmarnopen.auth;
 
-import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
+
+import org.junit.jupiter.api.Test;
 
 class JwtServiceTest {
 
@@ -10,7 +10,6 @@ class JwtServiceTest {
 
     private static final String SECRET = "test-secret-key-which-is-long-enough-for-hmac-sha256";
     private static final long EXPIRATION_MS = 3_600_000L; // 1 Stunde
-
 
     @Test
     void generateToken_shouldContainUsername() {

@@ -15,3 +15,11 @@ spring:
         dialect: org.hibernate.community.dialect.SQLiteDialect
         format_sql: true
     show-sql: true
+
+fehmarnopen:
+  admin:
+    accounts:
+      - username: ${ADMIN_1_USERNAME:admin1}
+        password: ${ADMIN_1_PASSWORD}
+      - username: ${ADMIN_2_USERNAME:admin2}
+        password: ${ADMIN_2_PASSWORD}

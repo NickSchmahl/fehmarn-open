@@ -16,6 +16,9 @@ spring:
         format_sql: true
     show-sql: true
 
+  jackson:
+    default-property-inclusion: non_null
+
 
 fehmarnopen:
   admin:

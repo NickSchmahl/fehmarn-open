@@ -29,7 +29,7 @@ jobs:
           cache: 'maven'
 
       - name: Formatierung prüfen (Spotless)
-        run: ./mvnw spotless:check
+        run: mvn spotless:check
 
       - name: Build und Tests
-        run: ./mvnw verify
+        run: mvn verify

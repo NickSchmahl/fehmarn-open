@@ -1,0 +1,19 @@
+spring:
+  datasource:
+    url: jdbc:sqlite:./target/test-auth.db
+    driver-class-name: org.sqlite.JDBC
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    database-platform: org.hibernate.community.dialect.SQLiteDialect
+
+app:
+  jwt:
+    secret: test-secret-key-which-is-long-enough-for-hmac-sha256
+    expiration-ms: 3600000
+
+fehmarnopen:
+  admin:
+    accounts:
+      - username: testadmin
+        password: testpassword

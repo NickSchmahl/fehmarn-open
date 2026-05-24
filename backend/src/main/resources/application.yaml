@@ -16,6 +16,7 @@ spring:
         format_sql: true
     show-sql: true
 
+
 fehmarnopen:
   admin:
     accounts:
@@ -23,3 +24,7 @@ fehmarnopen:
         password: ${ADMIN_1_PASSWORD}
       - username: ${ADMIN_2_USERNAME:admin2}
         password: ${ADMIN_2_PASSWORD}
+app:
+  jwt:
+    secret: ${JWT_SECRET}
+    expiration-ms: ${JWT_EXPIRATION_MS:3600000}

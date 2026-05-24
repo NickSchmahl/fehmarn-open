@@ -1,0 +1,35 @@
+name: Backend CI
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'backend/**'        # Pipeline nur triggern, wenn sich was im Backend ändert
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'backend/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend   # alle run-Steps im /backend Ordner ausführen
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Java 25 aufsetzen
+        uses: actions/setup-java@v4
+        with:
+          java-version: '25'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Formatierung prüfen (Spotless)
+        run: ./mvnw spotless:check
+
+      - name: Build und Tests
+        run: ./mvnw verify

@@ -34,6 +34,7 @@ describe('AuthService', () => {
   });
 
   describe('login()', () => {
+
     it('should store token in localStorage on success', () => {
       service.login('admin', 'password').subscribe();
 
@@ -42,7 +43,7 @@ describe('AuthService', () => {
       expect(req.request.body).toEqual({ username: 'admin', password: 'password' });
       req.flush({ token: 'fake-jwt-token' });
 
-      expect(localStorage.getItem('admin_jwt')).toBe('fake-jwt-token');
+      expect(localStorage.getItem(AuthService.TOKEN_KEY)).toBe('fake-jwt-token');
     });
 
     it('should propagate error on 401', () => {
@@ -60,7 +61,7 @@ describe('AuthService', () => {
         .flush({ message: 'Unauthorized' }, { status: 401, statusText: 'Unauthorized' });
 
       expect(errorReceived).toBe(true);
-      expect(localStorage.getItem('admin_jwt')).toBeNull();
+      expect(localStorage.getItem(AuthService.TOKEN_KEY)).toBeNull();
     });
 
     it('should return void on success', (done) => {
@@ -75,12 +76,12 @@ describe('AuthService', () => {
 
   describe('logout()', () => {
     it('should remove token from localStorage', () => {
-      localStorage.setItem('admin_jwt', 'some-token');
+      localStorage.setItem(AuthService.TOKEN_KEY, 'some-token');
       jest.spyOn(router, 'navigate').mockResolvedValue(true);
 
       service.logout();
 
-      expect(localStorage.getItem('admin_jwt')).toBeNull();
+      expect(localStorage.getItem(AuthService.TOKEN_KEY)).toBeNull();
     });
 
     it('should navigate to /admin/login', () => {
@@ -96,7 +97,7 @@ describe('AuthService', () => {
     });
 
     it('should return stored token', () => {
-      localStorage.setItem('admin_jwt', 'my-token');
+      localStorage.setItem(AuthService.TOKEN_KEY, 'my-token');
       expect(service.getToken()).toBe('my-token');
     });
   });
@@ -107,7 +108,7 @@ describe('AuthService', () => {
     });
 
     it('should return true when token is stored', () => {
-      localStorage.setItem('admin_jwt', 'my-token');
+      localStorage.setItem(AuthService.TOKEN_KEY, 'my-token');
       expect(service.isLoggedIn()).toBe(true);
     });
   });

@@ -9,7 +9,7 @@ interface LoginResponse {
 
 @Injectable({providedIn: 'root'})
 export class AuthService {
-  private readonly TOKEN_KEY = 'token';
+  static readonly TOKEN_KEY = 'token';
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
 
@@ -17,18 +17,18 @@ export class AuthService {
     return this.http
       .post<LoginResponse>('/api/auth/login', {username, password})
       .pipe(
-        tap(({token}) => localStorage.setItem(this.TOKEN_KEY, token)),
+        tap(({token}) => localStorage.setItem(AuthService.TOKEN_KEY, token)),
         map(() => void 0)
       );
   }
 
   logout(): void {
-    localStorage.removeItem(this.TOKEN_KEY);
+    localStorage.removeItem(AuthService.TOKEN_KEY);
     this.router.navigate(['/admin/login']);
   }
 
   getToken(): string | null {
-    return localStorage.getItem(this.TOKEN_KEY);
+    return localStorage.getItem(AuthService.TOKEN_KEY);
   }
 
   isLoggedIn(): boolean {

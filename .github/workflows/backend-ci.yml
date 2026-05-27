@@ -1,25 +1,20 @@
-name: Backend CI
+name: CI
 
 on:
   push:
     branches: [ main ]
-    paths:
-      - 'backend/**'        # Pipeline nur triggern, wenn sich was im Backend ändert
   pull_request:
     branches: [ main ]
-    paths:
-      - 'backend/**'
 
 jobs:
-  build:
+  backend:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: backend   # alle run-Steps im /backend Ordner ausführen
+        working-directory: backend
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Java 25 aufsetzen
         uses: actions/setup-java@v4
@@ -33,3 +28,28 @@ jobs:
 
       - name: Build und Tests
         run: mvn verify
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Node aufsetzen
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Dependencies installieren
+        run: npm ci
+
+      - name: Tests
+        run: npm test -- --watch=false --browsers=ChromeHeadless
+
+      - name: Build
+        run: npm run build

@@ -41,6 +41,11 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ErrorResponse.of(403, ex.getMessage()));
     }
 
+    @ExceptionHandler(DoppelteAnmeldungException.class)
+    public ResponseEntity<ErrorResponse> handleDoppelteAnmeldung(DoppelteAnmeldungException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(ErrorResponse.of(409, ex.getMessage()));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleUnexpected(Exception ex) {
         log.error("Unerwarteter Fehler aufgetreten", ex);

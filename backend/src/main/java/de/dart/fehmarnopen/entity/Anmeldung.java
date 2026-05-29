@@ -1,6 +1,7 @@
 package de.dart.fehmarnopen.entity;
 
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -19,8 +20,9 @@ public class Anmeldung {
     @JoinColumn(name = "teilnehmer_id")
     private Teilnehmer teilnehmer;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String disziplin;
+    private Disziplin disziplin;
 
     @Column(name = "team_name")
     private String teamName;
@@ -30,6 +32,9 @@ public class Anmeldung {
 
     @Column(nullable = false)
     private boolean abgemeldet = false;
+
+    @Column(name = "abgemeldet_am")
+    private LocalDateTime abgemeldetAm;
 
     @PrePersist
     public void prePersist() {

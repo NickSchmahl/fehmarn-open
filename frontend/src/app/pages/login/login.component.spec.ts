@@ -86,7 +86,7 @@ describe('AdminLoginComponent', () => {
       component.onSubmit();
 
       expect(component.errorMessage()).toBe(
-        'Anmeldung fehlgeschlagen. Bitte später erneut versuchen.'
+        'AnmeldungComponent fehlgeschlagen. Bitte später erneut versuchen.'
       );
     });
 

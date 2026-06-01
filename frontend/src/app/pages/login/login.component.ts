@@ -48,7 +48,7 @@ export class AdminLoginComponent {
         this.errorMessage.set(
           err.status === 401
             ? 'Benutzername oder Passwort falsch.'
-            : 'Anmeldung fehlgeschlagen. Bitte später erneut versuchen.'
+            : 'AnmeldungComponent fehlgeschlagen. Bitte später erneut versuchen.'
         );
       },
     });

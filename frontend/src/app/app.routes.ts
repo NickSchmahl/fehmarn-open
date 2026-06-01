@@ -7,8 +7,8 @@ export const routes: Routes = [
   {
     path: 'anmeldung',
     loadComponent: () =>
-      import('./pages/anmeldung/anmeldung')
-        .then(m => m.Anmeldung)
+      import('./pages/anmeldung/anmeldung.component')
+        .then(m => m.AnmeldungComponent)
   },
   {
     path: 'teilnehmer',

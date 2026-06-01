@@ -40,7 +40,7 @@ class SecurityFilterChainTest {
 
     @Test
     void anmeldung_withoutToken_shouldNotReturn401() throws Exception {
-        mockMvc.perform(post("/api/anmeldung")).andExpect(status().isNotFound());
+        mockMvc.perform(post("/api/anmeldung")).andExpect(status().isBadRequest());
     }
 
     @Test

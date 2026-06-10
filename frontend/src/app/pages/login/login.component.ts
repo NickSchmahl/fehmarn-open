@@ -41,7 +41,7 @@ export class AdminLoginComponent {
     this.authService.login(username, password).subscribe({
       next: () => {
         this.loading.set(false);
-        this.router.navigate(['/admin/dashboard']);
+        this.router.navigate(['/teilnehmer']);
       },
       error: (err) => {
         this.loading.set(false);

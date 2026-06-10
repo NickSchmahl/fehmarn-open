@@ -1,6 +1,7 @@
-import { Component, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import {RouterLink, RouterLinkActive, RouterOutlet} from '@angular/router';
 import {ToastComponent} from './ui/toast/toast.component';
+import {AuthService} from './auth/service/auth.service';
 
 @Component({
   selector: 'app-root',
@@ -11,4 +12,9 @@ import {ToastComponent} from './ui/toast/toast.component';
 })
 export class App {
   protected readonly title = signal('fehmarnopen-frontend');
+  protected readonly authService = inject(AuthService);
+
+  protected logout(): void {
+    this.authService.logout();
+  }
 }

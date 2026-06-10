@@ -60,14 +60,14 @@ describe('AdminLoginComponent', () => {
       expect(component.username.touched).toBe(true);
     });
 
-    it('should navigate to /admin/dashboard on successful login', () => {
+    it('should navigate to /teilnehmer on successful login', () => {
       authService.login.mockReturnValue(of(void 0));
       const navSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
 
       component.form.setValue({ username: 'admin', password: 'password' });
       component.onSubmit();
 
-      expect(navSpy).toHaveBeenCalledWith(['/admin/dashboard']);
+      expect(navSpy).toHaveBeenCalledWith(['/teilnehmer']);
     });
 
     it('should show 401 error message on wrong credentials', () => {

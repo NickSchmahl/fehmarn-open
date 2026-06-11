@@ -5,6 +5,12 @@ spring:
   datasource:
     url: jdbc:sqlite:fehmarnopen.db
     driver-class-name: org.sqlite.JDBC
+    hikari:
+      # SQLite erlaubt nur einen Schreiber gleichzeitig -> Pool auf 1, damit sich
+      # gleichzeitige Writes (z.B. Team-Aktionen) am Pool serialisieren statt mit
+      # SQLITE_BUSY zu scheitern. busy_timeout als zusaetzliches Sicherheitsnetz.
+      maximum-pool-size: 1
+      connection-init-sql: "PRAGMA busy_timeout = 5000"
 
   jpa:
     database-platform: org.hibernate.community.dialect.SQLiteDialect

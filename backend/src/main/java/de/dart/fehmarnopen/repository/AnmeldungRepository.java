@@ -15,6 +15,9 @@ public interface AnmeldungRepository extends JpaRepository<Anmeldung, Long> {
     @EntityGraph(attributePaths = "teilnehmer")
     List<Anmeldung> findByAbgemeldetFalse();
 
+    @EntityGraph(attributePaths = "teilnehmer")
+    List<Anmeldung> findAllBy();
+
     Optional<Anmeldung> findByAbmeldetoken(String abmeldetoken);
 
     boolean existsByTeilnehmerAndDisziplin(Teilnehmer teilnehmer, Disziplin disziplin);

@@ -1,8 +1,9 @@
 import { Component, computed, inject, signal, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Disziplin, disziplinLabel } from '../../shared/disziplin';
+import { AuthService } from '../../auth/service/auth.service';
 
-// ── Typen (passend zu TeilnehmerUebersichtResponse im Backend) ────────────────
+// ── Typen: öffentliche Übersicht (TeilnehmerUebersichtResponse) ───────────────
 
 export interface TeilnehmerEintrag {
   vorname: string;
@@ -30,6 +31,36 @@ export interface AnzeigeGruppe {
   label: string;
   anzahl: number;
   teams: TeamGruppe[];
+}
+
+// ── Typen: Admin-Übersicht (AdminUebersichtResponse) ──────────────────────────
+
+export interface AdminEintrag {
+  id: number;
+  vorname: string;
+  nachname: string;
+  email: string;
+  radicalId: string | null;
+  teamName: string | null;
+  anwesend: boolean;
+  abgemeldet: boolean;
+}
+
+interface AdminGruppe {
+  disziplin: Disziplin;
+  anzahl: number;
+  teilnehmer: AdminEintrag[];
+}
+
+interface AdminUebersicht {
+  disziplinen: AdminGruppe[];
+}
+
+export interface AdminAnzeigeGruppe {
+  disziplin: Disziplin;
+  label: string;
+  anzahl: number;
+  teilnehmer: AdminEintrag[];
 }
 
 type Filter = Disziplin | 'ALLE';
@@ -77,18 +108,28 @@ export function gruppiereNachTeam(eintraege: TeilnehmerEintrag[]): TeamGruppe[] 
 })
 export class Teilnehmer implements OnInit {
   private http = inject(HttpClient);
+  private authService = inject(AuthService);
 
-  readonly gruppen = signal<DisziplinGruppe[]>([]);
+  readonly isAdmin = signal(this.authService.isLoggedIn());
+
   readonly loading = signal(false);
   readonly error = signal(false);
   readonly aktiveDisziplin = signal<Filter>('ALLE');
 
+  // Öffentlicher Modus
+  readonly gruppen = signal<DisziplinGruppe[]>([]);
+
+  // Admin-Modus
+  readonly adminGruppen = signal<AdminGruppe[]>([]);
+  readonly suchbegriff = signal('');
+
   /** Filter-Chips: "Alle" + jede vorhandene Disziplin mit Anzahl. */
   readonly chips = computed(() => {
-    const gesamt = this.gruppen().reduce((sum, g) => sum + g.anzahl, 0);
+    const quelle = this.isAdmin() ? this.adminGruppen() : this.gruppen();
+    const gesamt = quelle.reduce((sum, g) => sum + g.anzahl, 0);
     return [
       { value: 'ALLE' as Filter, label: 'Alle', anzahl: gesamt },
-      ...this.gruppen().map((g) => ({
+      ...quelle.map((g) => ({
         value: g.disziplin as Filter,
         label: disziplinLabel(g.disziplin),
         anzahl: g.anzahl,
@@ -96,7 +137,7 @@ export class Teilnehmer implements OnInit {
     ];
   });
 
-  /** Disziplingruppen, gefiltert und für die Anzeige (nach Team gebündelt) aufbereitet. */
+  /** Öffentlich: gefiltert nach Disziplin und nach Team gebündelt. */
   readonly sichtbareGruppen = computed<AnzeigeGruppe[]>(() => {
     const aktiv = this.aktiveDisziplin();
     return this.gruppen()
@@ -109,7 +150,64 @@ export class Teilnehmer implements OnInit {
       }));
   });
 
+  /** Admin: gefiltert nach Disziplin + Suchbegriff (Name/E-Mail), Zeilen je Anmeldung. */
+  readonly sichtbareAdminGruppen = computed<AdminAnzeigeGruppe[]>(() => {
+    const aktiv = this.aktiveDisziplin();
+    const suche = this.suchbegriff().trim().toLowerCase();
+
+    return this.adminGruppen()
+      .filter((g) => aktiv === 'ALLE' || g.disziplin === aktiv)
+      .map((g) => ({
+        disziplin: g.disziplin,
+        label: disziplinLabel(g.disziplin),
+        anzahl: g.anzahl,
+        teilnehmer: g.teilnehmer.filter((t) => this.passtZurSuche(t, suche)),
+      }))
+      .filter((g) => g.teilnehmer.length > 0);
+  });
+
   ngOnInit(): void {
+    if (this.isAdmin()) {
+      this.ladeAdmin();
+    } else {
+      this.ladeOeffentlich();
+    }
+  }
+
+  setFilter(value: Filter): void {
+    this.aktiveDisziplin.set(value);
+  }
+
+  setSuche(value: string): void {
+    this.suchbegriff.set(value);
+  }
+
+  abmelden(id: number): void {
+    this.http.post(`/api/admin/anmeldung/${id}/abmelden`, {}).subscribe({
+      next: () => this.ladeAdmin(),
+    });
+  }
+
+  reaktivieren(id: number): void {
+    this.http.post(`/api/admin/anmeldung/${id}/reaktivieren`, {}).subscribe({
+      next: () => this.ladeAdmin(),
+    });
+  }
+
+  toggleAnwesenheit(id: number, anwesend: boolean): void {
+    this.http.put(`/api/admin/anmeldung/${id}/anwesenheit`, { anwesend }).subscribe({
+      next: () => this.ladeAdmin(),
+    });
+  }
+
+  private passtZurSuche(t: AdminEintrag, suche: string): boolean {
+    if (suche === '') {
+      return true;
+    }
+    return `${t.vorname} ${t.nachname} ${t.email}`.toLowerCase().includes(suche);
+  }
+
+  private ladeOeffentlich(): void {
     this.loading.set(true);
     this.error.set(false);
     this.http.get<TeilnehmerUebersicht>('/api/teilnehmer').subscribe({
@@ -124,7 +222,18 @@ export class Teilnehmer implements OnInit {
     });
   }
 
-  setFilter(value: Filter): void {
-    this.aktiveDisziplin.set(value);
+  private ladeAdmin(): void {
+    this.loading.set(true);
+    this.error.set(false);
+    this.http.get<AdminUebersicht>('/api/admin/teilnehmer').subscribe({
+      next: (data) => {
+        this.adminGruppen.set(data.disziplinen);
+        this.loading.set(false);
+      },
+      error: () => {
+        this.loading.set(false);
+        this.error.set(true);
+      },
+    });
   }
 }

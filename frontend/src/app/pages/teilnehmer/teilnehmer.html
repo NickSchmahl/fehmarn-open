@@ -10,10 +10,11 @@
         <div class="center-dot"></div>
       </div>
       <h1 class="teilnehmer-title">Teilnehmer</h1>
-      <p class="teilnehmer-subtitle">Wer ist schon dabei?</p>
+      <p class="teilnehmer-subtitle">
+        @if (isAdmin()) { Verwaltung } @else { Wer ist schon dabei? }
+      </p>
     </header>
 
-    <!-- ── Ladezustand ─────────────────────────────────────────────────── -->
     @if (loading()) {
       <div class="state-row" role="status">
         <span class="spinner" aria-hidden="true"></span>
@@ -23,14 +24,86 @@
       <div class="alert-error" role="alert">
         Die Teilnehmerliste konnte nicht geladen werden. Bitte später erneut versuchen.
       </div>
+    } @else if (isAdmin()) {
+
+      <!-- ══ Admin-Modus ═════════════════════════════════════════════════ -->
+      @if (adminGruppen().length === 0) {
+        <div class="empty-state"><p>Noch keine Anmeldungen.</p></div>
+      } @else {
+        <input
+          type="search"
+          class="search-input"
+          placeholder="Suche nach Name oder E-Mail"
+          (input)="setSuche($any($event.target).value)"
+        />
+
+        <div class="chip-row" role="tablist" aria-label="Disziplin filtern">
+          @for (chip of chips(); track chip.value) {
+            <button
+              type="button"
+              role="tab"
+              class="chip"
+              [class.chip--active]="aktiveDisziplin() === chip.value"
+              [attr.aria-selected]="aktiveDisziplin() === chip.value"
+              (click)="setFilter(chip.value)"
+            >
+              {{ chip.label }}
+              <span class="chip-count">{{ chip.anzahl }}</span>
+            </button>
+          }
+        </div>
+
+        @for (gruppe of sichtbareAdminGruppen(); track gruppe.disziplin) {
+          <section class="disziplin-section">
+            <h2 class="section-title">
+              {{ gruppe.label }}
+              <span class="section-count">{{ gruppe.anzahl }}</span>
+            </h2>
+
+            <ul class="admin-list">
+              @for (t of gruppe.teilnehmer; track t.id) {
+                <li class="admin-row" [class.admin-row--abgemeldet]="t.abgemeldet">
+                  <div class="admin-row-info">
+                    <span class="admin-name">
+                      {{ t.vorname }} {{ t.nachname }}
+                      @if (t.teamName) { <span class="team-badge">{{ t.teamName }}</span> }
+                      @if (t.abgemeldet) { <span class="status-badge">abgemeldet</span> }
+                    </span>
+                    <span class="admin-email">{{ t.email }}</span>
+                  </div>
+
+                  <div class="admin-row-actions">
+                    <label class="anwesend-toggle">
+                      <input
+                        type="checkbox"
+                        [checked]="t.anwesend"
+                        (change)="toggleAnwesenheit(t.id, !t.anwesend)"
+                      />
+                      anwesend
+                    </label>
+
+                    @if (t.abgemeldet) {
+                      <button type="button" class="btn btn-ghost" (click)="reaktivieren(t.id)">
+                        Reaktivieren
+                      </button>
+                    } @else {
+                      <button type="button" class="btn btn-danger" (click)="abmelden(t.id)">
+                        Abmelden
+                      </button>
+                    }
+                  </div>
+                </li>
+              }
+            </ul>
+          </section>
+        }
+      }
+
     } @else if (gruppen().length === 0) {
-      <!-- ── Leerer Zustand ────────────────────────────────────────────── -->
-      <div class="empty-state">
-        <p>Noch keine Anmeldungen.</p>
-      </div>
+      <div class="empty-state"><p>Noch keine Anmeldungen.</p></div>
     } @else {
 
-      <!-- ── Filter-Chips ──────────────────────────────────────────────── -->
+      <!-- ══ Öffentlicher Modus ══════════════════════════════════════════ -->
       <div class="chip-row" role="tablist" aria-label="Disziplin filtern">
         @for (chip of chips(); track chip.value) {
           <button
@@ -47,7 +120,6 @@
         }
       </div>
 
-      <!-- ── Disziplin-Sektionen ───────────────────────────────────────── -->
       @for (gruppe of sichtbareGruppen(); track gruppe.disziplin) {
         <section class="disziplin-section">
           <h2 class="section-title">

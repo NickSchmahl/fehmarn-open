@@ -1,5 +1,6 @@
 package de.dart.fehmarnopen.service;
 
+import de.dart.fehmarnopen.dto.AdminUebersichtResponse;
 import de.dart.fehmarnopen.dto.AnmeldungRequest;
 import de.dart.fehmarnopen.dto.TeilnehmerUebersichtResponse;
 import de.dart.fehmarnopen.dto.TeilnehmerUebersichtResponse.DisziplinGruppe;
@@ -8,6 +9,7 @@ import de.dart.fehmarnopen.entity.Anmeldung;
 import de.dart.fehmarnopen.entity.Disziplin;
 import de.dart.fehmarnopen.entity.Teilnehmer;
 import de.dart.fehmarnopen.exception.DoppelteAnmeldungException;
+import de.dart.fehmarnopen.exception.NichtGefundenException;
 import de.dart.fehmarnopen.repository.AnmeldungRepository;
 import de.dart.fehmarnopen.repository.TeilnehmerRepository;
 import java.time.LocalDateTime;
@@ -68,28 +70,93 @@ public class AnmeldungService {
 
     @Transactional(readOnly = true)
     public TeilnehmerUebersichtResponse oeffentlicheUebersicht() {
-        Comparator<Anmeldung> nachName = Comparator.comparing(
-                        (Anmeldung a) -> a.getTeilnehmer().getNachname())
-                .thenComparing(a -> a.getTeilnehmer().getVorname());
-
-        // TreeMap nach Disziplin-Enum sortiert die Gruppen automatisch in deklarierter Reihenfolge.
-        Map<Disziplin, List<Anmeldung>> proDisziplin = anmeldungRepository.findByAbgemeldetFalse().stream()
-                .collect(Collectors.groupingBy(Anmeldung::getDisziplin, TreeMap::new, Collectors.toList()));
-
-        List<DisziplinGruppe> gruppen = proDisziplin.entrySet().stream()
-                .map(entry -> {
-                    List<TeilnehmerEintrag> teilnehmer = entry.getValue().stream()
-                            .sorted(nachName)
-                            .map(a -> new TeilnehmerEintrag(
-                                    a.getTeilnehmer().getVorname(),
-                                    a.getTeilnehmer().getNachname(),
-                                    a.getTeamName()))
-                            .toList();
-                    return new DisziplinGruppe(entry.getKey(), teilnehmer.size(), teilnehmer);
-                })
-                .toList();
+        List<DisziplinGruppe> gruppen =
+                gruppiereNachDisziplin(anmeldungRepository.findByAbgemeldetFalse()).entrySet().stream()
+                        .map(entry -> {
+                            List<TeilnehmerEintrag> teilnehmer = entry.getValue().stream()
+                                    .sorted(nachName())
+                                    .map(a -> new TeilnehmerEintrag(
+                                            a.getTeilnehmer().getVorname(),
+                                            a.getTeilnehmer().getNachname(),
+                                            a.getTeamName()))
+                                    .toList();
+                            return new DisziplinGruppe(entry.getKey(), teilnehmer.size(), teilnehmer);
+                        })
+                        .toList();
 
         return new TeilnehmerUebersichtResponse(gruppen);
+    }
+
+    @Transactional(readOnly = true)
+    public AdminUebersichtResponse adminUebersicht() {
+        List<AdminUebersichtResponse.DisziplinGruppe> gruppen =
+                gruppiereNachDisziplin(anmeldungRepository.findAllBy()).entrySet().stream()
+                        .map(entry -> {
+                            List<AdminUebersichtResponse.AdminEintrag> teilnehmer = entry.getValue().stream()
+                                    .sorted(nachName())
+                                    .map(this::toAdminEintrag)
+                                    .toList();
+                            int aktive = (int) entry.getValue().stream()
+                                    .filter(a -> !a.isAbgemeldet())
+                                    .count();
+                            return new AdminUebersichtResponse.DisziplinGruppe(entry.getKey(), aktive, teilnehmer);
+                        })
+                        .toList();
+
+        return new AdminUebersichtResponse(gruppen);
+    }
+
+    @Transactional
+    public void abmelden(Long anmeldungId) {
+        Anmeldung anmeldung = findeOderWirf(anmeldungId);
+        anmeldung.setAbgemeldet(true);
+        anmeldung.setAbgemeldetAm(LocalDateTime.now());
+        anmeldungRepository.save(anmeldung);
+    }
+
+    @Transactional
+    public void reaktivieren(Long anmeldungId) {
+        Anmeldung anmeldung = findeOderWirf(anmeldungId);
+        anmeldung.setAbgemeldet(false);
+        anmeldung.setAbgemeldetAm(null);
+        anmeldungRepository.save(anmeldung);
+    }
+
+    @Transactional
+    public void setAnwesenheit(Long anmeldungId, boolean anwesend) {
+        Anmeldung anmeldung = findeOderWirf(anmeldungId);
+        anmeldung.setAnwesend(anwesend);
+        anmeldungRepository.save(anmeldung);
+    }
+
+    private Anmeldung findeOderWirf(Long anmeldungId) {
+        return anmeldungRepository
+                .findById(anmeldungId)
+                .orElseThrow(() -> new NichtGefundenException("Anmeldung nicht gefunden: " + anmeldungId));
+    }
+
+    private AdminUebersichtResponse.AdminEintrag toAdminEintrag(Anmeldung a) {
+        Teilnehmer t = a.getTeilnehmer();
+        return new AdminUebersichtResponse.AdminEintrag(
+                a.getId(),
+                t.getVorname(),
+                t.getNachname(),
+                t.getEmail(),
+                t.getRadicalId(),
+                a.getTeamName(),
+                a.isAnwesend(),
+                a.isAbgemeldet());
+    }
+
+    private Comparator<Anmeldung> nachName() {
+        return Comparator.comparing((Anmeldung a) -> a.getTeilnehmer().getNachname())
+                .thenComparing(a -> a.getTeilnehmer().getVorname());
+    }
+
+    /** Gruppiert Anmeldungen nach Disziplin; TreeMap sortiert die Gruppen in Enum-Reihenfolge. */
+    private Map<Disziplin, List<Anmeldung>> gruppiereNachDisziplin(List<Anmeldung> anmeldungen) {
+        return anmeldungen.stream()
+                .collect(Collectors.groupingBy(Anmeldung::getDisziplin, TreeMap::new, Collectors.toList()));
     }
 
     @Transactional

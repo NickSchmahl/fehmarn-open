@@ -115,6 +115,26 @@ class AnmeldungRepositoryTest {
     }
 
     @Test
+    void findAllBy_sollAlleAnmeldungenInklusiveAbgemeldeteZurueckgeben() {
+        Anmeldung aktiv = new Anmeldung();
+        aktiv.setTeilnehmer(teilnehmer);
+        aktiv.setDisziplin(Disziplin.HERRENEINZEL);
+        anmeldungRepository.save(aktiv);
+
+        Anmeldung abgemeldet = new Anmeldung();
+        abgemeldet.setTeilnehmer(teilnehmer);
+        abgemeldet.setDisziplin(Disziplin.HERRENDOPPEL);
+        abgemeldet.setAbgemeldet(true);
+        anmeldungRepository.save(abgemeldet);
+
+        List<Anmeldung> result = anmeldungRepository.findAllBy();
+
+        assertThat(result)
+                .extracting(Anmeldung::getDisziplin)
+                .containsExactlyInAnyOrder(Disziplin.HERRENEINZEL, Disziplin.HERRENDOPPEL);
+    }
+
+    @Test
     void save_sollAbmeldetokenAutomatischSetzen() {
         Anmeldung anmeldung = new Anmeldung();
         anmeldung.setTeilnehmer(teilnehmer);

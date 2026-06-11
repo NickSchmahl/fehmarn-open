@@ -36,6 +36,9 @@ public class Anmeldung {
     @Column(name = "abgemeldet_am")
     private LocalDateTime abgemeldetAm;
 
+    @Column(nullable = false)
+    private boolean anwesend = false;
+
     @PrePersist
     public void prePersist() {
         this.abmeldetoken = UUID.randomUUID().toString();

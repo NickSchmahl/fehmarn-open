@@ -265,8 +265,161 @@
   font-size: 0.9rem;
 }
 
+/* ── Admin: Suche ───────────────────────────────────────── */
+.search-input {
+  width: 100%;
+  margin-bottom: 1.25rem;
+  padding: 0.6rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.9rem;
+}
+.search-input::placeholder { color: var(--text-muted); }
+.search-input:focus {
+  outline: none;
+  border-color: var(--border-focus);
+}
+
+/* ── Admin: Zeilen ──────────────────────────────────────── */
+.admin-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.admin-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+
+.admin-row--abgemeldet {
+  opacity: 0.55;
+}
+.admin-row--abgemeldet .admin-name {
+  text-decoration: line-through;
+}
+
+.admin-row-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.admin-name {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  color: var(--text);
+  font-size: 0.9rem;
+}
+
+.admin-email {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+.team-badge {
+  padding: 0.05rem 0.4rem;
+  border-radius: 999px;
+  background: var(--accent-dim);
+  color: var(--accent);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.status-badge {
+  padding: 0.05rem 0.4rem;
+  border-radius: 999px;
+  background: var(--danger-dim);
+  color: var(--danger);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.admin-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 0 0 auto;
+}
+
+.anwesend-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.anwesend-toggle input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--success);
+  cursor: pointer;
+}
+
+.btn {
+  padding: 0.4rem 0.8rem;
+  border-radius: var(--radius);
+  border: 1px solid transparent;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.btn-danger {
+  border-color: rgba(224, 92, 92, 0.4);
+  background: var(--danger-dim);
+  color: var(--danger);
+}
+.btn-danger:hover { background: rgba(224, 92, 92, 0.22); }
+
+.btn-ghost {
+  border-color: var(--border);
+  background: var(--surface);
+  color: var(--text-muted);
+}
+.btn-ghost:hover {
+  border-color: rgba(232, 197, 71, 0.28);
+  color: var(--accent);
+}
+
 @media (max-width: 720px) {
   .teilnehmer-card {
     padding: 2rem 1.25rem 1.5rem;
+  }
+
+  .admin-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.6rem;
+  }
+  .admin-row-actions {
+    justify-content: space-between;
   }
 }

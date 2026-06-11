@@ -5,12 +5,15 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import de.dart.fehmarnopen.dto.AdminUebersichtResponse;
 import de.dart.fehmarnopen.dto.TeilnehmerUebersichtResponse;
 import de.dart.fehmarnopen.entity.Anmeldung;
 import de.dart.fehmarnopen.entity.Disziplin;
 import de.dart.fehmarnopen.entity.Teilnehmer;
 import de.dart.fehmarnopen.exception.DoppelteAnmeldungException;
+import de.dart.fehmarnopen.exception.NichtGefundenException;
 import de.dart.fehmarnopen.repository.AnmeldungRepository;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -204,5 +207,98 @@ class AnmeldungServiceTest {
         TeilnehmerUebersichtResponse result = anmeldungService.oeffentlicheUebersicht();
 
         assertThat(result.disziplinen()).isEmpty();
+    }
+
+    @Test
+    void adminUebersicht_sollAbgemeldeteEnthaltenAberNurAktiveZaehlen() {
+        Anmeldung aktiv = anmeldung(teilnehmer("Anna", "Schmidt"), Disziplin.HERRENEINZEL, null);
+        Anmeldung abgemeldet = anmeldung(teilnehmer("Bert", "Adam"), Disziplin.HERRENEINZEL, null);
+        abgemeldet.setAbgemeldet(true);
+        when(anmeldungRepository.findAllBy()).thenReturn(List.of(aktiv, abgemeldet));
+
+        AdminUebersichtResponse result = anmeldungService.adminUebersicht();
+
+        assertThat(result.disziplinen()).hasSize(1);
+        AdminUebersichtResponse.DisziplinGruppe gruppe = result.disziplinen().get(0);
+        assertThat(gruppe.teilnehmer()).hasSize(2); // beide sichtbar
+        assertThat(gruppe.anzahl()).isEqualTo(1); // nur aktive gezaehlt
+    }
+
+    @Test
+    void adminUebersicht_sollVolleFelderLiefern() {
+        Teilnehmer t = teilnehmer("Anna", "Schmidt");
+        t.setRadicalId("AS-1");
+        Anmeldung a = anmeldung(t, Disziplin.HERRENDOPPEL, "Team A");
+        a.setId(5L);
+        a.setAnwesend(true);
+        when(anmeldungRepository.findAllBy()).thenReturn(List.of(a));
+
+        AdminUebersichtResponse.AdminEintrag eintrag = anmeldungService
+                .adminUebersicht()
+                .disziplinen()
+                .get(0)
+                .teilnehmer()
+                .get(0);
+
+        assertThat(eintrag.id()).isEqualTo(5L);
+        assertThat(eintrag.email()).isEqualTo("Anna@example.com");
+        assertThat(eintrag.radicalId()).isEqualTo("AS-1");
+        assertThat(eintrag.teamName()).isEqualTo("Team A");
+        assertThat(eintrag.anwesend()).isTrue();
+        assertThat(eintrag.abgemeldet()).isFalse();
+    }
+
+    @Test
+    void abmeldenPerId_sollAbgemeldetSetzen() {
+        Anmeldung a = new Anmeldung();
+        a.setAbgemeldet(false);
+        when(anmeldungRepository.findById(7L)).thenReturn(Optional.of(a));
+        when(anmeldungRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        anmeldungService.abmelden(7L);
+
+        assertThat(a.isAbgemeldet()).isTrue();
+        assertThat(a.getAbgemeldetAm()).isNotNull();
+    }
+
+    @Test
+    void abmeldenPerId_unbekannteId_sollWerfen() {
+        when(anmeldungRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> anmeldungService.abmelden(99L)).isInstanceOf(NichtGefundenException.class);
+        verify(anmeldungRepository, never()).save(any());
+    }
+
+    @Test
+    void reaktivieren_sollAbmeldungZuruecknehmen() {
+        Anmeldung a = new Anmeldung();
+        a.setAbgemeldet(true);
+        a.setAbgemeldetAm(LocalDateTime.now());
+        when(anmeldungRepository.findById(7L)).thenReturn(Optional.of(a));
+        when(anmeldungRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        anmeldungService.reaktivieren(7L);
+
+        assertThat(a.isAbgemeldet()).isFalse();
+        assertThat(a.getAbgemeldetAm()).isNull();
+    }
+
+    @Test
+    void setAnwesenheit_sollAnwesendSetzen() {
+        Anmeldung a = new Anmeldung();
+        when(anmeldungRepository.findById(7L)).thenReturn(Optional.of(a));
+        when(anmeldungRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        anmeldungService.setAnwesenheit(7L, true);
+
+        assertThat(a.isAnwesend()).isTrue();
+    }
+
+    @Test
+    void setAnwesenheit_unbekannteId_sollWerfen() {
+        when(anmeldungRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> anmeldungService.setAnwesenheit(99L, true)).isInstanceOf(NichtGefundenException.class);
+        verify(anmeldungRepository, never()).save(any());
     }
 }

@@ -45,7 +45,7 @@ class SecurityFilterChainTest {
 
     @Test
     void teilnehmer_withoutToken_shouldNotReturn401() throws Exception {
-        mockMvc.perform(get("/api/teilnehmer")).andExpect(status().isNotFound());
+        mockMvc.perform(get("/api/teilnehmer")).andExpect(status().isOk());
     }
 
     @Test

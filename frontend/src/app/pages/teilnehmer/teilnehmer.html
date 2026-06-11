@@ -1,1 +1,72 @@
-<p>teilnehmer works!</p>
+<div class="teilnehmer-page">
+  <div class="teilnehmer-card">
+
+    <!-- ── Header ──────────────────────────────────────────────────────── -->
+    <header class="teilnehmer-header">
+      <div class="bullseye" aria-hidden="true">
+        <div class="ring r1"></div>
+        <div class="ring r2"></div>
+        <div class="ring r3"></div>
+        <div class="center-dot"></div>
+      </div>
+      <h1 class="teilnehmer-title">Teilnehmer</h1>
+      <p class="teilnehmer-subtitle">Wer ist schon dabei?</p>
+    </header>
+
+    <!-- ── Ladezustand ─────────────────────────────────────────────────── -->
+    @if (loading()) {
+      <div class="state-row" role="status">
+        <span class="spinner" aria-hidden="true"></span>
+        Wird geladen…
+      </div>
+    } @else if (error()) {
+      <div class="alert-error" role="alert">
+        Die Teilnehmerliste konnte nicht geladen werden. Bitte später erneut versuchen.
+      </div>
+    } @else if (gruppen().length === 0) {
+      <!-- ── Leerer Zustand ────────────────────────────────────────────── -->
+      <div class="empty-state">
+        <p>Noch keine Anmeldungen.</p>
+      </div>
+    } @else {
+
+      <!-- ── Filter-Chips ──────────────────────────────────────────────── -->
+      <div class="chip-row" role="tablist" aria-label="Disziplin filtern">
+        @for (chip of chips(); track chip.value) {
+          <button
+            type="button"
+            role="tab"
+            class="chip"
+            [class.chip--active]="aktiveDisziplin() === chip.value"
+            [attr.aria-selected]="aktiveDisziplin() === chip.value"
+            (click)="setFilter(chip.value)"
+          >
+            {{ chip.label }}
+            <span class="chip-count">{{ chip.anzahl }}</span>
+          </button>
+        }
+      </div>
+
+      <!-- ── Disziplin-Sektionen ───────────────────────────────────────── -->
+      @for (gruppe of sichtbareGruppen(); track gruppe.disziplin) {
+        <section class="disziplin-section">
+          <h2 class="section-title">
+            {{ gruppe.label }}
+            <span class="section-count">{{ gruppe.anzahl }}</span>
+          </h2>
+
+          <ul class="team-list">
+            @for (team of gruppe.teams; track $index) {
+              <li class="team-item" [class.team-item--named]="team.teamName">
+                @if (team.teamName) {
+                  <span class="team-name">{{ team.teamName }}</span>
+                }
+                <span class="team-members">{{ team.mitglieder.join(', ') }}</span>
+              </li>
+            }
+          </ul>
+        </section>
+      }
+    }
+  </div>
+</div>

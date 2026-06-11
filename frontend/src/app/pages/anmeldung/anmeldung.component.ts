@@ -1,32 +1,9 @@
 import {Component, computed, inject, signal} from '@angular/core';
 import {AbstractControl, FormArray, FormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
 import {HttpClient} from '@angular/common/http';
+import {DISZIPLINEN} from '../../shared/disziplin';
 
 // ── Typen ────────────────────────────────────────────────────────────────────
-
-type Disziplin =
-  | 'HERRENEINZEL'
-  | 'DAMENEINZEL'
-  | 'HERRENDOPPEL'
-  | 'MIXED_DOPPEL'
-  | 'TRIPLE_MIX'
-  | 'TEAMWETTBEWERB';
-
-interface DisziplinMeta {
-  value: Disziplin;
-  label: string;
-  subtitle: string;
-  teamName: boolean; // benötigt Teamname-Feld
-}
-
-const DISZIPLINEN: DisziplinMeta[] = [
-  {value: 'HERRENEINZEL', label: 'Herreneinzel', subtitle: '', teamName: false},
-  {value: 'DAMENEINZEL', label: 'Dameneinzel', subtitle: '', teamName: false},
-  {value: 'HERRENDOPPEL', label: 'Herrendoppel', subtitle: '', teamName: true},
-  {value: 'MIXED_DOPPEL', label: 'Mixed-Doppel', subtitle: 'Mindestens eine Frau', teamName: true},
-  {value: 'TRIPLE_MIX', label: 'Triple Mix', subtitle: 'Mindestens eine Frau', teamName: true},
-  {value: 'TEAMWETTBEWERB', label: 'Teamwettbewerb', subtitle: 'Mindestens 4 Spieler', teamName: true},
-];
 
 const PREIS_PRO_DISZIPLIN = 10;
 

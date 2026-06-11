@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import de.dart.fehmarnopen.dto.TeilnehmerUebersichtResponse;
 import de.dart.fehmarnopen.entity.Anmeldung;
 import de.dart.fehmarnopen.entity.Disziplin;
 import de.dart.fehmarnopen.entity.Teilnehmer;
@@ -125,5 +126,83 @@ class AnmeldungServiceTest {
         anmeldungService.abmelden("unbekannt");
 
         verify(anmeldungRepository, never()).save(any());
+    }
+
+    private Teilnehmer teilnehmer(String vorname, String nachname) {
+        Teilnehmer t = new Teilnehmer();
+        t.setVorname(vorname);
+        t.setNachname(nachname);
+        t.setEmail(vorname + "@example.com");
+        return t;
+    }
+
+    private Anmeldung anmeldung(Teilnehmer t, Disziplin disziplin, String teamName) {
+        Anmeldung a = new Anmeldung();
+        a.setTeilnehmer(t);
+        a.setDisziplin(disziplin);
+        a.setTeamName(teamName);
+        return a;
+    }
+
+    @Test
+    void oeffentlicheUebersicht_sollNachDisziplinInEnumReihenfolgeGruppieren() {
+        when(anmeldungRepository.findByAbgemeldetFalse())
+                .thenReturn(List.of(
+                        anmeldung(teilnehmer("Anna", "Schmidt"), Disziplin.HERRENDOPPEL, "Team A"),
+                        anmeldung(teilnehmer("Bert", "Adam"), Disziplin.HERRENEINZEL, null)));
+
+        TeilnehmerUebersichtResponse result = anmeldungService.oeffentlicheUebersicht();
+
+        assertThat(result.disziplinen())
+                .extracting(TeilnehmerUebersichtResponse.DisziplinGruppe::disziplin)
+                .containsExactly(Disziplin.HERRENEINZEL, Disziplin.HERRENDOPPEL);
+    }
+
+    @Test
+    void oeffentlicheUebersicht_sollAnzahlProDisziplinSetzen() {
+        when(anmeldungRepository.findByAbgemeldetFalse())
+                .thenReturn(List.of(
+                        anmeldung(teilnehmer("Anna", "Schmidt"), Disziplin.HERRENEINZEL, null),
+                        anmeldung(teilnehmer("Bert", "Adam"), Disziplin.HERRENEINZEL, null)));
+
+        TeilnehmerUebersichtResponse result = anmeldungService.oeffentlicheUebersicht();
+
+        assertThat(result.disziplinen()).hasSize(1);
+        assertThat(result.disziplinen().get(0).anzahl()).isEqualTo(2);
+        assertThat(result.disziplinen().get(0).teilnehmer()).hasSize(2);
+    }
+
+    @Test
+    void oeffentlicheUebersicht_sollTeilnehmerNachNachnameSortieren() {
+        when(anmeldungRepository.findByAbgemeldetFalse())
+                .thenReturn(List.of(
+                        anmeldung(teilnehmer("Anna", "Schmidt"), Disziplin.HERRENEINZEL, null),
+                        anmeldung(teilnehmer("Bert", "Adam"), Disziplin.HERRENEINZEL, null)));
+
+        TeilnehmerUebersichtResponse result = anmeldungService.oeffentlicheUebersicht();
+
+        assertThat(result.disziplinen().get(0).teilnehmer())
+                .extracting(TeilnehmerUebersichtResponse.TeilnehmerEintrag::nachname)
+                .containsExactly("Adam", "Schmidt");
+    }
+
+    @Test
+    void oeffentlicheUebersicht_sollTeamNameDurchreichen() {
+        when(anmeldungRepository.findByAbgemeldetFalse())
+                .thenReturn(
+                        List.of(anmeldung(teilnehmer("Anna", "Schmidt"), Disziplin.HERRENDOPPEL, "Die Bullseye Boys")));
+
+        TeilnehmerUebersichtResponse result = anmeldungService.oeffentlicheUebersicht();
+
+        assertThat(result.disziplinen().get(0).teilnehmer().get(0).teamName()).isEqualTo("Die Bullseye Boys");
+    }
+
+    @Test
+    void oeffentlicheUebersicht_ohneAnmeldungen_sollLeereListeZurueckgeben() {
+        when(anmeldungRepository.findByAbgemeldetFalse()).thenReturn(List.of());
+
+        TeilnehmerUebersichtResponse result = anmeldungService.oeffentlicheUebersicht();
+
+        assertThat(result.disziplinen()).isEmpty();
     }
 }

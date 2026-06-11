@@ -1,6 +1,9 @@
 package de.dart.fehmarnopen.service;
 
 import de.dart.fehmarnopen.dto.AnmeldungRequest;
+import de.dart.fehmarnopen.dto.TeilnehmerUebersichtResponse;
+import de.dart.fehmarnopen.dto.TeilnehmerUebersichtResponse.DisziplinGruppe;
+import de.dart.fehmarnopen.dto.TeilnehmerUebersichtResponse.TeilnehmerEintrag;
 import de.dart.fehmarnopen.entity.Anmeldung;
 import de.dart.fehmarnopen.entity.Disziplin;
 import de.dart.fehmarnopen.entity.Teilnehmer;
@@ -8,8 +11,12 @@ import de.dart.fehmarnopen.exception.DoppelteAnmeldungException;
 import de.dart.fehmarnopen.repository.AnmeldungRepository;
 import de.dart.fehmarnopen.repository.TeilnehmerRepository;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -57,6 +64,32 @@ public class AnmeldungService {
     @Transactional(readOnly = true)
     public Optional<Anmeldung> findeByAbmeldetoken(String abmeldetoken) {
         return anmeldungRepository.findByAbmeldetoken(abmeldetoken);
+    }
+
+    @Transactional(readOnly = true)
+    public TeilnehmerUebersichtResponse oeffentlicheUebersicht() {
+        Comparator<Anmeldung> nachName = Comparator.comparing(
+                        (Anmeldung a) -> a.getTeilnehmer().getNachname())
+                .thenComparing(a -> a.getTeilnehmer().getVorname());
+
+        // TreeMap nach Disziplin-Enum sortiert die Gruppen automatisch in deklarierter Reihenfolge.
+        Map<Disziplin, List<Anmeldung>> proDisziplin = anmeldungRepository.findByAbgemeldetFalse().stream()
+                .collect(Collectors.groupingBy(Anmeldung::getDisziplin, TreeMap::new, Collectors.toList()));
+
+        List<DisziplinGruppe> gruppen = proDisziplin.entrySet().stream()
+                .map(entry -> {
+                    List<TeilnehmerEintrag> teilnehmer = entry.getValue().stream()
+                            .sorted(nachName)
+                            .map(a -> new TeilnehmerEintrag(
+                                    a.getTeilnehmer().getVorname(),
+                                    a.getTeilnehmer().getNachname(),
+                                    a.getTeamName()))
+                            .toList();
+                    return new DisziplinGruppe(entry.getKey(), teilnehmer.size(), teilnehmer);
+                })
+                .toList();
+
+        return new TeilnehmerUebersichtResponse(gruppen);
     }
 
     @Transactional

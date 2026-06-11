@@ -97,6 +97,24 @@ class AnmeldungRepositoryTest {
     }
 
     @Test
+    void findByAbgemeldetFalse_sollNurAktiveAnmeldungenZurueckgeben() {
+        Anmeldung aktiv = new Anmeldung();
+        aktiv.setTeilnehmer(teilnehmer);
+        aktiv.setDisziplin(Disziplin.HERRENEINZEL);
+        anmeldungRepository.save(aktiv);
+
+        Anmeldung abgemeldet = new Anmeldung();
+        abgemeldet.setTeilnehmer(teilnehmer);
+        abgemeldet.setDisziplin(Disziplin.HERRENDOPPEL);
+        abgemeldet.setAbgemeldet(true);
+        anmeldungRepository.save(abgemeldet);
+
+        List<Anmeldung> result = anmeldungRepository.findByAbgemeldetFalse();
+
+        assertThat(result).extracting(Anmeldung::getDisziplin).containsExactly(Disziplin.HERRENEINZEL);
+    }
+
+    @Test
     void save_sollAbmeldetokenAutomatischSetzen() {
         Anmeldung anmeldung = new Anmeldung();
         anmeldung.setTeilnehmer(teilnehmer);

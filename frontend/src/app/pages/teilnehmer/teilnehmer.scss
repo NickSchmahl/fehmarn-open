@@ -283,6 +283,46 @@
   border-color: var(--border-focus);
 }
 
+/* ── Admin: Team-Block ──────────────────────────────────── */
+.team-block {
+  margin-bottom: 0.5rem;
+}
+
+.team-block--named {
+  padding: 0.5rem;
+  border: 1px solid var(--border);
+  border-left: 2px solid var(--accent);
+  border-radius: var(--radius);
+  background: rgba(232, 197, 71, 0.04);
+}
+
+.team-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.25rem 0.35rem 0.6rem;
+}
+
+.team-head--abgemeldet {
+  opacity: 0.6;
+}
+
+.team-head-name {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.team-head-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
 /* ── Admin: Zeilen ──────────────────────────────────────── */
 .admin-list {
   list-style: none;

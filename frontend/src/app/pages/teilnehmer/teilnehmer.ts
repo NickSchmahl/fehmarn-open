@@ -1,5 +1,6 @@
 import { Component, computed, inject, signal, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { forkJoin, Observable } from 'rxjs';
 import { Disziplin, disziplinLabel } from '../../shared/disziplin';
 import { AuthService } from '../../auth/service/auth.service';
 
@@ -56,11 +57,20 @@ interface AdminUebersicht {
   disziplinen: AdminGruppe[];
 }
 
+/** Team-Gruppe in der Admin-Liste: Mitglieder einzeln, plus Sammel-Status für Team-Aktionen. */
+export interface AdminTeamGruppe {
+  teamName: string | null;
+  mitglieder: AdminEintrag[];
+  ids: number[];
+  alleAnwesend: boolean;
+  alleAbgemeldet: boolean;
+}
+
 export interface AdminAnzeigeGruppe {
   disziplin: Disziplin;
   label: string;
   anzahl: number;
-  teilnehmer: AdminEintrag[];
+  teams: AdminTeamGruppe[];
 }
 
 type Filter = Disziplin | 'ALLE';
@@ -95,6 +105,39 @@ export function gruppiereNachTeam(eintraege: TeilnehmerEintrag[]): TeamGruppe[] 
   }
 
   return teams;
+}
+
+/**
+ * Gruppiert Admin-Einträge einer Disziplin nach Teamnamen. Mitglieder bleiben einzeln erhalten;
+ * Einträge ohne Teamnamen werden zu je einer Ein-Personen-Gruppe. Liefert pro Gruppe die
+ * Anmeldung-ids sowie Sammel-Flags für Team-Aktionen.
+ */
+export function gruppiereAdminNachTeam(eintraege: AdminEintrag[]): AdminTeamGruppe[] {
+  const roh: { teamName: string | null; mitglieder: AdminEintrag[] }[] = [];
+  const indexByTeam = new Map<string, number>();
+
+  for (const e of eintraege) {
+    const team = e.teamName?.trim() ?? '';
+    if (team === '') {
+      roh.push({ teamName: null, mitglieder: [e] });
+      continue;
+    }
+    const vorhanden = indexByTeam.get(team);
+    if (vorhanden === undefined) {
+      indexByTeam.set(team, roh.length);
+      roh.push({ teamName: team, mitglieder: [e] });
+    } else {
+      roh[vorhanden].mitglieder.push(e);
+    }
+  }
+
+  return roh.map((g) => ({
+    teamName: g.teamName,
+    mitglieder: g.mitglieder,
+    ids: g.mitglieder.map((m) => m.id),
+    alleAnwesend: g.mitglieder.every((m) => m.anwesend),
+    alleAbgemeldet: g.mitglieder.every((m) => m.abgemeldet),
+  }));
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -150,20 +193,26 @@ export class Teilnehmer implements OnInit {
       }));
   });
 
-  /** Admin: gefiltert nach Disziplin + Suchbegriff (Name/E-Mail), Zeilen je Anmeldung. */
+  /**
+   * Admin: gefiltert nach Disziplin + Suchbegriff (Name/E-Mail), innerhalb der Disziplin nach
+   * Teamnamen gruppiert (Einzeldisziplinen = je eine Ein-Personen-Gruppe).
+   */
   readonly sichtbareAdminGruppen = computed<AdminAnzeigeGruppe[]>(() => {
     const aktiv = this.aktiveDisziplin();
     const suche = this.suchbegriff().trim().toLowerCase();
 
     return this.adminGruppen()
       .filter((g) => aktiv === 'ALLE' || g.disziplin === aktiv)
-      .map((g) => ({
-        disziplin: g.disziplin,
-        label: disziplinLabel(g.disziplin),
-        anzahl: g.anzahl,
-        teilnehmer: g.teilnehmer.filter((t) => this.passtZurSuche(t, suche)),
-      }))
-      .filter((g) => g.teilnehmer.length > 0);
+      .map((g) => {
+        const gefiltert = g.teilnehmer.filter((t) => this.passtZurSuche(t, suche));
+        return {
+          disziplin: g.disziplin,
+          label: disziplinLabel(g.disziplin),
+          anzahl: g.anzahl,
+          teams: gruppiereAdminNachTeam(gefiltert),
+        };
+      })
+      .filter((g) => g.teams.length > 0);
   });
 
   ngOnInit(): void {
@@ -198,6 +247,27 @@ export class Teilnehmer implements OnInit {
     this.http.put(`/api/admin/anmeldung/${id}/anwesenheit`, { anwesend }).subscribe({
       next: () => this.ladeAdmin(),
     });
+  }
+
+  // ── Team-Aktionen: bestehende per-id-Endpunkte für alle Mitglieder, danach ein Reload ──
+
+  teamAbmelden(ids: number[]): void {
+    this.batch(ids.map((id) => this.http.post(`/api/admin/anmeldung/${id}/abmelden`, {})));
+  }
+
+  teamReaktivieren(ids: number[]): void {
+    this.batch(ids.map((id) => this.http.post(`/api/admin/anmeldung/${id}/reaktivieren`, {})));
+  }
+
+  teamAnwesenheit(ids: number[], anwesend: boolean): void {
+    this.batch(ids.map((id) => this.http.put(`/api/admin/anmeldung/${id}/anwesenheit`, { anwesend })));
+  }
+
+  private batch(requests: Observable<unknown>[]): void {
+    if (requests.length === 0) {
+      return;
+    }
+    forkJoin(requests).subscribe({ next: () => this.ladeAdmin() });
   }
 
   private passtZurSuche(t: AdminEintrag, suche: string): boolean {

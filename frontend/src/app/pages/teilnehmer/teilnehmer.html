@@ -60,41 +60,68 @@
               <span class="section-count">{{ gruppe.anzahl }}</span>
             </h2>
 
-            <ul class="admin-list">
-              @for (t of gruppe.teilnehmer; track t.id) {
-                <li class="admin-row" [class.admin-row--abgemeldet]="t.abgemeldet">
-                  <div class="admin-row-info">
-                    <span class="admin-name">
-                      {{ t.vorname }} {{ t.nachname }}
-                      @if (t.teamName) { <span class="team-badge">{{ t.teamName }}</span> }
-                      @if (t.abgemeldet) { <span class="status-badge">abgemeldet</span> }
-                    </span>
-                    <span class="admin-email">{{ t.email }}</span>
-                  </div>
-
-                  <div class="admin-row-actions">
-                    <label class="anwesend-toggle">
-                      <input
-                        type="checkbox"
-                        [checked]="t.anwesend"
-                        (change)="toggleAnwesenheit(t.id, !t.anwesend)"
-                      />
-                      anwesend
-                    </label>
-
-                    @if (t.abgemeldet) {
-                      <button type="button" class="btn btn-ghost" (click)="reaktivieren(t.id)">
-                        Reaktivieren
+            @for (team of gruppe.teams; track team.teamName ?? team.ids[0]) {
+              <div class="team-block" [class.team-block--named]="team.teamName">
+                @if (team.teamName) {
+                  <div class="team-head" [class.team-head--abgemeldet]="team.alleAbgemeldet">
+                    <span class="team-head-name">{{ team.teamName }}</span>
+                    <div class="team-head-actions">
+                      <button
+                        type="button"
+                        class="btn btn-ghost"
+                        (click)="teamAnwesenheit(team.ids, !team.alleAnwesend)"
+                      >
+                        {{ team.alleAnwesend ? 'Alle abwesend' : 'Alle anwesend' }}
                       </button>
-                    } @else {
-                      <button type="button" class="btn btn-danger" (click)="abmelden(t.id)">
-                        Abmelden
-                      </button>
-                    }
+                      @if (team.alleAbgemeldet) {
+                        <button type="button" class="btn btn-ghost" (click)="teamReaktivieren(team.ids)">
+                          Team reaktivieren
+                        </button>
+                      } @else {
+                        <button type="button" class="btn btn-danger" (click)="teamAbmelden(team.ids)">
+                          Team abmelden
+                        </button>
+                      }
+                    </div>
                   </div>
-                </li>
-              }
-            </ul>
+                }
+
+                <ul class="admin-list">
+                  @for (t of team.mitglieder; track t.id) {
+                    <li class="admin-row" [class.admin-row--abgemeldet]="t.abgemeldet">
+                      <div class="admin-row-info">
+                        <span class="admin-name">
+                          {{ t.vorname }} {{ t.nachname }}
+                          @if (t.abgemeldet) { <span class="status-badge">abgemeldet</span> }
+                        </span>
+                        <span class="admin-email">{{ t.email }}</span>
+                      </div>
+
+                      <div class="admin-row-actions">
+                        <label class="anwesend-toggle">
+                          <input
+                            type="checkbox"
+                            [checked]="t.anwesend"
+                            (change)="toggleAnwesenheit(t.id, !t.anwesend)"
+                          />
+                          anwesend
+                        </label>
+
+                        @if (t.abgemeldet) {
+                          <button type="button" class="btn btn-ghost" (click)="reaktivieren(t.id)">
+                            Reaktivieren
+                          </button>
+                        } @else {
+                          <button type="button" class="btn btn-danger" (click)="abmelden(t.id)">
+                            Abmelden
+                          </button>
+                        }
+                      </div>
+                    </li>
+                  }
+                </ul>
+              </div>
+            }
           </section>
         }
       }

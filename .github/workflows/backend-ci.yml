@@ -24,10 +24,10 @@ jobs:
           cache: 'maven'
 
       - name: Formatierung prüfen (Spotless)
-        run: mvn spotless:check
+        run: ./mvnw spotless:check
 
       - name: Build und Tests
-        run: mvn verify
+        run: ./mvnw verify
 
   frontend:
     runs-on: ubuntu-latest

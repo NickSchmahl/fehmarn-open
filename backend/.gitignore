@@ -1,3 +1,6 @@
+# static assets aus dem frontend
+src/main/resources/static
+
 # Compiled
 target/
 *.class

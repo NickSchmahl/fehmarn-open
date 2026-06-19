@@ -46,6 +46,8 @@ fehmarnopen:
     from: ${MAIL_FROM:noreply@fehmarn-open.de}
     enabled: ${MAIL_ENABLED:true}
 app:
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:4200}
   jwt:
     secret: ${JWT_SECRET}
     expiration-ms: ${JWT_EXPIRATION_MS:3600000}

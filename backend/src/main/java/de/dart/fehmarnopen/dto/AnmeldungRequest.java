@@ -13,8 +13,7 @@ public record AnmeldungRequest(
         @NotBlank(message = "Nachname ist Pflichtfeld") String nachname,
         @NotBlank(message = "E-Mail ist Pflichtfeld") @Email(message = "Ungültige E-Mail-Adresse") String email,
         String radicalId,
-        @NotEmpty(message = "Mindestens eine Disziplin muss gewählt sein")
-                List<@Valid DisziplinAnmeldung> disziplinen) {
+        @NotEmpty(message = "Mindestens eine Disziplin muss gewählt sein") List<@Valid DisziplinAnmeldung> disziplinen) {
     public record DisziplinAnmeldung(
             @NotNull(message = "Disziplin darf nicht leer sein") Disziplin disziplin, String teamName) {}
 }

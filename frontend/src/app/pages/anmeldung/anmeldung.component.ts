@@ -7,6 +7,22 @@ import {DISZIPLINEN} from '../../shared/disziplin';
 
 const PREIS_PRO_DISZIPLIN = 10;
 
+/** Extrahiert typsicher eine Fehlermeldung aus einem unbekannten Fehlerobjekt. */
+function extractFehlermeldung(err: unknown): string {
+  if (typeof err === 'object' && err !== null) {
+    const backendError = (err as { error?: unknown }).error;
+    if (typeof backendError === 'object' && backendError !== null && 'message' in backendError) {
+      const message = (backendError).message;
+      if (typeof message === 'string') return message;
+    }
+    if ('message' in err) {
+      const message = (err).message;
+      if (typeof message === 'string') return message;
+    }
+  }
+  return 'Unbekannter Fehler';
+}
+
 // ── Component ────────────────────────────────────────────────────────────────
 
 @Component({
@@ -44,7 +60,7 @@ export class AnmeldungComponent {
         })
       )
     ),
-  }, {validators: this.mindestensEineDisziplinValidator});
+  }, {validators: (group: AbstractControl) => this.mindestensEineDisziplinValidator(group)});
 
   get disziplinenArray(): FormArray {
     return this.form.get('disziplinen') as FormArray;
@@ -76,13 +92,15 @@ export class AnmeldungComponent {
 
   constructor() {
     this.form.valueChanges.subscribe(() =>
-      this._formValue.set(this.form.getRawValue())
+      { this._formValue.set(this.form.getRawValue()); }
     );
 
     // Teamname-Pflichtfeld dynamisch setzen
     this.disziplinenArray.controls.forEach((ctrl, i) => {
-      ctrl.get('selected')!.valueChanges.subscribe(checked => {
-        const teamNameCtrl = ctrl.get('teamName')!;
+      const selectedCtrl = ctrl.get('selected');
+      const teamNameCtrl = ctrl.get('teamName');
+      if (!selectedCtrl || !teamNameCtrl) return;
+      selectedCtrl.valueChanges.subscribe(checked => {
         const needsTeam = DISZIPLINEN[i].teamName;
         if (needsTeam && checked) {
           teamNameCtrl.setValidators([Validators.required]);
@@ -106,25 +124,25 @@ export class AnmeldungComponent {
   }
 
   teamNameInvalid(i: number): boolean {
-    const ctrl = this.disziplinenArray.at(i).get('teamName')!;
-    return ctrl.invalid && ctrl.touched;
+    const ctrl = this.disziplinenArray.at(i).get('teamName');
+    return ctrl !== null && ctrl.invalid && ctrl.touched;
   }
 
-  /** Shortcut-Getter für Template-Validierungsfeedback */
+  /** Shortcut-Getter für Template-Validierungsfeedback (typisierte Controls) */
   get vorname() {
-    return this.form.get('vorname')!;
+    return this.form.controls.vorname;
   }
 
   get nachname() {
-    return this.form.get('nachname')!;
+    return this.form.controls.nachname;
   }
 
   get email() {
-    return this.form.get('email')!;
+    return this.form.controls.email;
   }
 
   get radicalId() {
-    return this.form.get('radicalId')!;
+    return this.form.controls.radicalId;
   }
 
   // ── Validator ────────────────────────────────────────────────────────────
@@ -142,10 +160,10 @@ export class AnmeldungComponent {
     if (this.form.invalid) return;
 
     // Nur ausgewählte Disziplinen ans Backend schicken
-    const rawDisziplinen = (this.form.value.disziplinen ?? []) as Array<{
+    const rawDisziplinen = (this.form.value.disziplinen ?? []) as {
       selected: boolean;
       teamName: string;
-    }>;
+    }[];
 
     const selectedDisziplinen = rawDisziplinen
       .map((d, i) => ({...d, meta: DISZIPLINEN[i]}))
@@ -159,6 +177,8 @@ export class AnmeldungComponent {
       vorname: this.form.value.vorname,
       nachname: this.form.value.nachname,
       email: this.form.value.email,
+      // Bewusst `||`: ein leeres Eingabefeld ('') soll ebenfalls zu null werden.
+      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
       radicalId: this.form.value.radicalId || null,
       disziplinen: selectedDisziplinen,
     };
@@ -174,10 +194,9 @@ export class AnmeldungComponent {
         this.form.reset();
         this._formValue.set(this.form.getRawValue());
       },
-      error: err => {
+      error: (err: unknown) => {
         this.loading.set(false);
-        const msg = err?.error?.message ?? err?.message ?? 'Unbekannter Fehler';
-        this.errorMessage.set(`Fehler bei der Anmeldung: ${msg}`);
+        this.errorMessage.set(`Fehler bei der Anmeldung: ${extractFehlermeldung(err)}`);
       },
     });
   }

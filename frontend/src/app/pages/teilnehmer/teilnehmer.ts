@@ -75,6 +75,12 @@ export interface AdminAnzeigeGruppe {
 
 type Filter = Disziplin | 'ALLE';
 
+interface FilterChip {
+  value: Filter;
+  label: string;
+  anzahl: number;
+}
+
 // ── Hilfsfunktion ─────────────────────────────────────────────────────────────
 
 /**
@@ -167,13 +173,13 @@ export class Teilnehmer implements OnInit {
   readonly suchbegriff = signal('');
 
   /** Filter-Chips: "Alle" + jede vorhandene Disziplin mit Anzahl. */
-  readonly chips = computed(() => {
+  readonly chips = computed<FilterChip[]>(() => {
     const quelle = this.isAdmin() ? this.adminGruppen() : this.gruppen();
     const gesamt = quelle.reduce((sum, g) => sum + g.anzahl, 0);
     return [
-      { value: 'ALLE' as Filter, label: 'Alle', anzahl: gesamt },
+      { value: 'ALLE', label: 'Alle', anzahl: gesamt },
       ...quelle.map((g) => ({
-        value: g.disziplin as Filter,
+        value: g.disziplin,
         label: disziplinLabel(g.disziplin),
         anzahl: g.anzahl,
       })),
@@ -233,19 +239,19 @@ export class Teilnehmer implements OnInit {
 
   abmelden(id: number): void {
     this.http.post(`/api/admin/anmeldung/${id}/abmelden`, {}).subscribe({
-      next: () => this.ladeAdmin(),
+      next: () => { this.ladeAdmin(); },
     });
   }
 
   reaktivieren(id: number): void {
     this.http.post(`/api/admin/anmeldung/${id}/reaktivieren`, {}).subscribe({
-      next: () => this.ladeAdmin(),
+      next: () => { this.ladeAdmin(); },
     });
   }
 
   toggleAnwesenheit(id: number, anwesend: boolean): void {
     this.http.put(`/api/admin/anmeldung/${id}/anwesenheit`, { anwesend }).subscribe({
-      next: () => this.ladeAdmin(),
+      next: () => { this.ladeAdmin(); },
     });
   }
 
@@ -267,7 +273,7 @@ export class Teilnehmer implements OnInit {
     if (requests.length === 0) {
       return;
     }
-    forkJoin(requests).subscribe({ next: () => this.ladeAdmin() });
+    forkJoin(requests).subscribe({ next: () => { this.ladeAdmin(); } });
   }
 
   private passtZurSuche(t: AdminEintrag, suche: string): boolean {

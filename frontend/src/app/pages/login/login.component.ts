@@ -41,12 +41,14 @@ export class AdminLoginComponent {
     this.authService.login(username, password).subscribe({
       next: () => {
         this.loading.set(false);
-        this.router.navigate(['/teilnehmer']);
+        void this.router.navigate(['/teilnehmer']);
       },
-      error: (err) => {
+      error: (err: unknown) => {
         this.loading.set(false);
+        const unauthorized =
+          typeof err === 'object' && err !== null && 'status' in err && err.status === 401;
         this.errorMessage.set(
-          err.status === 401
+          unauthorized
             ? 'Benutzername oder Passwort falsch.'
             : 'AnmeldungComponent fehlgeschlagen. Bitte später erneut versuchen.'
         );

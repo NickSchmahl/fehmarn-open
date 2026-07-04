@@ -35,7 +35,7 @@ describe('globalHttpErrorInterceptor', () => {
     httpTesting = TestBed.inject(HttpTestingController);
   });
 
-  afterEach(() => httpTesting.verify());
+  afterEach(() => { httpTesting.verify(); });
 
   it('ruft den ErrorNotificationService bei einem 500-Fehler auf', () => {
     http.get('/api/test').subscribe({ error: () => {} });

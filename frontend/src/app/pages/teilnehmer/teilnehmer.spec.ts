@@ -120,7 +120,7 @@ describe('Teilnehmer (öffentlich)', () => {
     ({ fixture, component, httpTesting } = setup(false));
   });
 
-  afterEach(() => httpTesting.verify());
+  afterEach(() => { httpTesting.verify(); });
 
   it('should create', () => {
     expect(component).toBeTruthy();
@@ -210,7 +210,7 @@ describe('Teilnehmer (admin)', () => {
     ({ fixture, component, httpTesting } = setup(true));
   });
 
-  afterEach(() => httpTesting.verify());
+  afterEach(() => { httpTesting.verify(); });
 
   it('lädt als Admin die Admin-Übersicht von GET /api/admin/teilnehmer', () => {
     fixture.detectChanges();

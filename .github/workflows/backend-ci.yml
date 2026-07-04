@@ -48,6 +48,9 @@ jobs:
       - name: Dependencies installieren
         run: npm ci
 
+      - name: Linting (ESLint)
+        run: npm run lint
+
       - name: Tests
         run: npm test -- --watch=false --browsers=ChromeHeadless
 

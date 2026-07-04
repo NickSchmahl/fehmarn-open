@@ -17,14 +17,14 @@ export class AuthService {
     return this.http
       .post<LoginResponse>('/api/auth/login', {username, password})
       .pipe(
-        tap(({token}) => localStorage.setItem(AuthService.TOKEN_KEY, token)),
+        tap(({token}) => { localStorage.setItem(AuthService.TOKEN_KEY, token); }),
         map(() => void 0)
       );
   }
 
   logout(): void {
     localStorage.removeItem(AuthService.TOKEN_KEY);
-    this.router.navigate(['/admin/login']);
+    void this.router.navigate(['/admin/login']);
   }
 
   getToken(): string | null {

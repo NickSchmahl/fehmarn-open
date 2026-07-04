@@ -1,16 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
-import {
-  HttpTestingController,
-  provideHttpClientTesting,
-} from '@angular/common/http/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 
-import {
-  Teilnehmer,
-  gruppiereNachTeam,
-  gruppiereAdminNachTeam,
-  AdminEintrag,
-} from './teilnehmer';
+import { Teilnehmer, gruppiereNachTeam, gruppiereAdminNachTeam, AdminEintrag } from './teilnehmer';
 import { AuthService } from '../../auth/service/auth.service';
 
 function adminEintrag(over: Partial<AdminEintrag>): AdminEintrag {
@@ -51,9 +43,7 @@ describe('gruppiereNachTeam', () => {
   });
 
   it('behandelt leeren/whitespace-Teamnamen wie Einzelspieler', () => {
-    const teams = gruppiereNachTeam([
-      { vorname: 'Anna', nachname: 'Schmidt', teamName: '  ' },
-    ]);
+    const teams = gruppiereNachTeam([{ vorname: 'Anna', nachname: 'Schmidt', teamName: '  ' }]);
 
     expect(teams).toEqual([{ teamName: null, mitglieder: ['Anna Schmidt'] }]);
   });
@@ -120,7 +110,9 @@ describe('Teilnehmer (öffentlich)', () => {
     ({ fixture, component, httpTesting } = setup(false));
   });
 
-  afterEach(() => { httpTesting.verify(); });
+  afterEach(() => {
+    httpTesting.verify();
+  });
 
   it('should create', () => {
     expect(component).toBeTruthy();
@@ -210,7 +202,9 @@ describe('Teilnehmer (admin)', () => {
     ({ fixture, component, httpTesting } = setup(true));
   });
 
-  afterEach(() => { httpTesting.verify(); });
+  afterEach(() => {
+    httpTesting.verify();
+  });
 
   it('lädt als Admin die Admin-Übersicht von GET /api/admin/teilnehmer', () => {
     fixture.detectChanges();

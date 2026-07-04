@@ -1,7 +1,13 @@
-import {Component, computed, inject, signal} from '@angular/core';
-import {AbstractControl, FormArray, FormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
-import {HttpClient} from '@angular/common/http';
-import {DISZIPLINEN} from '../../shared/disziplin';
+import { Component, computed, inject, signal } from '@angular/core';
+import {
+  AbstractControl,
+  FormArray,
+  FormBuilder,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
+import { DISZIPLINEN } from '../../shared/disziplin';
 
 // ── Typen ────────────────────────────────────────────────────────────────────
 
@@ -12,11 +18,11 @@ function extractFehlermeldung(err: unknown): string {
   if (typeof err === 'object' && err !== null) {
     const backendError = (err as { error?: unknown }).error;
     if (typeof backendError === 'object' && backendError !== null && 'message' in backendError) {
-      const message = (backendError).message;
+      const message = backendError.message;
       if (typeof message === 'string') return message;
     }
     if ('message' in err) {
-      const message = (err).message;
+      const message = err.message;
       if (typeof message === 'string') return message;
     }
   }
@@ -47,20 +53,23 @@ export class AnmeldungComponent {
 
   // ── Formular ────────────────────────────────────────────────────────────
 
-  form = this.formBuilder.group({
-    vorname: ['', [Validators.required]],
-    nachname: ['', [Validators.required]],
-    email: ['', [Validators.required, Validators.email]],
-    radicalId: [''],
-    disziplinen: this.formBuilder.array(
-      DISZIPLINEN.map(() =>
-        this.formBuilder.group({
-          selected: [false],
-          teamName: [''],
-        })
-      )
-    ),
-  }, {validators: (group: AbstractControl) => this.mindestensEineDisziplinValidator(group)});
+  form = this.formBuilder.group(
+    {
+      vorname: ['', [Validators.required]],
+      nachname: ['', [Validators.required]],
+      email: ['', [Validators.required, Validators.email]],
+      radicalId: [''],
+      disziplinen: this.formBuilder.array(
+        DISZIPLINEN.map(() =>
+          this.formBuilder.group({
+            selected: [false],
+            teamName: [''],
+          }),
+        ),
+      ),
+    },
+    { validators: (group: AbstractControl) => this.mindestensEineDisziplinValidator(group) },
+  );
 
   get disziplinenArray(): FormArray {
     return this.form.get('disziplinen') as FormArray;
@@ -76,10 +85,9 @@ export class AnmeldungComponent {
   selectedCount = computed(() => {
     // Wir lesen den Formwert reaktiv über ein Signal, das bei
     // valueChanges aktualisiert wird (s.u. via trackFormValue).
-    return this._formValue()
-      .disziplinen
-      .filter((d: { selected: boolean | null }) => d.selected === true)
-      .length;
+    return this._formValue().disziplinen.filter(
+      (d: { selected: boolean | null }) => d.selected === true,
+    ).length;
   });
 
   gesamtpreis = computed(() => this.selectedCount() * PREIS_PRO_DISZIPLIN);
@@ -91,16 +99,16 @@ export class AnmeldungComponent {
   private _formValue = signal(this.form.getRawValue());
 
   constructor() {
-    this.form.valueChanges.subscribe(() =>
-      { this._formValue.set(this.form.getRawValue()); }
-    );
+    this.form.valueChanges.subscribe(() => {
+      this._formValue.set(this.form.getRawValue());
+    });
 
     // Teamname-Pflichtfeld dynamisch setzen
     this.disziplinenArray.controls.forEach((ctrl, i) => {
       const selectedCtrl = ctrl.get('selected');
       const teamNameCtrl = ctrl.get('teamName');
       if (!selectedCtrl || !teamNameCtrl) return;
-      selectedCtrl.valueChanges.subscribe(checked => {
+      selectedCtrl.valueChanges.subscribe((checked) => {
         const needsTeam = DISZIPLINEN[i].teamName;
         if (needsTeam && checked) {
           teamNameCtrl.setValidators([Validators.required]);
@@ -149,8 +157,8 @@ export class AnmeldungComponent {
 
   private mindestensEineDisziplinValidator(group: AbstractControl) {
     const arr = (group.get('disziplinen') as FormArray).controls;
-    const anySelected = arr.some(c => c.get('selected')?.value === true);
-    return anySelected ? null : {noDisziplin: true};
+    const anySelected = arr.some((c) => c.get('selected')?.value === true);
+    return anySelected ? null : { noDisziplin: true };
   }
 
   // ── Submit ───────────────────────────────────────────────────────────────
@@ -166,9 +174,9 @@ export class AnmeldungComponent {
     }[];
 
     const selectedDisziplinen = rawDisziplinen
-      .map((d, i) => ({...d, meta: DISZIPLINEN[i]}))
-      .filter(d => d.selected)
-      .map(d => ({
+      .map((d, i) => ({ ...d, meta: DISZIPLINEN[i] }))
+      .filter((d) => d.selected)
+      .map((d) => ({
         disziplin: d.meta.value,
         teamName: d.teamName || null,
       }));

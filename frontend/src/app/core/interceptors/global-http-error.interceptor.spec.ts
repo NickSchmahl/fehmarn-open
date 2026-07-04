@@ -1,13 +1,6 @@
 import { TestBed } from '@angular/core/testing';
-import {
-  HttpClient,
-  provideHttpClient,
-  withInterceptors,
-} from '@angular/common/http';
-import {
-  HttpTestingController,
-  provideHttpClientTesting,
-} from '@angular/common/http/testing';
+import { HttpClient, provideHttpClient, withInterceptors } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { globalHttpErrorInterceptor } from './global-http-error.interceptor';
 import { ErrorNotificationService } from '../services/error-notification.service';
 
@@ -35,17 +28,15 @@ describe('globalHttpErrorInterceptor', () => {
     httpTesting = TestBed.inject(HttpTestingController);
   });
 
-  afterEach(() => { httpTesting.verify(); });
+  afterEach(() => {
+    httpTesting.verify();
+  });
 
   it('ruft den ErrorNotificationService bei einem 500-Fehler auf', () => {
     http.get('/api/test').subscribe({ error: () => {} });
-    httpTesting
-      .expectOne('/api/test')
-      .flush('', { status: 500, statusText: 'Server Error' });
+    httpTesting.expectOne('/api/test').flush('', { status: 500, statusText: 'Server Error' });
 
-    expect(notificationMock.handle).toHaveBeenCalledWith(
-      expect.objectContaining({ status: 500 })
-    );
+    expect(notificationMock.handle).toHaveBeenCalledWith(expect.objectContaining({ status: 500 }));
   });
 
   it('ruft den ErrorNotificationService bei einem 503-Fehler auf', () => {
@@ -54,18 +45,14 @@ describe('globalHttpErrorInterceptor', () => {
       .expectOne('/api/test')
       .flush('', { status: 503, statusText: 'Service Unavailable' });
 
-    expect(notificationMock.handle).toHaveBeenCalledWith(
-      expect.objectContaining({ status: 503 })
-    );
+    expect(notificationMock.handle).toHaveBeenCalledWith(expect.objectContaining({ status: 503 }));
   });
 
   it('ruft den ErrorNotificationService bei einem Netzwerkfehler (status 0) auf', () => {
     http.get('/api/test').subscribe({ error: () => {} });
     httpTesting.expectOne('/api/test').error(new ProgressEvent('error'));
 
-    expect(notificationMock.handle).toHaveBeenCalledWith(
-      expect.objectContaining({ status: 0 })
-    );
+    expect(notificationMock.handle).toHaveBeenCalledWith(expect.objectContaining({ status: 0 }));
   });
 
   it('leitet den Fehler weiter, damit Komponenten selbst reagieren können', (done) => {
@@ -75,25 +62,19 @@ describe('globalHttpErrorInterceptor', () => {
         done();
       },
     });
-    httpTesting
-      .expectOne('/api/test')
-      .flush('', { status: 500, statusText: 'Server Error' });
+    httpTesting.expectOne('/api/test').flush('', { status: 500, statusText: 'Server Error' });
   });
 
   it('ruft den ErrorNotificationService bei einem 400-Fehler NICHT auf', () => {
     http.get('/api/test').subscribe({ error: () => {} });
-    httpTesting
-      .expectOne('/api/test')
-      .flush('', { status: 400, statusText: 'Bad Request' });
+    httpTesting.expectOne('/api/test').flush('', { status: 400, statusText: 'Bad Request' });
 
     expect(notificationMock.handle).not.toHaveBeenCalled();
   });
 
   it('ruft den ErrorNotificationService bei einem 404-Fehler NICHT auf', () => {
     http.get('/api/test').subscribe({ error: () => {} });
-    httpTesting
-      .expectOne('/api/test')
-      .flush('', { status: 404, statusText: 'Not Found' });
+    httpTesting.expectOne('/api/test').flush('', { status: 404, statusText: 'Not Found' });
 
     expect(notificationMock.handle).not.toHaveBeenCalled();
   });

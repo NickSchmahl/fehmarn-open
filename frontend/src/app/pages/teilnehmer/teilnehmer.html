@@ -1,6 +1,5 @@
 <div class="teilnehmer-page">
   <div class="teilnehmer-card">
-
     <!-- ── Header ──────────────────────────────────────────────────────── -->
     <header class="teilnehmer-header">
       <div class="bullseye" aria-hidden="true">
@@ -11,7 +10,11 @@
       </div>
       <h1 class="teilnehmer-title">Teilnehmer</h1>
       <p class="teilnehmer-subtitle">
-        @if (isAdmin()) { Verwaltung } @else { Wer ist schon dabei? }
+        @if (isAdmin()) {
+          Verwaltung
+        } @else {
+          Wer ist schon dabei?
+        }
       </p>
     </header>
 
@@ -25,7 +28,6 @@
         Die Teilnehmerliste konnte nicht geladen werden. Bitte später erneut versuchen.
       </div>
     } @else if (isAdmin()) {
-
       <!-- ══ Admin-Modus ═════════════════════════════════════════════════ -->
       @if (adminGruppen().length === 0) {
         <div class="empty-state"><p>Noch keine Anmeldungen.</p></div>
@@ -74,11 +76,19 @@
                         {{ team.alleAnwesend ? 'Alle abwesend' : 'Alle anwesend' }}
                       </button>
                       @if (team.alleAbgemeldet) {
-                        <button type="button" class="btn btn-ghost" (click)="teamReaktivieren(team.ids)">
+                        <button
+                          type="button"
+                          class="btn btn-ghost"
+                          (click)="teamReaktivieren(team.ids)"
+                        >
                           Team reaktivieren
                         </button>
                       } @else {
-                        <button type="button" class="btn btn-danger" (click)="teamAbmelden(team.ids)">
+                        <button
+                          type="button"
+                          class="btn btn-danger"
+                          (click)="teamAbmelden(team.ids)"
+                        >
                           Team abmelden
                         </button>
                       }
@@ -92,7 +102,9 @@
                       <div class="admin-row-info">
                         <span class="admin-name">
                           {{ t.vorname }} {{ t.nachname }}
-                          @if (t.abgemeldet) { <span class="status-badge">abgemeldet</span> }
+                          @if (t.abgemeldet) {
+                            <span class="status-badge">abgemeldet</span>
+                          }
                         </span>
                         <span class="admin-email">{{ t.email }}</span>
                       </div>
@@ -125,11 +137,9 @@
           </section>
         }
       }
-
     } @else if (gruppen().length === 0) {
       <div class="empty-state"><p>Noch keine Anmeldungen.</p></div>
     } @else {
-
       <!-- ══ Öffentlicher Modus ══════════════════════════════════════════ -->
       <div class="chip-row" role="tablist" aria-label="Disziplin filtern">
         @for (chip of chips(); track chip.value) {

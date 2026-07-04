@@ -1,7 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
-import {RouterLink, RouterLinkActive, RouterOutlet} from '@angular/router';
-import {ToastComponent} from './ui/toast/toast.component';
-import {AuthService} from './auth/service/auth.service';
+import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { ToastComponent } from './ui/toast/toast.component';
+import { AuthService } from './auth/service/auth.service';
 
 @Component({
   selector: 'app-root',

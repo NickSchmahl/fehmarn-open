@@ -1,6 +1,5 @@
 <div class="anmeldung-page">
   <div class="anmeldung-card">
-
     <!-- ── Header ──────────────────────────────────────────────────────── -->
     <header class="anmeldung-header">
       <div class="bullseye" aria-hidden="true">
@@ -10,22 +9,29 @@
         <div class="center-dot"></div>
       </div>
       <h1 class="anmeldung-title">Turnieranmeldung</h1>
-      <p class="anmeldung-subtitle">Darts Turnierverwaltung · {{ preisProDisziplin }} € je Disziplin</p>
+      <p class="anmeldung-subtitle">
+        Darts Turnierverwaltung · {{ preisProDisziplin }} € je Disziplin
+      </p>
     </header>
 
     <!-- ── Erfolgs-Banner ──────────────────────────────────────────────── -->
     @if (successMsg()) {
       <div class="alert-success" role="status">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-          <circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.5"/>
-          <path d="M5 8l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.5" />
+          <path
+            d="M5 8l2 2 4-4"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
         </svg>
         {{ successMsg() }}
       </div>
     }
 
     <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate class="anmeldung-form">
-
       <!-- ── Persönliche Daten ──────────────────────────────────────────── -->
       <section class="form-section">
         <h2 class="section-title">Persönliche Daten</h2>
@@ -50,7 +56,9 @@
 
           <!-- Nachname -->
           <div class="field-group">
-            <label for="nachname" class="field-label">Nachname <span class="required">*</span></label>
+            <label for="nachname" class="field-label"
+              >Nachname <span class="required">*</span></label
+            >
             <input
               id="nachname"
               type="text"
@@ -99,9 +107,21 @@
             placeholder="MM-12345"
           />
           <p class="field-hint">
-            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true" class="hint-icon">
-              <circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.5"/>
-              <path d="M8 7v5M8 5v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <svg
+              width="13"
+              height="13"
+              viewBox="0 0 16 16"
+              fill="none"
+              aria-hidden="true"
+              class="hint-icon"
+            >
+              <circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.5" />
+              <path
+                d="M8 7v5M8 5v.5"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+              />
             </svg>
             Noch keine Radical ID? Das Format ist
             <strong>Initialen-Nummer</strong>, z.&nbsp;B.&nbsp;<code>MM-12345</code>
@@ -115,9 +135,7 @@
         <h2 class="section-title">Disziplinen</h2>
 
         @if (form.errors?.['noDisziplin'] && form.touched) {
-          <div class="alert-error" role="alert">
-            Bitte wähle mindestens eine Disziplin aus.
-          </div>
+          <div class="alert-error" role="alert">Bitte wähle mindestens eine Disziplin aus.</div>
         }
 
         <div class="disziplin-grid">
@@ -137,7 +155,13 @@
                   />
                   <span class="disziplin-custom-check" aria-hidden="true">
                     <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                      <path d="M2 5l2.5 2.5L8 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                      <path
+                        d="M2 5l2.5 2.5L8 3"
+                        stroke="currentColor"
+                        stroke-width="1.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      />
                     </svg>
                   </span>
                   <span class="disziplin-name">{{ disziplin.label }}</span>
@@ -175,8 +199,8 @@
         <div class="price-summary">
           <div class="price-row">
             <span class="price-label">
-              {{ selectedCount() }} {{ selectedCount() === 1 ? 'Disziplin' : 'Disziplinen' }}
-              × {{ preisProDisziplin }}&nbsp;€
+              {{ selectedCount() }} {{ selectedCount() === 1 ? 'Disziplin' : 'Disziplinen' }} ×
+              {{ preisProDisziplin }}&nbsp;€
             </span>
             <span class="price-total">{{ gesamtpreis() }}&nbsp;€</span>
           </div>
@@ -189,11 +213,7 @@
       }
 
       <!-- ── Submit ─────────────────────────────────────────────────────── -->
-      <button
-        type="submit"
-        class="submit-btn"
-        [disabled]="loading()"
-      >
+      <button type="submit" class="submit-btn" [disabled]="loading()">
         @if (loading()) {
           <span class="spinner" aria-hidden="true"></span>
           Wird angemeldet…
@@ -201,7 +221,6 @@
           Jetzt anmelden
         }
       </button>
-
     </form>
   </div>
 </div>

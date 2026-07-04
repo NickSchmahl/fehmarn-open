@@ -48,6 +48,9 @@ jobs:
       - name: Dependencies installieren
         run: npm ci
 
+      - name: Formatierung prüfen (Prettier)
+        run: npm run format:check
+
       - name: Linting (ESLint)
         run: npm run lint
 

@@ -239,19 +239,25 @@ export class Teilnehmer implements OnInit {
 
   abmelden(id: number): void {
     this.http.post(`/api/admin/anmeldung/${id}/abmelden`, {}).subscribe({
-      next: () => { this.ladeAdmin(); },
+      next: () => {
+        this.ladeAdmin();
+      },
     });
   }
 
   reaktivieren(id: number): void {
     this.http.post(`/api/admin/anmeldung/${id}/reaktivieren`, {}).subscribe({
-      next: () => { this.ladeAdmin(); },
+      next: () => {
+        this.ladeAdmin();
+      },
     });
   }
 
   toggleAnwesenheit(id: number, anwesend: boolean): void {
     this.http.put(`/api/admin/anmeldung/${id}/anwesenheit`, { anwesend }).subscribe({
-      next: () => { this.ladeAdmin(); },
+      next: () => {
+        this.ladeAdmin();
+      },
     });
   }
 
@@ -266,14 +272,20 @@ export class Teilnehmer implements OnInit {
   }
 
   teamAnwesenheit(ids: number[], anwesend: boolean): void {
-    this.batch(ids.map((id) => this.http.put(`/api/admin/anmeldung/${id}/anwesenheit`, { anwesend })));
+    this.batch(
+      ids.map((id) => this.http.put(`/api/admin/anmeldung/${id}/anwesenheit`, { anwesend })),
+    );
   }
 
   private batch(requests: Observable<unknown>[]): void {
     if (requests.length === 0) {
       return;
     }
-    forkJoin(requests).subscribe({ next: () => { this.ladeAdmin(); } });
+    forkJoin(requests).subscribe({
+      next: () => {
+        this.ladeAdmin();
+      },
+    });
   }
 
   private passtZurSuche(t: AdminEintrag, suche: string): boolean {

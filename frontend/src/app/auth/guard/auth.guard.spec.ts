@@ -20,19 +20,14 @@ describe('authGuard', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [
-        provideRouter([]),
-        provideHttpClient(),
-        provideHttpClientTesting(),
-      ],
+      providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()],
     });
 
     authService = TestBed.inject(AuthService);
     router = TestBed.inject(Router);
   });
 
-  const runGuard = () =>
-    TestBed.runInInjectionContext(() => authGuard(mockRoute, mockState));
+  const runGuard = () => TestBed.runInInjectionContext(() => authGuard(mockRoute, mockState));
 
   it('should return true when user is logged in', () => {
     jest.spyOn(authService, 'isLoggedIn').mockReturnValue(true);

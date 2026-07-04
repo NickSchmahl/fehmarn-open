@@ -53,7 +53,12 @@
   border-radius: 50%;
   background:
     radial-gradient(circle at center, var(--accent) 0 4px, transparent 5px),
-    radial-gradient(circle at center, transparent 0 11px, var(--text-dim) 12px 13px, transparent 14px),
+    radial-gradient(
+      circle at center,
+      transparent 0 11px,
+      var(--text-dim) 12px 13px,
+      transparent 14px
+    ),
     radial-gradient(circle at center, transparent 0 18px, var(--border) 19px 20px, transparent 21px);
   box-shadow: 0 0 22px rgba(232, 197, 71, 0.18);
 }
@@ -120,7 +125,10 @@
   letter-spacing: 0.08em;
   text-decoration: none;
   text-transform: uppercase;
-  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
 }
 
 .desktop-nav a:hover,

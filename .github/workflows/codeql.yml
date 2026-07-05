@@ -1,0 +1,46 @@
+name: CodeQL
+
+# Statische Security-Analyse (GitHub-nativ) fuer Java und TypeScript.
+# Laeuft bei Push/PR auf main und zusaetzlich woechentlich als Zeitplan.
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    - cron: '27 4 * * 1' # montags 04:27 UTC
+
+jobs:
+  analyze:
+    name: Analyse (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      packages: read
+      actions: read
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # build-mode: none extrahiert direkt aus dem Quellcode und vermeidet so
+          # einen Java-25-Build in CodeQL (Extractor haengt sonst an der JDK-Version).
+          - language: java-kotlin
+            build-mode: none
+          - language: javascript-typescript
+            build-mode: none
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: CodeQL initialisieren
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+
+      - name: Analyse ausführen
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ matrix.language }}"

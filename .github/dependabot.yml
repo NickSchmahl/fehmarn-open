@@ -1,0 +1,32 @@
+# Automatische Dependency-Updates (woechentlich).
+# Deckt Backend (Maven), Frontend (npm) und die GitHub-Actions-Workflows ab.
+# Kleinere Updates (minor/patch) werden gruppiert, um die PR-Flut zu begrenzen;
+# Major-Updates kommen weiterhin als einzelne PRs.
+version: 2
+updates:
+  - package-ecosystem: "maven"
+    directory: "/backend"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    groups:
+      backend-minor-und-patch:
+        update-types: [ "minor", "patch" ]
+
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    groups:
+      frontend-minor-und-patch:
+        update-types: [ "minor", "patch" ]
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    groups:
+      actions:
+        update-types: [ "minor", "patch" ]

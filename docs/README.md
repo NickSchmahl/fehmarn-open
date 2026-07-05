@@ -10,6 +10,7 @@ Qualitäts-/Vertrauensstrategie. Einstiegspunkt für Menschen **und** KI-Assiste
 | [`../AGENTS.md`](../AGENTS.md) | Haupt-Einstieg: Architektur, Stack, Konventionen (Kurzform) |
 | [`workflow.md`](workflow.md) | Zusammenarbeit Nick ↔ Assistent (Branches, PRs, Tickets, DoD) |
 | [`setup-github.md`](setup-github.md) | GitHub-Zugang für den Assistenten |
+| [`deployment.md`](deployment.md) | Server, Deploy-Secrets & Hetzner-Console-Zugang |
 | [`requirements.md`](requirements.md) | Anforderungen + Ist/Soll-Abgleich |
 | [`backlog.md`](backlog.md) | Kurzfristige, priorisierte Aufgabenliste |
 | [`decisions.md`](decisions.md) | Kurzindex → verweist auf `adr/` |

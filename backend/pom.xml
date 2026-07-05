@@ -153,7 +153,7 @@
         <configuration>
           <workingDirectory>../frontend</workingDirectory>
           <installDirectory>target</installDirectory>
-          <!-- Mind. v22.22.3 fuer Angular 22 (Engine-Requirement); neueste 22-LTS. -->
+          <!-- Mind. v22.22.3 für Angular 22 (Engine-Requirement); neueste 22-LTS. -->
           <nodeVersion>v22.23.1</nodeVersion>
         </configuration>
         <executions>
@@ -239,9 +239,9 @@
             </plugin>
           </plugins>
         </configuration>
-        <!-- SpotBugs' gebuendeltes ASM kennt Java 25 (class version 69) nicht
+        <!-- SpotBugs' gebündeltes ASM kennt Java 25 (class version 69) nicht
              ("Unsupported class file major version 69"). ASM auf aktuelle,
-             Java-25-faehige Version hochziehen. -->
+             Java-25-fähige Version hochziehen. -->
         <dependencies>
           <dependency>
             <groupId>org.ow2.asm</groupId>
@@ -279,8 +279,8 @@
         </executions>
       </plugin>
 
-      <!-- Quelltext-Analyse: Design/Komplexitaet, leere Catches, tote Variablen.
-           Regelsatz kuratiert in pmd-ruleset.xml. Bricht bei Verstoessen. -->
+      <!-- Quelltext-Analyse: Design/Komplexität, leere Catches, tote Variablen.
+           Regelsatz kuratiert in pmd-ruleset.xml. Bricht bei Verstößen. -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-pmd-plugin</artifactId>
@@ -291,7 +291,7 @@
           <includeTests>false</includeTests>
           <!-- PMD parst nur Quelltext (kein Bytecode). Das maven-pmd-plugin kennt
                noch keine targetJdk '25'; der Code nutzt keine Java-25-only-Syntax,
-               daher als hoechste unterstuetzte Version parsen. -->
+               daher als höchste unterstützte Version parsen. -->
           <targetJdk>24</targetJdk>
           <rulesets>
             <ruleset>pmd-ruleset.xml</ruleset>

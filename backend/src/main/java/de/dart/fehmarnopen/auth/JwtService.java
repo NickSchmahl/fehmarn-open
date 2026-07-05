@@ -12,8 +12,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-// final: entkraeftet CT_CONSTRUCTOR_THROW (kein bösartiger Subtyp mit Finalizer
-// moeglich). Kein Proxy noetig - JwtService hat kein @Transactional/@Async o.ae.
+// final: entkräftet CT_CONSTRUCTOR_THROW (kein bösartiger Subtyp mit Finalizer
+// möglich). Kein Proxy nötig - JwtService hat kein @Transactional/@Async o.ä.
 @Service
 public final class JwtService {
 

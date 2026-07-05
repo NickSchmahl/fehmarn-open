@@ -5,14 +5,14 @@
          xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd">
 
   <description>
-    Kuratiertes PMD-Regelset (#50). Fokus: echte Bugs, Design/Komplexitaet, tote
+    Kuratiertes PMD-Regelset (#50). Fokus: echte Bugs, Design/Komplexität, tote
     und leere Elemente. Bewusst NICHT: Formatierung (deckt Spotless/palantir ab)
-    und Namens-/Strukturkonventionen (deckt ArchUnit ab) - dort waere PMD redundant
-    und konflikttraechtig. Opinionierte/rauschige Einzelregeln sind mit Begruendung
-    ausgeschlossen. Siehe docs/quality/backend-code-qualitaet.md.
+    und Namens-/Strukturkonventionen (deckt ArchUnit ab) - dort wäre PMD redundant
+    und konfliktträchtig. Opinionierte/rauschige Einzelregeln sind mit Begründung
+    ausgeschlossen. Siehe docs/quality/backend-code-qualität.md.
   </description>
 
-  <!-- Fehleranfaellige Muster: leere Catches, ==-Vergleich, verlorene Exceptions. -->
+  <!-- Fehleranfällige Muster: leere Catches, ==-Vergleich, verlorene Exceptions. -->
   <rule ref="category/java/errorprone.xml">
     <!-- SpotBugs/SE_NO_SERIALVERSIONID + lombok.config decken Serializable ab;
          JPA-Entities werden nicht versioniert serialisiert. -->
@@ -26,21 +26,21 @@
 
   <!-- Gute-Praxis: ungenutzte Variablen/Parameter/Imports, System.out, etc. -->
   <rule ref="category/java/bestpractices.xml">
-    <!-- Guarded logging ist bei SLF4J-Parametrisierung ({}) unnoetig. -->
+    <!-- Guarded logging ist bei SLF4J-Parametrisierung ({}) unnötig. -->
     <exclude name="GuardLogStatement"/>
     <!-- JUnit-spezifisch, hier via Testkonventionen/andere Gates abgedeckt. -->
     <exclude name="JUnitTestsShouldIncludeAssert"/>
     <exclude name="JUnitTestContainsTooManyAsserts"/>
   </rule>
 
-  <!-- Design/Komplexitaet: zyklomatische Komplexitaet, zu lange Methoden, God-Class. -->
+  <!-- Design/Komplexität: zyklomatische Komplexität, zu lange Methoden, God-Class. -->
   <rule ref="category/java/design.xml">
     <!-- Extrem opinioniert / bekannt rauschig. -->
     <exclude name="LawOfDemeter"/>
     <exclude name="LoosePackageCoupling"/>
     <!-- Ein Return-Punkt-Dogma passt nicht zu Guard-Clauses (Fail-Fast). -->
     <exclude name="OnlyOneReturn"/>
-    <!-- Import-/Kopplungsgrenzen erzwingt ArchUnit projektnaeher. -->
+    <!-- Import-/Kopplungsgrenzen erzwingt ArchUnit projektnäher. -->
     <exclude name="ExcessiveImports"/>
     <exclude name="TooManyMethods"/>
     <!-- Spring-Boot-Main-Klasse (@SpringBootApplication) hat zwingend main() +
@@ -52,7 +52,7 @@
 
   <!-- Performance: String-Konkatenation in Schleifen, ineffiziente Muster. -->
   <rule ref="category/java/performance.xml">
-    <!-- Pro Eingabe ein Domain-/Entity-Objekt zu erzeugen ist inhaerent
+    <!-- Pro Eingabe ein Domain-/Entity-Objekt zu erzeugen ist inhärent
          (z.B. Admin-Accounts aus Properties), kein Performance-Defekt. -->
     <exclude name="AvoidInstantiatingObjectsInLoops"/>
   </rule>

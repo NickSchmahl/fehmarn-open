@@ -1,0 +1,147 @@
+name: CI/CD
+
+# Eine Pipeline in zwei Stufen:
+#   1. Tests   -> Jobs "backend" und "frontend" (parallel)
+#   2. Deploy  -> Job "deploy", laeuft NUR nach gruenen Tests (needs)
+#
+# Push auf main         -> Tests, dann automatischer Deploy der TEST-Umgebung (8081)
+# Manueller Start        -> Tests, dann Deploy der gewaehlten Umgebung (test/prod)
+# Pull Request auf main  -> nur Tests, Deploy-Stufe wird uebersprungen
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Zielumgebung fuer den manuellen Deploy'
+        required: true
+        default: test
+        type: choice
+        options: [ test, prod ]
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Java 25 aufsetzen
+        uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Formatierung prüfen (Spotless)
+        run: ./mvnw spotless:check
+
+      - name: Build und Tests
+        run: ./mvnw verify
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Node aufsetzen
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Dependencies installieren
+        run: npm ci
+
+      - name: Formatierung prüfen (Prettier)
+        run: npm run format:check
+
+      - name: Linting (ESLint)
+        run: npm run lint
+
+      - name: Tests
+        run: npm test -- --watch=false --browsers=ChromeHeadless
+
+      - name: Build
+        run: npm run build
+
+  # Deploy-Stufe: haengt per "needs" an den Test-Jobs. Schlagen backend ODER
+  # frontend fehl, wird deploy uebersprungen -> "gruen = Wahrheit". Der auf einen
+  # Blick sichtbare Graph (backend, frontend -> deploy) ersetzt den frueheren
+  # separaten workflow_run-Deploy.
+  deploy:
+    needs: [ backend, frontend ]
+    runs-on: ubuntu-latest
+    # Nur automatisch bei Push auf main oder beim manuellen Start. Bei Pull
+    # Requests laufen nur die Tests, die Deploy-Stufe wird uebersprungen.
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main') }}
+    # Verhindert parallele Deployments auf dieselbe Umgebung (Job-Ebene, damit
+    # die Test-Jobs davon unberuehrt bleiben).
+    concurrency:
+      group: deploy-${{ github.event.inputs.environment || 'test' }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Java 25 aufsetzen
+        uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Build (inkl. Frontend via frontend-maven-plugin)
+        working-directory: backend
+        run: ./mvnw -B clean package
+
+      - name: Zielumgebung bestimmen
+        id: target
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "env=${{ github.event.inputs.environment }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "env=test" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: JAR auf den Server kopieren
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          source: backend/target/fehmarnopen-0.0.1-SNAPSHOT.jar
+          target: /tmp/
+          strip_components: 2
+
+      - name: Installieren, Service neu starten & Healthcheck
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            set -e
+            ENV=${{ steps.target.outputs.env }}
+            if [ "$ENV" = "prod" ]; then PORT=8080; else PORT=8081; fi
+
+            install -o fehmarnopen -g fehmarnopen \
+              /tmp/fehmarnopen-0.0.1-SNAPSHOT.jar \
+              /opt/fehmarnopen/$ENV/app.jar
+
+            systemctl restart fehmarnopen-$ENV
+            sleep 8
+
+            systemctl is-active fehmarnopen-$ENV
+            echo "Healthcheck auf Port $PORT ..."
+            curl -fsS -o /dev/null -w "HTTP %{http_code}\n" http://localhost:$PORT/api/teilnehmer
+            echo "Deployment ($ENV) erfolgreich."

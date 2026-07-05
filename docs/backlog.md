@@ -11,7 +11,7 @@ Format je Ticket: `[ID] Titel — Status — (optional GitHub #Issue)`.
 
 ### Stabilität & lauffähig machen
 - [ ] `[S1]` Lokalen Build + Start auf Nicks Maschine verifizieren (Java 25, `mvnw verify`, `ng serve`) — TODO
-- [ ] `[S2]` Uncommittete Änderungen klären: `deploy.yml` (staged) + `mvnw.cmd` (modifiziert) — TODO
+- [ ] `[S2]` Uncommittete Änderungen klären: ~~`deploy.yml`~~ (erledigt, in `ci.yml` konsolidiert, #52) + `mvnw.cmd` (modifiziert) — TODO
 - [ ] `[S3]` Deploy-Pipeline auf Test-Umgebung (8081) einmal grün durchlaufen lassen — TODO
 - [ ] `[S4]` CI-Status auf `main` prüfen (Spotless, Tests, Frontend-Build) — TODO
 

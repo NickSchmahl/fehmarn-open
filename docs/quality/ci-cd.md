@@ -12,8 +12,9 @@ Zwei Jobs, parallel:
 - **frontend:** Node 22 → `npm ci` → `npm test` (headless) → `npm run build`.
 
 ### `.github/workflows/deploy.yml`
-- Trigger: **Push auf `main`** (→ Test, Port 8081) **oder** `workflow_dispatch`
-  (Auswahl test/prod, prod = Port 8080).
+- Trigger: **erfolgreicher CI-Lauf auf `main`** (`workflow_run` auf „CI" mit
+  `conclusion == success` → Test, Port 8081) **oder** `workflow_dispatch`
+  (Auswahl test/prod, prod = Port 8080). ✅ (L1, #52)
 - Baut (`mvnw clean package`, inkl. Frontend), SCP der JAR auf den Server,
   `systemctl restart fehmarnopen-<env>`, Healthcheck auf `/api/teilnehmer`.
 - `concurrency`-Group verhindert parallele Deploys derselben Umgebung. ✅
@@ -22,7 +23,7 @@ Zwei Jobs, parallel:
 
 | # | Lücke | Risiko |
 |---|-------|--------|
-| L1 | **Deploy hängt nicht an grüner CI.** `deploy.yml` startet bei jedem Push auf `main` **unabhängig** von `backend-ci.yml`. | Ein Push mit roten Tests kann trotzdem deployt werden. |
+| ~~L1~~ | ~~**Deploy hängt nicht an grüner CI.**~~ **Behoben (#52):** `deploy.yml` läuft nur nach erfolgreichem CI-Lauf (`workflow_run`, `conclusion == success`). | — |
 | L2 | **Frontend-CI ohne Lint/Prettier/Coverage-Gate.** | Formatabweichungen & Lint-Fehler kommen durch (aktuell gibt es gar kein ESLint). |
 | L3 | **Doppelter Build.** CI baut, Deploy baut erneut. | Verschwendete Zeit; Deploy-Artefakt ≠ getestetes Artefakt. |
 | L4 | **Keine statische Analyse / Architekturtests** im `verify` (noch nicht eingeführt). | Struktur-/Bug-Regressionen unentdeckt. |
@@ -33,6 +34,8 @@ Zwei Jobs, parallel:
 ## Zielbild
 
 ### Deploy an CI koppeln (L1) — höchste Priorität
+> ✅ **Umgesetzt in #52** über den `workflow_run`-Trigger (siehe unten).
+
 Deploy erst starten, wenn CI erfolgreich war. Zwei saubere Wege:
 
 - **`workflow_run`-Trigger:** `deploy.yml` lauscht auf Abschluss von „CI" und läuft

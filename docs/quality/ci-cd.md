@@ -93,6 +93,64 @@ Damit ist der in [workflow.md](../workflow.md) beschriebene Ablauf technisch erz
 > (`package-ecosystem: github-actions`) meldet neue Majors ebenfalls, aber die
 > Node-Runtime-Warnings tauchen oft schon vorher in den PR-Checks auf.
 
+## Dependabot-Merge-Policy
+
+Dependabot öffnet nur Versions-Bumps – es kann **keine Migrationsschritte**
+anwenden. Deshalb hängt die Behandlung von der Update-Art ab. Grundregel: Was die
+CI grün lässt, darf gemergt werden; alles andere braucht Handarbeit.
+
+| Update-Art | PR-Beispiel | Vorgehen |
+|-----------|-------------|----------|
+| **minor/patch (gruppiert)** | `backend-minor-und-patch`, `frontend-minor-und-patch` | Nach **grüner CI** direkt mergen. Kurz auf verhaltensnahe Bibliotheken schauen (z. B. jjwt = JWT/Login, sqlite-jdbc). |
+| **Einzelner Major, unkritisch** | jsdom, ein Maven-Build-Plugin | Changelog überfliegen, **einzeln** mergen, CI beobachten. Spotless-Major kann Formatregeln ändern → ggf. `./mvnw spotless:apply` nötig. |
+| **Framework-Major** | Angular, Spring Boot | **Nicht per Merge.** Dependabot ändert nur die Versionsnummer, nicht den Code. Lokal mit dem Upgrade-Werkzeug des Frameworks machen (siehe unten), dann als **eigener PR**. Die Dependabot-PR danach **schließen**, nicht mergen. |
+
+Warum Framework-Majors von Hand? Sie bringen Breaking Changes, die **kompilieren,
+aber zur Laufzeit brechen** (umbenannte Configs/Properties, geänderte Defaults,
+angehobene Baseline). Ein grünes „es baut" reicht nicht – man braucht den
+Migrationsguide + volle Testsuite.
+
+### Angular-Major lokal durchführen (`ng update`)
+
+Dependabot liefert den Angular-Major als **eine** PR (Gruppe `angular` in
+`dependabot.yml`, umfasst `@angular/*`, `angular-eslint`, `jest-preset-angular`,
+`typescript`). Diese PR ist nur das **Signal**, dass eine neue Major da ist –
+das eigentliche Upgrade macht `ng update`, weil es alle Framework-Pakete
+gemeinsam hebt, die Migrations-Skripte ausführt und die passende TypeScript-
+Version selbst wählt. Ein Beispiel für den Sprung auf Angular 22:
+
+```bash
+git checkout main && git pull
+git checkout -b chore/angular-22
+
+cd frontend
+npx ng update                      # zeigt an, was aktualisiert werden kann
+npx ng update @angular/core@22 @angular/cli@22   # Framework + Migrationen
+# Dritt-Pakete, die der Angular-Major folgen, separat nachziehen:
+npm install -D angular-eslint@latest jest-preset-angular@latest
+
+npm ci                             # sauberer Lockfile-Stand
+npm run lint && npm test && npm run build   # muss grün sein
+```
+
+Danach committen, pushen, **eigenen PR** aufmachen. Erst wenn dieser grün ist und
+gemergt wurde, die ursprüngliche Dependabot-`angular`-PR schließen.
+
+- **Nie** die einzelnen `@angular/*`-Bumps einzeln mergen: alle `@angular/*`
+  müssen auf derselben Major stehen (peer-dependencies), sonst bricht schon
+  `npm ci`.
+- **TypeScript** nicht unabhängig anheben – Angular akzeptiert nur einen
+  bestimmten TS-Bereich; `ng update` setzt die passende Version.
+
+### Spring-Boot-Major lokal durchführen
+
+Analog, nur ohne Auto-Migrations-Tool: Version im Parent-POM anheben,
+[Spring-Boot-Migrationsguide](https://github.com/spring-projects/spring-boot/wiki)
+der Zielversion durcharbeiten, ggf. `spring-boot-properties-migrator` als
+Test-Dependency einhängen (meldet geänderte Properties beim Start), dann
+`./mvnw verify`. Als eigener PR, Dependabot-PR danach schließen.
+(Minor-Bumps wie 4.0 → 4.1 laufen normal über die Backend-Gruppe.)
+
 ### Smoke-Test nach Deploy (L7)
 Über den `/api/teilnehmer`-Healthcheck hinaus: minimaler Anmelde-/Login-Rauchtest
 gegen die frisch deployte Test-Umgebung (später via Playwright, siehe

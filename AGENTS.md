@@ -100,11 +100,13 @@ npm install && ng serve       # http://localhost:4200, /api proxied
 
 ## CI/CD
 
-- **`backend-ci.yml`** (Push/PR auf `main`): Spotless-Formatcheck → `mvnw verify`
-  (Backend-Tests) → Frontend `npm ci` + Tests + Build. **Das ist die Build-Wahrheit.**
-- **`deploy.yml`**: Push auf `main` → Deploy Test-Umgebung (Port 8081).
-  Manuell (`workflow_dispatch`) → test **oder** prod (Port 8080). SSH/SCP auf
-  Server, `systemctl restart fehmarnopen-<env>`, Healthcheck auf `/api/teilnehmer`.
+- **`ci.yml`** — **eine Pipeline** (Push/PR/`workflow_dispatch` auf `main`):
+  - **Test-Stufe** (parallel): `backend` (Spotless → `mvnw verify`) und `frontend`
+    (`npm ci` → Prettier → ESLint → Tests → Build). **Das ist die Build-Wahrheit.**
+  - **Deploy-Stufe** `deploy` mit `needs: [backend, frontend]` → läuft nur nach
+    grünen Tests. Push auf `main` → Test (Port 8081), `workflow_dispatch` →
+    test/prod (Port 8080, Tests laufen zuerst), PR → nur Tests. SSH/SCP auf Server,
+    `systemctl restart fehmarnopen-<env>`, Healthcheck auf `/api/teilnehmer`.
 
 ## Konventionen
 

@@ -6,24 +6,26 @@ Zielbild.
 
 ## Ist-Zustand
 
-### `.github/workflows/backend-ci.yml` (Push/PR auf `main`)
-Zwei Jobs, parallel:
+### `.github/workflows/ci.yml` — **eine Pipeline** (Push/PR/manuell auf `main`)
+Zwei Test-Jobs parallel, danach die Deploy-Stufe (`needs`):
 - **backend:** Java 25 → `./mvnw spotless:check` → `./mvnw verify` (Tests).
-- **frontend:** Node 22 → `npm ci` → `npm test` (headless) → `npm run build`.
-
-### `.github/workflows/deploy.yml`
-- Trigger: **erfolgreicher CI-Lauf auf `main`** (`workflow_run` auf „CI" mit
-  `conclusion == success` → Test, Port 8081) **oder** `workflow_dispatch`
-  (Auswahl test/prod, prod = Port 8080). ✅ (L1, #52)
-- Baut (`mvnw clean package`, inkl. Frontend), SCP der JAR auf den Server,
+- **frontend:** Node 22 → `npm ci` → `format:check` (Prettier) → `lint` (ESLint)
+  → `npm test` (headless) → `npm run build`.
+- **deploy:** `needs: [backend, frontend]` → läuft **nur nach grünen Tests**. Baut
+  (`mvnw clean package`, inkl. Frontend), SCP der JAR auf den Server,
   `systemctl restart fehmarnopen-<env>`, Healthcheck auf `/api/teilnehmer`.
-- `concurrency`-Group verhindert parallele Deploys derselben Umgebung. ✅
+  Auf einen Blick im Graphen sichtbar, woran der Deploy hängt. ✅ (L1, #52)
+  - **Push auf `main`** → Deploy Test (Port 8081); **`workflow_dispatch`** →
+    Deploy test/prod (prod = Port 8080), Tests laufen auch hier zuerst;
+    **Pull Request** → nur Tests, Deploy-Stufe wird übersprungen.
+  - `concurrency`-Group (Job-Ebene) verhindert parallele Deploys derselben
+    Umgebung, ohne die Test-Jobs zu drosseln. ✅
 
 ## Lücken (Risiken)
 
 | # | Lücke | Risiko |
 |---|-------|--------|
-| ~~L1~~ | ~~**Deploy hängt nicht an grüner CI.**~~ **Behoben (#52):** `deploy.yml` läuft nur nach erfolgreichem CI-Lauf (`workflow_run`, `conclusion == success`). | — |
+| ~~L1~~ | ~~**Deploy hängt nicht an grüner CI.**~~ **Behoben (#52):** Deploy ist eine `needs`-Stufe in `ci.yml` und läuft nur nach grünen `backend`+`frontend`-Jobs. | — |
 | L2 | **Frontend-CI ohne Lint/Prettier/Coverage-Gate.** | Formatabweichungen & Lint-Fehler kommen durch (aktuell gibt es gar kein ESLint). |
 | L3 | **Doppelter Build.** CI baut, Deploy baut erneut. | Verschwendete Zeit; Deploy-Artefakt ≠ getestetes Artefakt. |
 | L4 | **Keine statische Analyse / Architekturtests** im `verify` (noch nicht eingeführt). | Struktur-/Bug-Regressionen unentdeckt. |
@@ -34,24 +36,18 @@ Zwei Jobs, parallel:
 ## Zielbild
 
 ### Deploy an CI koppeln (L1) — höchste Priorität
-> ✅ **Umgesetzt in #52** über den `workflow_run`-Trigger (siehe unten).
+> ✅ **Umgesetzt in #52** als **eine Pipeline** (`ci.yml`) mit `needs`-Stufe.
 
-Deploy erst starten, wenn CI erfolgreich war. Zwei saubere Wege:
+Deploy erst starten, wenn die Tests grün sind. Es gab zwei Wege — gewählt wurde der
+zweite, weil die Abhängigkeit so im Graphen sichtbar ist:
 
-- **`workflow_run`-Trigger:** `deploy.yml` lauscht auf Abschluss von „CI" und läuft
-  nur bei `conclusion == success` auf `main`:
-  ```yaml
-  on:
-    workflow_run:
-      workflows: ["CI"]
-      types: [completed]
-      branches: [main]
-  jobs:
-    deploy:
-      if: ${{ github.event.workflow_run.conclusion == 'success' }}
-  ```
-- **Alternativ:** CI und Deploy in **einen** Workflow, Deploy-Job mit
-  `needs: [backend, frontend]`. Einfacher nachzuvollziehen, ein Ergebnis pro Push.
+- **`workflow_run`-Trigger** (verworfen): getrennte `deploy.yml`, die auf den
+  Abschluss von „CI" lauscht. Nachteil: Deploy läuft als separater Run, die
+  Kopplung ist nicht auf einen Blick sichtbar und erscheint nicht in den PR-Checks.
+- **Ein Workflow, `needs`-Stufe** (gewählt): Test-Jobs `backend`/`frontend` und
+  Deploy-Job in **einer** `ci.yml`; `deploy` mit `needs: [backend, frontend]` und
+  `if` (nur Push auf `main` bzw. manueller Start, nicht bei PRs). Ein Ergebnis pro
+  Push, ein Graph — das Äquivalent zu GitLab-Stages `test → deploy`.
 
 ### Frontend-Gates ergänzen (L2)
 CI-`frontend`-Job erweitern:

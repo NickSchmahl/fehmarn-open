@@ -30,7 +30,7 @@ Zwei Test-Jobs parallel, danach die Deploy-Stufe (`needs`):
 | L3 | **Doppelter Build.** CI baut, Deploy baut erneut. | Verschwendete Zeit; Deploy-Artefakt ≠ getestetes Artefakt. |
 | L4 | **Keine statische Analyse / Architekturtests** im `verify` (noch nicht eingeführt). | Struktur-/Bug-Regressionen unentdeckt. |
 | L5 | **Branch Protection unklar.** Ist `main` gegen Direktpush geschützt, sind Checks Pflicht? | Ohne Schutz sind alle Gates umgehbar. |
-| L6 | **Kein Dependency-/Security-Scan.** | Verwundbare Abhängigkeiten bleiben unbemerkt. |
+| ~~L6~~ | ~~**Kein Dependency-/Security-Scan.**~~ **Behoben (#53):** Dependabot (Maven/npm/Actions, wöchentlich) + CodeQL (Java/TypeScript) eingerichtet. | — |
 | L7 | **Deploy ohne echten Rauch-Test** über den Healthcheck hinaus. | Kaputte Kernflows (Anmeldung/Login) fallen erst im Betrieb auf. |
 
 ## Zielbild
@@ -75,11 +75,23 @@ Auf GitHub für `main` einrichten:
 
 Damit ist der in [workflow.md](../workflow.md) beschriebene Ablauf technisch erzwungen.
 
-### Security-/Dependency-Scan (L6)
+### Security-/Dependency-Scan (L6) — ✅ umgesetzt in #53
 - **Dependabot** (`.github/dependabot.yml`) für Maven + npm + GitHub Actions:
-  wöchentliche Update-PRs.
-- **CodeQL** (GitHub-nativ, kostenlos für das Repo) für Java + TypeScript als
-  eigener Workflow → findet Sicherheitslücken statisch.
+  wöchentliche Update-PRs (minor/patch gruppiert).
+- **CodeQL** (`.github/workflows/codeql.yml`, GitHub-nativ) für Java + TypeScript
+  auf Push/PR gegen `main` + wöchentlicher Zeitplan → findet Sicherheitslücken
+  statisch. `build-mode: none`, damit der Java-Extractor nicht an Java 25 hängt.
+
+> **Wartung – Actions-Versionen aktuell halten.** GitHub deprecatet regelmäßig
+> die Node-Laufzeit der Runner (Node 16 → 18 → 20 → 24). Actions, die eine alte
+> Runtime targeten, erzeugen dann Deprecation-Warnings in den Checks, bis die
+> Action auf eine neuere Major-Version gehoben wird. Beispiele bisher:
+> `github/codeql-action/{init,analyze}` von `@v3` → `@v4` (fixt Node-20-Warning
+> **und** die v3-Action-Deprecation in einem Schritt). Faustregel: Bei einer
+> solchen Warning schlicht die **Major-Version der genannten Action anheben** –
+> das behebt Runtime- und Action-Deprecation meist gemeinsam. Dependabot
+> (`package-ecosystem: github-actions`) meldet neue Majors ebenfalls, aber die
+> Node-Runtime-Warnings tauchen oft schon vorher in den PR-Checks auf.
 
 ### Smoke-Test nach Deploy (L7)
 Über den `/api/teilnehmer`-Healthcheck hinaus: minimaler Anmelde-/Login-Rauchtest

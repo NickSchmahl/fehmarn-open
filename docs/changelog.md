@@ -5,6 +5,26 @@ die feingranulare Git-Historie um **Kontext und Begründung** über einzelne PRs
 hinweg. Architekturentscheidungen liegen als [ADR](adr/), Ticket-Status in
 [tickets/quality-roadmap.md](tickets/quality-roadmap.md).
 
+## 2026-07-06 — Status-Abgleich Quality-Gate: Issues geradegezogen
+
+Kontrolle, ob wirklich alles zum Quality-Gate auf `main` liegt, und Aufräumen der
+Ticket-Wahrheit gegen den tatsächlichen Repo-Stand.
+
+- **#54 Branch Protection — verifiziert & geschlossen.** `main` ist über ein
+  Repository-Ruleset „Main Branch protection" (enforcement=active) geschützt:
+  Required checks `backend`+`frontend`, Deletion + Non-fast-forward blockiert.
+  Funktional getestet — Direktpush auf `main` wird abgelehnt
+  (`GH013: 2 of 2 required status checks are expected`). Damit ist die letzte
+  offene CI/CD-Lücke (L5) zu; [quality/ci-cd.md](quality/ci-cd.md) aktualisiert.
+- **#49 (ArchUnit) & #50 (SpotBugs/FindSecBugs/PMD) — verifiziert & geschlossen.**
+  #49 ist über PR #93 wiederhergestellt (`archunit-junit5` + `ArchitekturTest.java`),
+  #50 über PR #91 auf `main`. Beide Plugins/Testklassen im Repo bestätigt.
+- **⚠️ #51 (JaCoCo) — wieder geöffnet.** Trotz gemergter PR #62 ist **kein**
+  `jacoco-maven-plugin` auf `main` (`git log -S jacoco -- backend/pom.xml` = null
+  Treffer — es war nie da). Das Backend-Coverage-Gate fehlt real. In der
+  `main`-Divergenz verloren. Muss als eigener PR nachgeholt werden; **Epic #55
+  bleibt bis dahin offen**.
+
 ## 2026-07-05 — Dependency-Härtung & Abschluss Qualitäts-Big-Bang
 
 Nachdem Dependabot/CodeQL (#53) auf `main` gelandet waren, kam eine Welle von

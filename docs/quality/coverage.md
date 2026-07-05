@@ -1,11 +1,19 @@
 # Test-Coverage & -Gates
 
 Coverage misst, **wie viel** Code von Tests ausgeführt wird. Sie ist ein
-Sicherheitsnetz, kein Selbstzweck: 100 % beweisen keine Korrektheit, aber ein
-**Gate** verhindert, dass ungetesteter Code unbemerkt nach `main` rutscht – genau
-die Absicherung, die Vertrauen in automatisierte Änderungen schafft.
+Sicherheitsnetz, kein Selbstzweck: 100 % beweisen keine Korrektheit.
 
-## Grundsatz
+> **Entscheidung 2026-07-06 — keine harte Coverage-Zwangsgrenze.** Ein
+> Build-brechendes Coverage-Gate (JaCoCo-`check` im Backend, `coverageThreshold`
+> im Frontend) ist für dieses Projekt bewusst **nicht** gewollt — das ist ein
+> Schritt zu viel. Coverage bleibt **messbar** (`npm run test:coverage`,
+> JaCoCo-Report on demand), wird aber **nicht erzwungen**. Die Abschnitte unten
+> beschreiben das Zielbild eines Gates als Referenz/Option, sind aber bewusst
+> nicht umgesetzt. Vertrauen kommt hier aus den übrigen scharfen Gates (Format,
+> Lint, statische Analyse, ArchUnit, JUnit/Jest). Tickets: #51 (Backend) `wontfix`,
+> #47 (Frontend) ohne Schwelle.
+
+## Grundsatz (gilt *falls* je ein Gate eingeführt wird)
 
 - **Gate statt Wunsch:** Eine Schwelle, die den Build bricht. Ohne Gate wird
   Coverage ignoriert.
@@ -17,9 +25,10 @@ die Absicherung, die Vertrauen in automatisierte Änderungen schafft.
 - **Qualität vor Quote:** Lieber die Kernlogik (`AnmeldungService`, Security,
   Fehlerbehandlung) gründlich als Getter auf 100 % zu treiben.
 
-## Backend – JaCoCo (Ist: fehlt)
+## Backend – JaCoCo (bewusst nicht umgesetzt, `wontfix`)
 
-Kein Coverage-Tooling vorhanden. Zielbild: JaCoCo im `verify`-Lauf mit `check`-Gate.
+Kein Coverage-Tooling im Build. Das folgende Zielbild (JaCoCo im `verify`-Lauf mit
+`check`-Gate) ist als **Referenz** dokumentiert, aber per Entscheidung oben nicht aktiviert.
 
 ```xml
 <plugin>
@@ -58,10 +67,11 @@ Kein Coverage-Tooling vorhanden. Zielbild: JaCoCo im `verify`-Lauf mit `check`-G
 Lombok-generierte Methoden mit `lombok.addLombokGeneratedAnnotation = true` in
 `lombok.config` von JaCoCo ausschließen lassen.
 
-## Frontend – Jest coverageThreshold (Ist: Script da, kein Gate)
+## Frontend – Jest coverageThreshold (bewusst ohne Gate)
 
 `test:coverage`-Script existiert und `collectCoverageFrom` ist gesetzt, aber es gibt
-**keine Schwelle** und CI misst keine Coverage. Zielbild in `jest.config.ts`:
+per Entscheidung oben **keine Schwelle** und CI misst keine Coverage. Das Zielbild in
+`jest.config.ts` ist als Referenz dokumentiert, aber nicht aktiviert:
 
 ```ts
 coverageThreshold: {
@@ -73,20 +83,17 @@ coverageReporters: ['text-summary', 'lcov'],
 Ausschlüsse (bereits gesetzt): `*.spec.ts`, `main.ts`. Ergänzen: `*.config.ts`,
 reine Modell-/Typdateien ohne Logik.
 
-## CI-Integration
+## CI-Integration (nur bei Bedarf/on demand)
 
-- **Backend:** JaCoCo läuft ohnehin in `./mvnw verify` mit (bereits im CI-Job).
-- **Frontend:** CI-Testschritt auf `--coverage` umstellen, damit das Gate greift:
-  ```yaml
-  - name: Tests mit Coverage
-    run: npm test -- --coverage --watch=false
-  ```
-- Optional: Coverage-Report als CI-Artefakt hochladen / PR-Kommentar (z.B. über eine
-  Coverage-Action), um Trends sichtbar zu machen.
+Coverage ist kein CI-Gate. Wer sie lokal messen will:
 
-## Roadmap: Schwellen anheben
+- **Backend:** `./mvnw test` erzeugt aktuell keinen Coverage-Report (kein JaCoCo).
+  Für eine einmalige Messung müsste das Plugin temporär eingehängt werden.
+- **Frontend:** `npm run test:coverage` erzeugt lokal einen Report.
 
-Nach Einführung schrittweise erhöhen (z.B. +5 Prozentpunkte je stabilem Sprint),
-Zielkorridor Kernlogik ~80 %+ Lines / ~70 %+ Branches. Anhebungen als kleine PRs.
+## Falls es doch je ein Gate werden soll
 
-Tickets: **GitHub #51** (JaCoCo/Backend), **#47** (Jest/Frontend). Übersicht: [quality-roadmap.md](../tickets/quality-roadmap.md).
+Dann Baseline-first (s. o.): real messen, Schwelle knapp unter Ist-Wert, in kleinen
+PRs anheben (Zielkorridor Kernlogik ~80 %+ Lines / ~70 %+ Branches). **Aktuell
+bewusst nicht verfolgt** — Tickets: #51 (Backend) `wontfix`, #47 (Frontend) ohne
+Schwelle. Übersicht: [quality-roadmap.md](../tickets/quality-roadmap.md).

@@ -67,13 +67,37 @@ Artefakt** herunter und deployt es. So wird exakt das getestete Binary ausgelief
 Ergänzt sich automatisch: SpotBugs/PMD/JaCoCo/ArchUnit hängen an `verify` – der
 CI-Job ändert sich nicht (führt weiter `./mvnw verify` aus), wird aber strenger.
 
-### Branch Protection (L5) — organisatorisch, kein Code
+### Branch Protection (L5, #54) — organisatorisch, kein Code
 Auf GitHub für `main` einrichten:
 - Pull Request vor Merge erforderlich.
 - Required status checks: `backend`, `frontend` müssen grün sein.
 - Kein Direktpush (auch nicht durch Admins/Agenten).
 
 Damit ist der in [workflow.md](../workflow.md) beschriebene Ablauf technisch erzwungen.
+
+**Konkrete Settings** (Check-Kontexte heißen exakt `backend` und `frontend` — die
+Test-Jobs aus `ci.yml`; ein falscher Name blockiert Merges dauerhaft):
+
+```bash
+gh api --method PUT repos/NickSchmahl/fehmarn-open/branches/main/protection --input - <<'JSON'
+{
+  "required_status_checks": { "strict": false, "contexts": ["backend", "frontend"] },
+  "enforce_admins": true,
+  "required_pull_request_reviews": { "required_approving_review_count": 0 },
+  "restrictions": null
+}
+JSON
+```
+
+- `enforce_admins: true` → auch Admins müssen über PRs (kein Direktpush auf `main`).
+- `required_approving_review_count: 0` → PR ist Pflicht, aber ohne fremdes Review
+  (Solo-Betrieb; bei `1` könnte man den eigenen PR nicht mergen).
+- `strict: false` → Branch muss nicht zwingend up-to-date sein (weniger Rebase-Reibung).
+
+**Voraussetzung:** Das genutzte GitHub-Token braucht die Repo-Berechtigung
+**Administration: Read and write** (das Standard-Token aus [setup-github.md](../setup-github.md)
+hat sie nicht → `403 Resource not accessible`). Alternativ per UI:
+**Settings → Branches → Add rule** für `main` mit denselben Optionen.
 
 ### Security-/Dependency-Scan (L6) — ✅ umgesetzt in #53
 - **Dependabot** (`.github/dependabot.yml`) für Maven + npm + GitHub Actions:

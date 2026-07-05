@@ -14,6 +14,7 @@ Qualitäts-/Vertrauensstrategie. Einstiegspunkt für Menschen **und** KI-Assiste
 | [`requirements.md`](requirements.md) | Anforderungen + Ist/Soll-Abgleich |
 | [`backlog.md`](backlog.md) | Kurzfristige, priorisierte Aufgabenliste |
 | [`decisions.md`](decisions.md) | Kurzindex → verweist auf `adr/` |
+| [`changelog.md`](changelog.md) | Chronologie nennenswerter Änderungen (Kontext über PRs hinweg) |
 | **[`features/`](features/)** | Was die Software kann – ein Dokument je Fachbereich |
 | **[`adr/`](adr/)** | Architecture Decision Records – warum es so gebaut ist |
 | **[`quality/`](quality/)** | **Teststrategie, Linting, statische Analyse, Architekturtests, CI/CD** |

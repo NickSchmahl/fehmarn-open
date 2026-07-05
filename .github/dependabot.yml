@@ -1,7 +1,11 @@
 # Automatische Dependency-Updates (woechentlich).
 # Deckt Backend (Maven), Frontend (npm) und die GitHub-Actions-Workflows ab.
 # Kleinere Updates (minor/patch) werden gruppiert, um die PR-Flut zu begrenzen;
-# Major-Updates kommen weiterhin als einzelne PRs.
+# Major-Updates kommen grundsaetzlich als einzelne PRs.
+# AUSNAHME: Das Angular-Framework + eng gekoppelte Toolchain kommen als EINE
+# Gruppe (inkl. Major), weil sie nur gemeinsam angehoben werden koennen. Diese
+# PR ist ein Signal, nicht zum Merge gedacht -> Upgrade lokal via `ng update`.
+# Siehe docs/quality/ci-cd.md, Abschnitt "Dependabot-Merge-Policy".
 version: 2
 updates:
   - package-ecosystem: "maven"
@@ -19,6 +23,21 @@ updates:
       interval: "weekly"
     open-pull-requests-limit: 10
     groups:
+      # Angular-Framework + eng gekoppelte Toolchain. Alle @angular/*-Pakete
+      # muessen auf derselben Major-Version stehen (peer-dependencies), und
+      # angular-eslint / jest-preset-angular / typescript folgen der Angular-
+      # Major. Deshalb ALLE update-types in eine Gruppe: ein PR statt zerstueckelt.
+      # Major bitte NICHT mergen, sondern lokal via `ng update` (siehe Doku).
+      # Reihenfolge zaehlt: diese Gruppe steht vor der Sammelgruppe, damit die
+      # Angular-Pakete hier landen und nicht in "frontend-minor-und-patch".
+      angular:
+        patterns:
+          - "@angular/*"
+          - "@angular-eslint/*"
+          - "angular-eslint"
+          - "jest-preset-angular"
+          - "typescript"
+        update-types: [ "major", "minor", "patch" ]
       frontend-minor-und-patch:
         update-types: [ "minor", "patch" ]
 

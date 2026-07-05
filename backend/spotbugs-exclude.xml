@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  SpotBugs/FindSecBugs Exclude-Filter (#50).
+
+  Nur bewusst begruendete Ausnahmen fuer Framework-Idiome, die bei Spring-/JPA-
+  Projekten notorisch als False Positive feuern. Alles andere wird im Code behoben
+  (siehe docs/quality/backend-code-qualitaet.md, Abschnitt "Begruendete Ausnahmen").
+  Kein pauschaler Warnungsmodus - jeder Eintrag hat eine Begruendung.
+-->
+<FindBugsFilter xmlns="https://github.com/spotbugs/filter/3.0.0">
+
+  <!-- SPRING_ENDPOINT: rein informativ ("Klasse ist ein Spring-Controller"),
+       kein Defekt. FindSecBugs markiert damit nur Angriffsflaeche zum Review. -->
+  <Match>
+    <Bug pattern="SPRING_ENDPOINT"/>
+  </Match>
+
+  <!-- SERVLET_HEADER: der Auth-Filter MUSS den Authorization-Header lesen - das ist
+       sein Zweck. "Vom Client aenderbar" ist inhaerent; die Absicherung erfolgt ueber
+       die JWT-Signaturpruefung, nicht ueber Vertrauen in den Header-Wert. -->
+  <Match>
+    <Bug pattern="SERVLET_HEADER"/>
+  </Match>
+
+  <!-- EI_EXPOSE_REP / EI_EXPOSE_REP2: feuert flaechendeckend auf
+       (a) unveraenderliche DTO-Records, (b) JPA-Entities, deren Referenzen bewusst
+       im Persistence-Context geteilt werden, und (c) vom Spring-Container injizierte
+       Singleton-Beans (Konstruktor-Injection). Keiner der drei Faelle ist ein echtes
+       Mutable-State-Leak; defensive Kopien waeren bei Records/Entities kontraproduktiv
+       (brechen JPA-Identitaet bzw. widersprechen dem Record-Zweck). -->
+  <Match>
+    <Bug pattern="EI_EXPOSE_REP"/>
+  </Match>
+  <Match>
+    <Bug pattern="EI_EXPOSE_REP2"/>
+  </Match>
+
+  <!-- CRLF_INJECTION_LOGS: die geloggten Werte sind entweder vertrauenswuerdige
+       Konfiguration (Admin-Benutzername aus Properties, DataInitializer) oder
+       Bibliotheks-Exception-Messages auf debug-Level (JwtService). Es wird kein
+       ungeprueftes Request-Payload geloggt. -->
+  <Match>
+    <Bug pattern="CRLF_INJECTION_LOGS"/>
+  </Match>
+
+</FindBugsFilter>

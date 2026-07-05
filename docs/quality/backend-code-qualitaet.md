@@ -1,8 +1,12 @@
 # Backend – Code-Qualität: Formatierung & statische Analyse
 
-Zielbild eines **sofort strengen** Backends. Alle Vorschläge sind noch **nicht
-umgesetzt**, außer explizit als „Ist" markiert. Umsetzung ticketweise
+Zielbild eines **sofort strengen** Backends. Umsetzung ticketweise
 (siehe [quality-roadmap.md](../tickets/quality-roadmap.md)).
+
+> **Ist-Stand:** Spotless (#48), SpotBugs+FindSecBugs und PMD (#50) sind an
+> `verify` **aktiv und scharf**. `./mvnw verify` = CI-Wahrheit. Details zur
+> konkreten Konfiguration und zu den bewusst begründeten Ausnahmen unten in
+> [Abschnitt 6](#6-ist-umgesetzt-in-50--java-25-besonderheiten--ausnahmen).
 
 ## 1. Formatierung – Spotless (Ist: aktiv, aber minimal)
 
@@ -108,6 +112,47 @@ Lombok-generierter Code darf statische Analyse nicht fluten:
 - SpotBugs: `lombok.addLombokGeneratedAnnotation = true` in `lombok.config`,
   dann ignoriert SpotBugs generierte Methoden automatisch.
 - PMD: generierte Klassen/Pfad ausschließen.
+
+## 6. Ist (umgesetzt in #50) – Java-25-Besonderheiten & Ausnahmen
+
+Konkrete Konfiguration in `backend/pom.xml`, `backend/spotbugs-exclude.xml`,
+`backend/pmd-ruleset.xml`, `backend/lombok.config`.
+
+### Java-25-Kompatibilität (wichtig)
+Beide Tools sind bleeding-edge gegenüber Java 25:
+- **SpotBugs 4.9.3** brachte ein ASM mit, das Java 25 (class file version 69) nicht
+  kennt → `Unsupported class file major version 69`. Behoben, indem **ASM auf 9.10.1
+  hochgezogen** wird (Plugin-`<dependencies>` im spotbugs-maven-plugin).
+- **maven-pmd-plugin 3.28.0** kennt `targetJdk` „25" noch nicht
+  („Unsupported targetJdk value '25'"). PMD parst nur **Quelltext** (kein Bytecode);
+  der Code nutzt keine Java-25-only-Syntax → `targetJdk` auf **24** gesetzt (höchste
+  vom Plugin akzeptierte Version). Beim nächsten Plugin-Update auf `${java.version}`
+  zurückstellen.
+
+### Lombok
+`backend/lombok.config` mit `lombok.addLombokGeneratedAnnotation = true` → SpotBugs
+ignoriert generierte Methoden automatisch.
+
+### Bewusst begründete Ausnahmen
+Big-Bang-Prinzip: Verstöße wurden **behoben**, nur Framework-Idiome sind unterdrückt.
+
+**SpotBugs/FindSecBugs** (`spotbugs-exclude.xml`) – jeweils mit Begründung im File:
+- `SPRING_ENDPOINT`, `SERVLET_HEADER` – informativ bzw. inhärent (Auth-Filter muss
+  den Header lesen; Absicherung via JWT-Signatur).
+- `EI_EXPOSE_REP` / `EI_EXPOSE_REP2` – feuert auf unveränderliche DTO-Records,
+  JPA-Entities und injizierte Singleton-Beans; kein echtes Mutable-State-Leak.
+- `CRLF_INJECTION_LOGS` – geloggt werden nur vertrauenswürdige Config-Werte bzw.
+  Library-Exception-Messages (debug), kein ungeprüftes Request-Payload.
+
+**PMD** (`pmd-ruleset.xml`): Formatierung (Spotless) und Namens-/Strukturkonventionen
+(ArchUnit) sind ausgenommen; zusätzlich `AvoidCatchingGenericException` (bewusste
+Fail-Safe-Boundaries in Auth-Filter/Mailversand), `UseUtilityClass` (Spring-Boot-Main),
+`AvoidInstantiatingObjectsInLoops` (ein Objekt pro Input ist inhärent).
+
+**Im Code behoben** (nicht unterdrückt): `CT_CONSTRUCTOR_THROW` → `JwtService` final;
+`REC_CATCH_EXCEPTION` → `catch(RuntimeException)`; `SE_NO_SERIALVERSIONID` →
+`serialVersionUID` in `AdminUser`; `RedundantFieldInitializer` → redundante
+`= false`-Initializer entfernt.
 
 ## Coverage
 Eigenes Thema: [coverage.md](coverage.md) (JaCoCo mit Schwelle).

@@ -16,7 +16,7 @@ public class TurnierConfig {
     private Long id;
 
     @Column(name = "anmeldung_gesperrt", nullable = false)
-    private boolean anmeldungGesperrt = false;
+    private boolean anmeldungGesperrt;
 
     @Column(name = "anmeldeschluss_datum")
     private LocalDateTime anmeldeschlussDatum;

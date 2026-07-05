@@ -1,24 +1,24 @@
 /* ── Design Tokens (spiegelt login.component.scss) ──────── */
 :host {
-  --bg:         #0d0f12;
-  --surface:    #141720;
-  --surface-2:  #1c2030;
-  --border:     #2a2f42;
+  --bg: #0d0f12;
+  --surface: #141720;
+  --surface-2: #1c2030;
+  --border: #2a2f42;
   --border-focus: #e8c547;
 
-  --text:       #eceef4;
+  --text: #eceef4;
   --text-muted: #6b7394;
-  --text-dim:   #3a4060;
+  --text-dim: #3a4060;
 
-  --accent:     #e8c547;
+  --accent: #e8c547;
   --accent-dim: rgba(232, 197, 71, 0.12);
-  --success:    #4caf82;
+  --success: #4caf82;
   --success-dim: rgba(76, 175, 130, 0.12);
-  --danger:     #e05c5c;
+  --danger: #e05c5c;
   --danger-dim: rgba(224, 92, 92, 0.12);
 
-  --radius:     6px;
-  --radius-lg:  12px;
+  --radius: 6px;
+  --radius-lg: 12px;
 }
 
 /* ── Page ───────────────────────────────────────────────── */
@@ -28,16 +28,25 @@
   place-items: start center;
   background-color: var(--bg);
   background-image:
-    radial-gradient(ellipse 60% 50% at 50% 0%, rgba(232,197,71,0.06) 0%, transparent 70%),
+    radial-gradient(ellipse 60% 50% at 50% 0%, rgba(232, 197, 71, 0.06) 0%, transparent 70%),
     repeating-linear-gradient(
-      0deg, transparent, transparent 39px,
-      var(--text-dim) 39px, var(--text-dim) 40px
+      0deg,
+      transparent,
+      transparent 39px,
+      var(--text-dim) 39px,
+      var(--text-dim) 40px
     ),
     repeating-linear-gradient(
-      90deg, transparent, transparent 39px,
-      var(--text-dim) 39px, var(--text-dim) 40px
+      90deg,
+      transparent,
+      transparent 39px,
+      var(--text-dim) 39px,
+      var(--text-dim) 40px
     );
-  background-size: 100% 100%, 40px 40px, 40px 40px;
+  background-size:
+    100% 100%,
+    40px 40px,
+    40px 40px;
   font-family: 'DM Sans', 'Helvetica Neue', sans-serif;
   padding: 3rem 1rem;
 }
@@ -51,14 +60,20 @@
   border-radius: var(--radius-lg);
   padding: 2.5rem 2rem 2rem;
   box-shadow:
-    0 0 0 1px rgba(255,255,255,0.03),
-    0 24px 64px rgba(0,0,0,0.6);
+    0 0 0 1px rgba(255, 255, 255, 0.03),
+    0 24px 64px rgba(0, 0, 0, 0.6);
   animation: card-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 @keyframes card-in {
-  from { opacity: 0; transform: translateY(16px) scale(0.98); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 /* ── Header ─────────────────────────────────────────────── */
@@ -82,9 +97,21 @@
   border: 2px solid;
   animation: pulse-ring 3s ease-in-out infinite;
 }
-.r1 { border-color: var(--border);   inset: 0;    animation-delay: 0s;   }
-.r2 { border-color: var(--text-dim); inset: 8px;  animation-delay: 0.2s; }
-.r3 { border-color: var(--accent);   inset: 17px; animation-delay: 0.4s; }
+.r1 {
+  border-color: var(--border);
+  inset: 0;
+  animation-delay: 0s;
+}
+.r2 {
+  border-color: var(--text-dim);
+  inset: 8px;
+  animation-delay: 0.2s;
+}
+.r3 {
+  border-color: var(--accent);
+  inset: 17px;
+  animation-delay: 0.4s;
+}
 
 .center-dot {
   position: absolute;
@@ -92,14 +119,22 @@
   height: 10px;
   background: var(--accent);
   border-radius: 50%;
-  top: 50%; left: 50%;
+  top: 50%;
+  left: 50%;
   transform: translate(-50%, -50%);
-  box-shadow: 0 0 10px var(--accent), 0 0 24px rgba(232,197,71,0.4);
+  box-shadow:
+    0 0 10px var(--accent),
+    0 0 24px rgba(232, 197, 71, 0.4);
 }
 
 @keyframes pulse-ring {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0.5; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 
 .anmeldung-title {
@@ -191,12 +226,16 @@
   font-size: 0.9375rem;
   padding: 0.65rem 0.875rem;
   outline: none;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
   font-family: inherit;
   width: 100%;
   box-sizing: border-box;
 
-  &::placeholder { color: var(--text-dim); }
+  &::placeholder {
+    color: var(--text-dim);
+  }
 
   &:focus {
     border-color: var(--border-focus);
@@ -205,7 +244,9 @@
 
   &--error {
     border-color: var(--danger);
-    &:focus { box-shadow: 0 0 0 3px var(--danger-dim); }
+    &:focus {
+      box-shadow: 0 0 0 3px var(--danger-dim);
+    }
   }
 
   &--sm {
@@ -264,7 +305,10 @@
   border-radius: var(--radius);
   padding: 0.875rem 1rem;
   cursor: pointer;
-  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+  transition:
+    border-color 0.15s,
+    background 0.15s,
+    box-shadow 0.15s;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
@@ -311,7 +355,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.12s, border-color 0.12s;
+  transition:
+    background 0.12s,
+    border-color 0.12s;
   color: transparent;
 
   .disziplin-card--selected & {
@@ -353,8 +399,14 @@
 }
 
 @keyframes slide-down {
-  from { opacity: 0; transform: translateY(-6px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* ── Preisübersicht ──────────────────────────────────────── */
@@ -367,8 +419,12 @@
 }
 
 @keyframes fade-in {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .price-row {
@@ -413,11 +469,25 @@
 }
 
 @keyframes shake {
-  10%, 90%  { transform: translateX(-2px); }
-  20%, 80%  { transform: translateX(3px); }
-  30%, 70%  { transform: translateX(-3px); }
-  40%, 60%  { transform: translateX(3px); }
-  50%       { transform: translateX(-2px); }
+  10%,
+  90% {
+    transform: translateX(-2px);
+  }
+  20%,
+  80% {
+    transform: translateX(3px);
+  }
+  30%,
+  70% {
+    transform: translateX(-3px);
+  }
+  40%,
+  60% {
+    transform: translateX(3px);
+  }
+  50% {
+    transform: translateX(-2px);
+  }
 }
 
 /* ── Submit Button ───────────────────────────────────────── */
@@ -437,7 +507,10 @@
   text-transform: uppercase;
   cursor: pointer;
   font-family: inherit;
-  transition: opacity 0.15s, transform 0.1s, box-shadow 0.15s;
+  transition:
+    opacity 0.15s,
+    transform 0.1s,
+    box-shadow 0.15s;
   box-shadow: 0 4px 20px rgba(232, 197, 71, 0.25);
   width: 100%;
 
@@ -445,8 +518,13 @@
     opacity: 0.9;
     box-shadow: 0 4px 28px rgba(232, 197, 71, 0.4);
   }
-  &:active:not(:disabled) { transform: scale(0.98); }
-  &:disabled { opacity: 0.6; cursor: not-allowed; }
+  &:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
 }
 
 /* ── Spinner ─────────────────────────────────────────────── */
@@ -461,5 +539,7 @@
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }

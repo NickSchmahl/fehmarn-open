@@ -1,9 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
-import {
-  FormBuilder,
-  Validators,
-  ReactiveFormsModule,
-} from '@angular/forms';
+import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../auth/service/auth.service';
 
@@ -50,12 +46,16 @@ export class AdminLoginComponent {
         this.errorMessage.set(
           unauthorized
             ? 'Benutzername oder Passwort falsch.'
-            : 'AnmeldungComponent fehlgeschlagen. Bitte später erneut versuchen.'
+            : 'AnmeldungComponent fehlgeschlagen. Bitte später erneut versuchen.',
         );
       },
     });
   }
 
-  get username() { return this.form.controls.username; }
-  get password() { return this.form.controls.password; }
+  get username() {
+    return this.form.controls.username;
+  }
+  get password() {
+    return this.form.controls.password;
+  }
 }

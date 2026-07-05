@@ -10,7 +10,9 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write \"src/**/*.{ts,html,scss,css,json}\" \"*.{ts,js}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,html,scss,css,json}\" \"*.{ts,js}\""
   },
   "private": true,
   "packageManager": "npm@11.12.1",

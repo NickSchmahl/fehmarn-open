@@ -1,24 +1,24 @@
 /* ── Design Tokens (spiegelt anmeldung.component.scss) ──── */
 :host {
-  --bg:         #0d0f12;
-  --surface:    #141720;
-  --surface-2:  #1c2030;
-  --border:     #2a2f42;
+  --bg: #0d0f12;
+  --surface: #141720;
+  --surface-2: #1c2030;
+  --border: #2a2f42;
   --border-focus: #e8c547;
 
-  --text:       #eceef4;
+  --text: #eceef4;
   --text-muted: #6b7394;
-  --text-dim:   #3a4060;
+  --text-dim: #3a4060;
 
-  --accent:     #e8c547;
+  --accent: #e8c547;
   --accent-dim: rgba(232, 197, 71, 0.12);
-  --success:    #4caf82;
+  --success: #4caf82;
   --success-dim: rgba(76, 175, 130, 0.12);
-  --danger:     #e05c5c;
+  --danger: #e05c5c;
   --danger-dim: rgba(224, 92, 92, 0.12);
 
-  --radius:     6px;
-  --radius-lg:  12px;
+  --radius: 6px;
+  --radius-lg: 12px;
 }
 
 /* ── Page ───────────────────────────────────────────────── */
@@ -28,16 +28,25 @@
   place-items: start center;
   background-color: var(--bg);
   background-image:
-    radial-gradient(ellipse 60% 50% at 50% 0%, rgba(232,197,71,0.06) 0%, transparent 70%),
+    radial-gradient(ellipse 60% 50% at 50% 0%, rgba(232, 197, 71, 0.06) 0%, transparent 70%),
     repeating-linear-gradient(
-      0deg, transparent, transparent 39px,
-      var(--text-dim) 39px, var(--text-dim) 40px
+      0deg,
+      transparent,
+      transparent 39px,
+      var(--text-dim) 39px,
+      var(--text-dim) 40px
     ),
     repeating-linear-gradient(
-      90deg, transparent, transparent 39px,
-      var(--text-dim) 39px, var(--text-dim) 40px
+      90deg,
+      transparent,
+      transparent 39px,
+      var(--text-dim) 39px,
+      var(--text-dim) 40px
     );
-  background-size: 100% 100%, 40px 40px, 40px 40px;
+  background-size:
+    100% 100%,
+    40px 40px,
+    40px 40px;
   font-family: 'DM Sans', 'Helvetica Neue', sans-serif;
   padding: 3rem 1rem;
 }
@@ -51,14 +60,20 @@
   border-radius: var(--radius-lg);
   padding: 2.5rem 2rem 2rem;
   box-shadow:
-    0 0 0 1px rgba(255,255,255,0.03),
-    0 24px 64px rgba(0,0,0,0.6);
+    0 0 0 1px rgba(255, 255, 255, 0.03),
+    0 24px 64px rgba(0, 0, 0, 0.6);
   animation: card-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 @keyframes card-in {
-  from { opacity: 0; transform: translateY(16px) scale(0.98); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 /* ── Header ─────────────────────────────────────────────── */
@@ -84,15 +99,23 @@
   border-radius: 50%;
   border: 1px solid var(--border);
 }
-.bullseye .r1 { inset: 0; }
-.bullseye .r2 { inset: 9px; border-color: var(--text-dim); }
-.bullseye .r3 { inset: 18px; border-color: rgba(232,197,71,0.4); }
+.bullseye .r1 {
+  inset: 0;
+}
+.bullseye .r2 {
+  inset: 9px;
+  border-color: var(--text-dim);
+}
+.bullseye .r3 {
+  inset: 18px;
+  border-color: rgba(232, 197, 71, 0.4);
+}
 .bullseye .center-dot {
   width: 10px;
   height: 10px;
   border-radius: 50%;
   background: var(--accent);
-  box-shadow: 0 0 12px rgba(232,197,71,0.6);
+  box-shadow: 0 0 12px rgba(232, 197, 71, 0.6);
 }
 
 .teilnehmer-title {
@@ -129,7 +152,11 @@
   animation: spin 0.7s linear infinite;
 }
 
-@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 
 .alert-error {
   padding: 0.875rem 1rem;
@@ -169,7 +196,10 @@
   font-size: 0.78rem;
   font-weight: 700;
   letter-spacing: 0.04em;
-  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
 }
 
 .chip:hover {
@@ -200,7 +230,9 @@
 .disziplin-section {
   margin-bottom: 1.75rem;
 }
-.disziplin-section:last-child { margin-bottom: 0; }
+.disziplin-section:last-child {
+  margin-bottom: 0;
+}
 
 .section-title {
   display: flex;
@@ -277,7 +309,9 @@
   font: inherit;
   font-size: 0.9rem;
 }
-.search-input::placeholder { color: var(--text-muted); }
+.search-input::placeholder {
+  color: var(--text-muted);
+}
 .search-input:focus {
   outline: none;
   border-color: var(--border-focus);
@@ -429,7 +463,10 @@
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
 }
 
 .btn-danger {
@@ -437,7 +474,9 @@
   background: var(--danger-dim);
   color: var(--danger);
 }
-.btn-danger:hover { background: rgba(224, 92, 92, 0.22); }
+.btn-danger:hover {
+  background: rgba(224, 92, 92, 0.22);
+}
 
 .btn-ghost {
   border-color: var(--border);

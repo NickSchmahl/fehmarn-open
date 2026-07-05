@@ -2,10 +2,7 @@ import type { Config } from 'jest';
 
 const config: Config = {
   preset: 'jest-preset-angular',
-  setupFilesAfterEnv: [
-    'zone.js',
-    '<rootDir>/setup-jest.ts'
-  ],
+  setupFilesAfterEnv: ['zone.js', '<rootDir>/setup-jest.ts'],
   testEnvironment: 'jsdom',
   transform: {
     '^.+\\.(ts|mjs|js|html)$': [

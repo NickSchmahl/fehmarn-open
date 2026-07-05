@@ -1,13 +1,6 @@
 import { TestBed } from '@angular/core/testing';
-import {
-  HttpTestingController,
-  provideHttpClientTesting,
-} from '@angular/common/http/testing';
-import {
-  provideHttpClient,
-  withInterceptors,
-  HttpClient,
-} from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideHttpClient, withInterceptors, HttpClient } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
 import { authInterceptor } from './auth.interceptor';
 import { AuthService } from '../service/auth.service';
@@ -63,9 +56,7 @@ describe('authInterceptor', () => {
 
     http.get('/api/admin/players').subscribe({ error: () => {} });
 
-    httpMock
-      .expectOne('/api/admin/players')
-      .flush({}, { status: 401, statusText: 'Unauthorized' });
+    httpMock.expectOne('/api/admin/players').flush({}, { status: 401, statusText: 'Unauthorized' });
 
     expect(logoutSpy).toHaveBeenCalled();
   });
@@ -76,9 +67,7 @@ describe('authInterceptor', () => {
 
     http.post('/api/auth/login', {}).subscribe({ error: () => {} });
 
-    httpMock
-      .expectOne('/api/auth/login')
-      .flush({}, { status: 401, statusText: 'Unauthorized' });
+    httpMock.expectOne('/api/auth/login').flush({}, { status: 401, statusText: 'Unauthorized' });
 
     expect(logoutSpy).not.toHaveBeenCalled();
   });
@@ -92,9 +81,7 @@ describe('authInterceptor', () => {
       error: (err) => (errorStatus = err.status),
     });
 
-    httpMock
-      .expectOne('/api/admin/players')
-      .flush({}, { status: 401, statusText: 'Unauthorized' });
+    httpMock.expectOne('/api/admin/players').flush({}, { status: 401, statusText: 'Unauthorized' });
 
     expect(errorStatus).toBe(401);
   });

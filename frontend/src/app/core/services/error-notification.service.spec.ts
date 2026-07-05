@@ -15,10 +15,7 @@ describe('ErrorNotificationService', () => {
     toastMock = makeToastServiceMock();
 
     TestBed.configureTestingModule({
-      providers: [
-        ErrorNotificationService,
-        { provide: ToastService, useValue: toastMock },
-      ],
+      providers: [ErrorNotificationService, { provide: ToastService, useValue: toastMock }],
     });
 
     service = TestBed.inject(ErrorNotificationService);
@@ -55,7 +52,7 @@ describe('ErrorNotificationService', () => {
 
     expect(consoleSpy).toHaveBeenCalledWith(
       '[ErrorNotificationService]',
-      expect.objectContaining({ status: 500, url: '/api/test' })
+      expect.objectContaining({ status: 500, url: '/api/test' }),
     );
 
     consoleSpy.mockRestore();

@@ -3,7 +3,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ToastService } from './toast.service';
 
 export const ERROR_MESSAGES: Record<number, string> = {
-  0:   'Keine Internetverbindung. Bitte prüfe deine Verbindung.',
+  0: 'Keine Internetverbindung. Bitte prüfe deine Verbindung.',
   500: 'Etwas ist schiefgelaufen. Bitte versuche es später erneut.',
   503: 'Der Server ist momentan nicht erreichbar.',
 };

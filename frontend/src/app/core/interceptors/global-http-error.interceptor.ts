@@ -14,6 +14,6 @@ export const globalHttpErrorInterceptor: HttpInterceptorFn = (req, next) => {
         errorNotification.handle(error);
       }
       return throwError(() => error);
-    })
+    }),
   );
 };

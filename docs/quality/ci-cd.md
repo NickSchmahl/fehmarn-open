@@ -83,6 +83,17 @@ Damit ist der in [workflow.md](../workflow.md) beschriebene Ablauf technisch erz
   auf Push/PR gegen `main` + wöchentlicher Zeitplan → findet Sicherheitslücken
   statisch. `build-mode: none`, damit der Java-Extractor nicht an Java 25 hängt.
 
+> **Wartung – Actions-Versionen aktuell halten.** GitHub deprecatet regelmäßig
+> die Node-Laufzeit der Runner (Node 16 → 18 → 20 → 24). Actions, die eine alte
+> Runtime targeten, erzeugen dann Deprecation-Warnings in den Checks, bis die
+> Action auf eine neuere Major-Version gehoben wird. Beispiele bisher:
+> `github/codeql-action/{init,analyze}` von `@v3` → `@v4` (fixt Node-20-Warning
+> **und** die v3-Action-Deprecation in einem Schritt). Faustregel: Bei einer
+> solchen Warning schlicht die **Major-Version der genannten Action anheben** –
+> das behebt Runtime- und Action-Deprecation meist gemeinsam. Dependabot
+> (`package-ecosystem: github-actions`) meldet neue Majors ebenfalls, aber die
+> Node-Runtime-Warnings tauchen oft schon vorher in den PR-Checks auf.
+
 ### Smoke-Test nach Deploy (L7)
 Über den `/api/teilnehmer`-Healthcheck hinaus: minimaler Anmelde-/Login-Rauchtest
 gegen die frisch deployte Test-Umgebung (später via Playwright, siehe

@@ -1,8 +1,11 @@
 # Frontend – Code-Qualität: Linting & Formatierung
 
-Größte Lücke im Projekt: **Es gibt aktuell kein ESLint.** Prettier existiert, wird
-aber **in CI nicht geprüft**. Zielbild: sofort strenges Linting + erzwungene
-Formatierung. Nichts davon ist umgesetzt (außer als „Ist" markiert).
+> **Ist-Stand (umgesetzt):** Strenges **ESLint** (#44, Flat-Config,
+> `strict-type-checked` + angular-eslint) und **Prettier als CI-Gate** (#45) sind
+> aktiv; beide laufen im `frontend`-Job (`npm run lint`, `format:check`). Stack per
+> 2026-07-05: **Angular 22, TypeScript 6, ESLint 10, jest-preset-angular 17**
+> (siehe [changelog.md](../changelog.md)). Der Rest dieses Dokuments ist das
+> ursprüngliche Zielbild und bleibt als Referenz/Begründung stehen.
 
 ## 1. Formatierung – Prettier
 

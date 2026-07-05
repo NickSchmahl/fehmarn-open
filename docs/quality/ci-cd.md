@@ -141,6 +141,16 @@ gemergt wurde, die ursprüngliche Dependabot-`angular`-PR schließen.
   `npm ci`.
 - **TypeScript** nicht unabhängig anheben – Angular akzeptiert nur einen
   bestimmten TS-Bereich; `ng update` setzt die passende Version.
+- **Node-Version in der pom prüfen.** Ein Angular-Major hebt oft die
+  Node-Mindestversion (Engine-Requirement). `ng update` läuft lokal auf deinem
+  System-Node durch, **gebaut wird im CI aber über das `frontend-maven-plugin`**
+  (`backend/pom.xml`, `<nodeVersion>`) mit einer **gepinnten** Node-Version. Ist
+  die zu alt, scheitert erst der CI-Build mit „The Angular CLI requires a minimum
+  Node.js version of …". Also `<nodeVersion>` in `backend/pom.xml` auf eine
+  Version heben, die das neue Requirement erfüllt (aktuelle LTS des Majors), und
+  im selben PR mitnehmen. Lokal reproduzierbar über
+  `cd backend && ./mvnw generate-resources` (lädt genau dieses Node, macht
+  `npm ci` + `ng build`).
 
 ### Spring-Boot-Major lokal durchführen
 

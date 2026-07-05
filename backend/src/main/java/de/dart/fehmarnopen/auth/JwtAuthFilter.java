@@ -43,7 +43,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 response.getWriter().write("{\"error\": \"Ungültiges oder abgelaufenes Token\"}");
                 return;
             }
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
+            // Fail closed: jeder unerwartete Laufzeitfehler bei der Token-Prüfung
+            // führt zu 401, statt die Filterkette zu sprengen. (isValid fängt
+            // JWT-/Argument-Fehler bereits selbst ab und wirft nicht.)
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return;
         }

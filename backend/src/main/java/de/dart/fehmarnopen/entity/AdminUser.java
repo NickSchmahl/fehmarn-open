@@ -15,6 +15,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 @NoArgsConstructor
 public class AdminUser implements UserDetails {
 
+    // UserDetails erweitert Serializable -> expliziter serialVersionUID (SE_NO_SERIALVERSIONID).
+    private static final long serialVersionUID = 1L;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

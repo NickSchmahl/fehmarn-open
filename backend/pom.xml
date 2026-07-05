@@ -159,7 +159,7 @@
         <configuration>
           <workingDirectory>../frontend</workingDirectory>
           <installDirectory>target</installDirectory>
-          <!-- Mind. v22.22.3 fuer Angular 22 (Engine-Requirement); neueste 22-LTS. -->
+          <!-- Mind. v22.22.3 für Angular 22 (Engine-Requirement); neueste 22-LTS. -->
           <nodeVersion>v22.23.1</nodeVersion>
         </configuration>
         <executions>
@@ -214,6 +214,107 @@
             </sortPom>
           </pom>
         </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>check</goal>
+            </goals>
+            <phase>verify</phase>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Statische Bytecode-Analyse (Bugs, Ressourcenlecks) + FindSecBugs
+           (Sicherheitsmuster). Streng: Max-Effort, Low-Threshold, bricht bei Fund.
+           Lombok-generierter Code ist via lombok.config (@Generated) ausgenommen. -->
+      <plugin>
+        <groupId>com.github.spotbugs</groupId>
+        <artifactId>spotbugs-maven-plugin</artifactId>
+        <version>4.9.3.0</version>
+        <configuration>
+          <effort>Max</effort>
+          <threshold>Low</threshold>
+          <failOnError>true</failOnError>
+          <includeTests>false</includeTests>
+          <excludeFilterFile>spotbugs-exclude.xml</excludeFilterFile>
+          <plugins>
+            <plugin>
+              <groupId>com.h3xstream.findsecbugs</groupId>
+              <artifactId>findsecbugs-plugin</artifactId>
+              <version>1.14.0</version>
+            </plugin>
+          </plugins>
+        </configuration>
+        <!-- SpotBugs' gebündeltes ASM kennt Java 25 (class version 69) nicht
+             ("Unsupported class file major version 69"). ASM auf aktuelle,
+             Java-25-fähige Version hochziehen. -->
+        <dependencies>
+          <dependency>
+            <groupId>org.ow2.asm</groupId>
+            <artifactId>asm</artifactId>
+            <version>9.10.1</version>
+          </dependency>
+          <dependency>
+            <groupId>org.ow2.asm</groupId>
+            <artifactId>asm-tree</artifactId>
+            <version>9.10.1</version>
+          </dependency>
+          <dependency>
+            <groupId>org.ow2.asm</groupId>
+            <artifactId>asm-analysis</artifactId>
+            <version>9.10.1</version>
+          </dependency>
+          <dependency>
+            <groupId>org.ow2.asm</groupId>
+            <artifactId>asm-commons</artifactId>
+            <version>9.10.1</version>
+          </dependency>
+          <dependency>
+            <groupId>org.ow2.asm</groupId>
+            <artifactId>asm-util</artifactId>
+            <version>9.10.1</version>
+          </dependency>
+        </dependencies>
+        <executions>
+          <execution>
+            <goals>
+              <goal>check</goal>
+            </goals>
+            <phase>verify</phase>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Quelltext-Analyse: Design/Komplexität, leere Catches, tote Variablen.
+           Regelsatz kuratiert in pmd-ruleset.xml. Bricht bei Verstößen. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-pmd-plugin</artifactId>
+        <version>3.28.0</version>
+        <configuration>
+          <failOnViolation>true</failOnViolation>
+          <printFailingErrors>true</printFailingErrors>
+          <includeTests>false</includeTests>
+          <!-- PMD parst nur Quelltext (kein Bytecode). Das maven-pmd-plugin kennt
+               noch keine targetJdk '25'; der Code nutzt keine Java-25-only-Syntax,
+               daher als höchste unterstützte Version parsen. -->
+          <targetJdk>24</targetJdk>
+          <rulesets>
+            <ruleset>pmd-ruleset.xml</ruleset>
+          </rulesets>
+        </configuration>
+        <dependencies>
+          <dependency>
+            <groupId>net.sourceforge.pmd</groupId>
+            <artifactId>pmd-core</artifactId>
+            <version>7.13.0</version>
+          </dependency>
+          <dependency>
+            <groupId>net.sourceforge.pmd</groupId>
+            <artifactId>pmd-java</artifactId>
+            <version>7.13.0</version>
+          </dependency>
+        </dependencies>
         <executions>
           <execution>
             <goals>

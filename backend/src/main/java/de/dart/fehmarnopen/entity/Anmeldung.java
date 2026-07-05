@@ -31,13 +31,13 @@ public class Anmeldung {
     private String abmeldetoken;
 
     @Column(nullable = false)
-    private boolean abgemeldet = false;
+    private boolean abgemeldet;
 
     @Column(name = "abgemeldet_am")
     private LocalDateTime abgemeldetAm;
 
     @Column(nullable = false)
-    private boolean anwesend = false;
+    private boolean anwesend;
 
     @PrePersist
     public void prePersist() {

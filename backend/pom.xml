@@ -153,7 +153,8 @@
         <configuration>
           <workingDirectory>../frontend</workingDirectory>
           <installDirectory>target</installDirectory>
-          <nodeVersion>v22.13.0</nodeVersion>
+          <!-- Mind. v22.22.3 fuer Angular 22 (Engine-Requirement); neueste 22-LTS. -->
+          <nodeVersion>v22.23.1</nodeVersion>
         </configuration>
         <executions>
           <execution>

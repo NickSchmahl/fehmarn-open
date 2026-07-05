@@ -54,8 +54,8 @@ jobs:
       - name: Linting (ESLint)
         run: npm run lint
 
-      - name: Tests
-        run: npm test -- --watch=false --browsers=ChromeHeadless
+      - name: Tests (mit Coverage-Gate)
+        run: npm test -- --watch=false --browsers=ChromeHeadless --coverage
 
       - name: Build
         run: npm run build

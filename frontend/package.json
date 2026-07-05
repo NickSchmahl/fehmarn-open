@@ -33,7 +33,7 @@
     "@angular/compiler-cli": "^21.2.0",
     "@jest/globals": "^30.4.1",
     "@types/jest": "^30.0.0",
-    "angular-eslint": "^21.4.0",
+    "angular-eslint": "^22.0.0",
     "eslint": "^9.39.4",
     "eslint-config-prettier": "^10.1.8",
     "jest": "^30.4.2",

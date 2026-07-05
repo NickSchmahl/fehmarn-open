@@ -23,18 +23,17 @@ Reihenfolge = empfohlene Abarbeitung.
 | 10 | [#53](https://github.com/NickSchmahl/fehmarn-open/issues/53) Dependabot + CodeQL | CI/CD | [ci-cd](../quality/ci-cd.md) |
 | 11 | [#54](https://github.com/NickSchmahl/fehmarn-open/issues/54) Branch Protection (zuletzt) | CI/CD | [ci-cd](../quality/ci-cd.md) |
 
-## Status (Stand 2026-07-05)
+## Status (Stand 2026-07-06)
 
-- ✅ **Erledigt & auf `main`:** #44, #45, #46, #47, #48, #52, #53.
-- 🟡 **In Review:** #50 (SpotBugs/FindSecBugs/PMD) — PR #91, lokal `./mvnw verify` grün.
-- ⏳ **Offen, bewusst zuletzt:** #54 Branch Protection. **Blockiert:** das GitHub-Token
-  hat keine „Administration"-Berechtigung (403). Setzen via UI oder mit einem
-  Administration-scope-Token; fertiger Befehl + Settings in
-  [ci-cd.md](../quality/ci-cd.md) (Abschnitt Branch Protection).
-- ⚠️ **#49 (ArchUnit) und #51 (JaCoCo): als _completed_ geschlossen, aber NICHT auf
-  `main` umgesetzt** — kein Plugin in `backend/pom.xml`, keine ArchUnit-Testklassen.
-  Vermutlich in der `main`-Divergenz verloren oder verfrüht geschlossen. **Prüfen
-  und ggf. wieder öffnen**, sonst hat das Gate zwei Lücken. Siehe [changelog.md](../changelog.md).
+- ✅ **Erledigt & auf `main`:** #44, #45, #46, #47, #48, #49, #50, #52, #53, #54.
+  - #49 (ArchUnit) über PR #93 wiederhergestellt (`archunit-junit5` + `ArchitekturTest.java`), verifiziert.
+  - #50 (SpotBugs/FindSecBugs/PMD) über PR #91 auf `main`, verifiziert.
+  - #54 (Branch Protection) via UI als Repository-Ruleset gesetzt und **funktional getestet**
+    (Direktpush auf `main` abgelehnt: `GH013: 2 of 2 required status checks are expected`).
+- ⚠️ **Offen — #51 (JaCoCo) wieder geöffnet:** Backend-Coverage-Gate ist trotz gemergter
+  PR #62 **nicht auf `main`** (`git log -S jacoco -- backend/pom.xml` = null Treffer, das
+  Plugin war nie da). In der `main`-Divergenz verloren. Muss als eigener PR nachgeholt
+  werden — bis dahin bleibt Epic #55 offen.
 
 ## Noch nicht als Issue angelegt (kommt, wenn dran)
 

@@ -55,7 +55,7 @@ Details je Schicht:
 | Coverage-Gate Frontend | ⚠️ Script da, keine Schwelle | ✅ `coverageThreshold` + CI misst |
 | CI-Gates | ⚠️ Frontend ohne Lint/Prettier/Coverage | ✅ alle Gates in CI |
 | Deploy-Gate | ⚠️ Deploy **unabhängig** von CI | ✅ Deploy erst nach grüner CI |
-| Branch Protection | ❓ unklar | ✅ `main` nur via PR + grüne Checks |
+| Branch Protection | ✅ Ruleset aktiv, Direktpush getestet abgelehnt | ✅ `main` nur via PR + grüne Checks |
 
 ## Einführungsstrategie: Big-Bang, sofort streng
 

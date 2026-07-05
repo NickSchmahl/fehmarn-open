@@ -29,7 +29,7 @@ Zwei Test-Jobs parallel, danach die Deploy-Stufe (`needs`):
 | L2 | **Frontend-CI ohne Lint/Prettier/Coverage-Gate.** | Formatabweichungen & Lint-Fehler kommen durch (aktuell gibt es gar kein ESLint). |
 | L3 | **Doppelter Build.** CI baut, Deploy baut erneut. | Verschwendete Zeit; Deploy-Artefakt ≠ getestetes Artefakt. |
 | L4 | **Keine statische Analyse / Architekturtests** im `verify` (noch nicht eingeführt). | Struktur-/Bug-Regressionen unentdeckt. |
-| L5 | **Branch Protection unklar.** Ist `main` gegen Direktpush geschützt, sind Checks Pflicht? | Ohne Schutz sind alle Gates umgehbar. |
+| ~~L5~~ | ~~**Branch Protection unklar.**~~ **Behoben (#54):** Repository-Ruleset „Main Branch protection" aktiv — Required checks `backend`+`frontend`, Deletion + Non-fast-forward blockiert; Direktpush funktional getestet abgelehnt. | — |
 | ~~L6~~ | ~~**Kein Dependency-/Security-Scan.**~~ **Behoben (#53):** Dependabot (Maven/npm/Actions, wöchentlich) + CodeQL (Java/TypeScript) eingerichtet. | — |
 | L7 | **Deploy ohne echten Rauch-Test** über den Healthcheck hinaus. | Kaputte Kernflows (Anmeldung/Login) fallen erst im Betrieb auf. |
 
@@ -67,13 +67,23 @@ Artefakt** herunter und deployt es. So wird exakt das getestete Binary ausgelief
 Ergänzt sich automatisch: SpotBugs/PMD/JaCoCo/ArchUnit hängen an `verify` – der
 CI-Job ändert sich nicht (führt weiter `./mvnw verify` aus), wird aber strenger.
 
-### Branch Protection (L5, #54) — organisatorisch, kein Code
-Auf GitHub für `main` einrichten:
-- Pull Request vor Merge erforderlich.
-- Required status checks: `backend`, `frontend` müssen grün sein.
-- Kein Direktpush (auch nicht durch Admins/Agenten).
+### Branch Protection (L5, #54) — ✅ umgesetzt (via UI-Ruleset)
+`main` ist über ein **Repository-Ruleset** „Main Branch protection" (enforcement=active)
+geschützt:
+- **Required status checks:** `backend`, `frontend` müssen grün sein.
+- **Deletion** und **Non-fast-forward** (Force-Push) blockiert.
+- Gilt auch für Admins/Agenten (Ruleset ohne Bypass-Liste).
 
+**Funktional verifiziert:** Ein Direktpush auf `main` wird abgelehnt mit
+`GH013: Repository rule violations found … 2 of 2 required status checks are expected`.
 Damit ist der in [workflow.md](../workflow.md) beschriebene Ablauf technisch erzwungen.
+
+> Hinweis: Das Ruleset erzwingt keine formale *PR-Review-Anzahl* (Solo-Betrieb), aber
+> durch die Required-Checks ist ein naiver Direktpush ohne grüne CI praktisch
+> ausgeschlossen — der übliche Weg ist Branch → PR → grüne CI → Merge.
+
+Gesetzt wurde es **per UI** (Settings → Rules), weil das genutzte Token keinen
+Administration-Scope hat (siehe unten). Der äquivalente API-Weg zur Dokumentation:
 
 **Konkrete Settings** (Check-Kontexte heißen exakt `backend` und `frontend` — die
 Test-Jobs aus `ci.yml`; ein falscher Name blockiert Merges dauerhaft):

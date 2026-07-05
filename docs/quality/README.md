@@ -20,8 +20,7 @@ sein – zusammen fangen sie die typischen Fehlerklassen ab:
  Tests                │ 4. Unit/Integr.   JUnit + Jest          (Verhalten korrekt)
                       │ 5. Architektur    ArchUnit (BE)          (Schichten, Grenzen
                       │    tests          ESLint-Boundaries (FE)  eingehalten)
-                      │ 6. Coverage-Gate  JaCoCo / Jest          (nichts Ungetestetes
-                      │                                            rutscht durch)
+                      │ 6. Coverage       nur messbar, kein Gate (bewusst, s. coverage.md)
  ─────────────────────┼──────────────────────────────────────────────────────────
  Integration          │ 7. CI (grün)      GitHub Actions        (reproduzierbar,
                       │                                            auf sauberer Maschine)
@@ -38,7 +37,7 @@ Details je Schicht:
 | 3 | Statische Analyse | SpotBugs + PMD (+ Error Prone/NullAway) | typescript-eslint type-checked | [backend-code-qualitaet.md](backend-code-qualitaet.md) |
 | 4 | Tests | JUnit 5, @WebMvcTest, @DataJpaTest | Jest, Angular Testing | [teststrategie.md](teststrategie.md) |
 | 5 | Architekturtests | ArchUnit | eslint-plugin-boundaries / dependency-cruiser | [backend-architektur-tests.md](backend-architektur-tests.md) · [frontend-architektur-tests.md](frontend-architektur-tests.md) |
-| 6 | Coverage-Gate | JaCoCo | Jest coverageThreshold | [coverage.md](coverage.md) |
+| 6 | Coverage (nur messbar, **kein Gate** — bewusst) | JaCoCo (nicht aktiv) | Jest `--coverage` (keine Schwelle) | [coverage.md](coverage.md) |
 | 7–9 | CI/CD & Gates | GitHub Actions | GitHub Actions | [ci-cd.md](ci-cd.md) |
 
 ## Zielbild vs. Ist-Zustand (Stand 2026-07-04)
@@ -51,8 +50,8 @@ Details je Schicht:
 | Statische Analyse Backend | ❌ keine | ✅ SpotBugs + PMD im `verify` |
 | Architekturtests Backend | ❌ keine | ✅ ArchUnit-Schichtregeln |
 | Architekturtests Frontend | ❌ keine | ✅ Import-Grenzen erzwungen |
-| Coverage-Gate Backend | ❌ ungemessen | ✅ JaCoCo mit Schwelle (Build bricht) |
-| Coverage-Gate Frontend | ⚠️ Script da, keine Schwelle | ✅ `coverageThreshold` + CI misst |
+| Coverage-Gate Backend | ⛔ bewusst kein Gate (#51 `wontfix`) | Coverage nur on demand messbar, nicht erzwungen |
+| Coverage-Gate Frontend | ⛔ bewusst kein Gate (#47 ohne Schwelle) | Coverage nur on demand messbar, nicht erzwungen |
 | CI-Gates | ⚠️ Frontend ohne Lint/Prettier/Coverage | ✅ alle Gates in CI |
 | Deploy-Gate | ⚠️ Deploy **unabhängig** von CI | ✅ Deploy erst nach grüner CI |
 | Branch Protection | ✅ Ruleset aktiv, Direktpush getestet abgelehnt | ✅ `main` nur via PR + grüne Checks |

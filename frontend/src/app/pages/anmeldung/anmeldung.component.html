@@ -207,6 +207,22 @@
         </div>
       }
 
+      <!-- ── Bezahl-Hinweis ─────────────────────────────────────────────── -->
+      <p class="payment-hint" role="note">
+        <svg
+          width="13"
+          height="13"
+          viewBox="0 0 16 16"
+          fill="none"
+          aria-hidden="true"
+          class="hint-icon"
+        >
+          <circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.5" />
+          <path d="M8 7v5M8 5v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+        </svg>
+        Die Bezahlung erfolgt ausschließlich vor Ort.
+      </p>
+
       <!-- ── Fehler-Banner ──────────────────────────────────────────────── -->
       @if (errorMessage()) {
         <div class="alert-error" role="alert">{{ errorMessage() }}</div>

@@ -19,4 +19,10 @@ describe('AnmeldungComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('zeigt den Hinweis „Bezahlung ausschließlich vor Ort"', () => {
+    fixture.detectChanges();
+    const text: string = fixture.nativeElement.textContent ?? '';
+    expect(text).toContain('Die Bezahlung erfolgt ausschließlich vor Ort.');
+  });
 });

@@ -10,7 +10,7 @@
 ## Was ist das Projekt?
 
 Webanwendung zur Verwaltung von Anmeldungen für das jährliche **Fehmarn Open**
-Dart-Turnier (Radical-Geräte). Ersetzt die bisherige manuelle Verwaltung per
+Dart-Turnier (Radikal-Geräte). Ersetzt die bisherige manuelle Verwaltung per
 Excel und WhatsApp/E-Mail. Erste echte Testabnahme steht an; das Turnier findet
 im kommenden Jahr statt.
 

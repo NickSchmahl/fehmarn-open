@@ -5,7 +5,7 @@ import java.util.List;
 
 /**
  * Admin-Teilnehmerübersicht, gruppiert nach Disziplin. Enthält im Gegensatz zur öffentlichen
- * Übersicht alle Felder (inkl. E-Mail, Radical-ID) sowie Verwaltungs-Status (anwesend, abgemeldet)
+ * Übersicht alle Felder (inkl. E-Mail, Radikal-ID) sowie Verwaltungs-Status (anwesend, abgemeldet)
  * und die Anmeldung-ID als Ziel der Admin-Aktionen. Abgemeldete bleiben enthalten.
  */
 public record AdminUebersichtResponse(List<DisziplinGruppe> disziplinen) {

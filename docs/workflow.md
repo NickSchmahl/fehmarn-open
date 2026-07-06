@@ -29,7 +29,14 @@ Branch, Nick pusht/merged selbst.
 - Ein **Feature-Branch pro Ticket**: `feat/<nr>-kurzbeschreibung`,
   `fix/<nr>-kurzbeschreibung`, `chore/...`.
 - Commits deutsch, mit Issue-Referenz: `#42 abmeldelink-mail korrigieren`.
-- Vor jedem Backend-Commit: `./mvnw spotless:apply` (sonst CI rot).
+- **Vor jedem Commit die vollständige, CI-äquivalente Quality-Gate lokal laufen**
+  (nicht nur eine Teilmenge – sonst wird die CI rot):
+  - Backend: `./mvnw spotless:apply` (bzw. `spotless:check`) + `./mvnw verify`.
+  - Frontend (`frontend/`): `npm run lint` **und** `npm test` **und**
+    `npm run format:check`. ESLint (`strict-type-checked`) ist ein CI-Gate – nur
+    Jest + Prettier zu prüfen reicht **nicht**.
+- **Nur bewusst gewählte Dateien stagen** (`git add <pfad>`), **kein `git add -A`**
+  – sonst geraten fremde/versehentliche Dateien in den Commit.
 
 ## Ticket-Ablauf
 
@@ -46,6 +53,13 @@ Branch, Nick pusht/merged selbst.
 - Keine Secrets/Passwörter/Tokens in Dateien oder Commits.
 - Keine `main`-Direktcommits – immer über Branch + PR.
 - Datenbank (`*.db`) nicht anfassen/committen.
+- **Kein `git commit --amend` und kein `git push --force`/`--force-with-lease` auf
+  bereits gepushten Branches / offenen PRs.** Historie, auf die andere/GitHub bereits
+  zugreifen, wird nicht umgeschrieben. Korrekturen kommen als **zusätzlicher neuer
+  Commit** obendrauf.
+- **Merge-Konflikte** eines PR-Branches werden gelöst, indem `main` **in den Branch
+  gemergt** wird (`git merge origin/main`, Konflikte auflösen, neuer Merge-Commit) –
+  **nicht** per Rebase mit Force-Push.
 
 ## Definition of Done (pro Ticket)
 

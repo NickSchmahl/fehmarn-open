@@ -26,4 +26,11 @@ describe('AnmeldungComponent', () => {
     const subtitle = host.querySelector('.anmeldung-subtitle');
     expect(subtitle?.textContent).toContain('je Disziplin pro Person');
   });
+
+  it('schreibt den Markennamen als „Radikal" (mit K), nicht „Radical"', () => {
+    fixture.detectChanges();
+    const text: string = fixture.nativeElement.textContent ?? '';
+    expect(text).toContain('Radikal ID');
+    expect(text).not.toContain('Radical');
+  });
 });

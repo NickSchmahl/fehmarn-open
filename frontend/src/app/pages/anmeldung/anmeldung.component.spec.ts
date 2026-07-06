@@ -19,4 +19,11 @@ describe('AnmeldungComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('schreibt den Markennamen als „Radikal" (mit K), nicht „Radical"', () => {
+    fixture.detectChanges();
+    const text: string = fixture.nativeElement.textContent ?? '';
+    expect(text).toContain('Radikal ID');
+    expect(text).not.toContain('Radical');
+  });
 });

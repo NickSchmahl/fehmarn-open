@@ -4,7 +4,7 @@ public enum Disziplin {
     HERRENEINZEL("Herreneinzel"),
     DAMENEINZEL("Dameneinzel"),
     HERRENDOPPEL("Herrendoppel"),
-    MIXED_DOPPEL("Mixed-Doppel"),
+    DAMENDOPPEL("Damendoppel"),
     TRIPLE_MIX("Triple Mix"),
     TEAMWETTBEWERB("Teamwettbewerb");
 

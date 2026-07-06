@@ -54,7 +54,7 @@ im kommenden Jahr statt.
 
 ## Fachliche Kernpunkte
 
-- **Disziplinen:** Herreneinzel, Dameneinzel, Herrendoppel, Mixed-Doppel,
+- **Disziplinen:** Herreneinzel, Dameneinzel, Herrendoppel, Damendoppel,
   Triple Mix, Teamwettbewerb – je 10 €/Person. Bezahlung nur vor Ort.
 - **Teilnehmer-Flow:** Online-Anmeldung → Bestätigungsmail mit persönlichem
   Abmeldelink → optionale Selbst-Abmeldung → öffentliche Teilnehmerliste.

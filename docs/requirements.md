@@ -16,7 +16,7 @@
 - [x] Online-Anmeldung für eine/mehrere Disziplinen
 - [x] Öffentliche Teilnehmerliste
 - [x] Flyer-Ansicht (statisch)
-- [~] Bestätigungsmail bei Anmeldung — Code vorhanden, **wird deaktiviert** (Trigger kappen, siehe unten)
+- 🚫 ~~Bestätigungsmail bei Anmeldung~~ — **entfernt (#113)** (Mail-Layer + `email`-Feld gelöscht, keine E-Mail-Erfassung)
 - 🚫 ~~Selbst-Abmeldung per Link~~ — **gestrichen**, wird nicht gebaut (Teil-Code bleibt liegen)
 
 **Admin**
@@ -39,7 +39,7 @@ alten README-/„fertig"-Angaben:
 | QR-Code Anmeldelink | umsetzen | ⭕ gewünscht, nicht zwingend |
 | Excel-Export | verschoben | ❌ nein |
 | Selbst-Abmeldung | **gestrichen** (Code liegen lassen) | – |
-| E-Mail-Versand | **ruht** – Bestätigungsmail-Trigger kappen, Code behalten | – |
+| E-Mail-Versand | **entfernt (#113)** – Mail-Layer + `email`-Feld gelöscht | – |
 | Anmeldeschluss / `TurnierConfig` | **entfernen** (overengineered) | – |
 
 Tickets dazu: [tickets/quality-roadmap.md](tickets/quality-roadmap.md), Abschnitt A + Cleanup.

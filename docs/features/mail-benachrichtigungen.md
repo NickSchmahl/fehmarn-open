@@ -1,12 +1,14 @@
-# Feature: Mail-Benachrichtigungen
+# Feature: Mail-Benachrichtigungen (entfernt)
 
 Asynchroner Mailversand bei An- und Abmeldung.
 
-> **Status 2026-07-04:** ⏸️ **Ruht.** Per [ADR 0008](../adr/0008-scope-reduktion-testabnahme.md)
-> wird der **aktive Trigger gekappt** – bei Anmeldung wird **keine Mail mehr versendet**.
-> Der Mail-Code (unten) **bleibt vorerst erhalten**, damit das Feature später ohne
-> Neubau reaktivierbar ist. Der folgende Ablauf beschreibt den (derzeit inaktiven)
-> Mechanismus.
+> **Status 2026-07-06:** ❌ **Entfernt (#113).** Die gesamte E-Mail-Funktionalität
+> (Mail-Layer `MailService`/`MailEventListener`, Events, `AsyncConfig`, `MailProperties`,
+> Thymeleaf-Templates, `email`-Feld in `Teilnehmer`, Mailpit, `spring.mail.*`) wurde
+> **gelöscht**. Es werden **keine E-Mails** verschickt und **keine E-Mail-Adressen**
+> mehr erfasst. Das Dokument bleibt als historische Beschreibung des ehemaligen
+> Mechanismus erhalten; eine Reaktivierung wäre ein Neubau. Vorher: [ADR 0008](../adr/0008-scope-reduktion-testabnahme.md)
+> hatte den Trigger nur gekappt.
 
 ## Ablauf
 

@@ -8,8 +8,6 @@ import de.dart.fehmarnopen.dto.TeilnehmerUebersichtResponse.TeilnehmerEintrag;
 import de.dart.fehmarnopen.entity.Anmeldung;
 import de.dart.fehmarnopen.entity.Disziplin;
 import de.dart.fehmarnopen.entity.Teilnehmer;
-import de.dart.fehmarnopen.event.AbmeldungBestaetigtEvent;
-import de.dart.fehmarnopen.event.AnmeldungBestaetigtEvent;
 import de.dart.fehmarnopen.exception.DoppelteAnmeldungException;
 import de.dart.fehmarnopen.exception.NichtGefundenException;
 import de.dart.fehmarnopen.repository.AnmeldungRepository;
@@ -22,7 +20,6 @@ import java.util.Optional;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,28 +29,18 @@ public class AnmeldungService {
 
     private final AnmeldungRepository anmeldungRepository;
     private final TeilnehmerRepository teilnehmerRepository;
-    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public List<Anmeldung> anmeldenMitTeilnehmer(AnmeldungRequest request) {
         Teilnehmer teilnehmer = new Teilnehmer();
         teilnehmer.setVorname(request.vorname());
         teilnehmer.setNachname(request.nachname());
-        teilnehmer.setEmail(request.email());
         teilnehmer.setRadicalId(request.radicalId());
         teilnehmerRepository.save(teilnehmer);
 
-        List<Anmeldung> anmeldungen = request.disziplinen().stream()
+        return request.disziplinen().stream()
                 .map(d -> anmelden(teilnehmer, d.disziplin(), d.teamName()))
                 .toList();
-
-        List<AnmeldungBestaetigtEvent.Position> positionen = anmeldungen.stream()
-                .map(a -> new AnmeldungBestaetigtEvent.Position(a.getDisziplin(), a.getTeamName()))
-                .toList();
-        eventPublisher.publishEvent(new AnmeldungBestaetigtEvent(
-                teilnehmer.getEmail(), teilnehmer.getVorname(), teilnehmer.getNachname(), positionen));
-
-        return anmeldungen;
     }
 
     @Transactional
@@ -124,7 +111,6 @@ public class AnmeldungService {
         anmeldung.setAbgemeldet(true);
         anmeldung.setAbgemeldetAm(LocalDateTime.now());
         anmeldungRepository.save(anmeldung);
-        publiziereAbmeldung(anmeldung);
     }
 
     @Transactional
@@ -154,7 +140,6 @@ public class AnmeldungService {
                 a.getId(),
                 t.getVorname(),
                 t.getNachname(),
-                t.getEmail(),
                 t.getRadicalId(),
                 a.getTeamName(),
                 a.isAnwesend(),
@@ -178,13 +163,6 @@ public class AnmeldungService {
             anmeldung.setAbgemeldet(true);
             anmeldung.setAbgemeldetAm(LocalDateTime.now());
             anmeldungRepository.save(anmeldung);
-            publiziereAbmeldung(anmeldung);
         });
-    }
-
-    private void publiziereAbmeldung(Anmeldung anmeldung) {
-        Teilnehmer t = anmeldung.getTeilnehmer();
-        eventPublisher.publishEvent(new AbmeldungBestaetigtEvent(
-                t.getEmail(), t.getVorname(), t.getNachname(), anmeldung.getDisziplin(), anmeldung.getTeamName()));
     }
 }

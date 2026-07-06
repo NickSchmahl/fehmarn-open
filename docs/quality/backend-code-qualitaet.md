@@ -146,7 +146,7 @@ Big-Bang-Prinzip: Verstöße wurden **behoben**, nur Framework-Idiome sind unter
 
 **PMD** (`pmd-ruleset.xml`): Formatierung (Spotless) und Namens-/Strukturkonventionen
 (ArchUnit) sind ausgenommen; zusätzlich `AvoidCatchingGenericException` (bewusste
-Fail-Safe-Boundaries in Auth-Filter/Mailversand), `UseUtilityClass` (Spring-Boot-Main),
+Fail-Safe-Boundaries im Auth-Filter), `UseUtilityClass` (Spring-Boot-Main),
 `AvoidInstantiatingObjectsInLoops` (ein Objekt pro Input ist inhärent).
 
 **Im Code behoben** (nicht unterdrückt): `CT_CONSTRUCTOR_THROW` → `JwtService` final;

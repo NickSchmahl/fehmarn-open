@@ -13,7 +13,7 @@ aktuellen Zweck **overengineered** und soll nicht (jetzt) umgesetzt werden.
 | Feature | Entscheidung | Umgang mit vorhandenem Code |
 |---------|--------------|------------------------------|
 | **Selbst-Abmeldung (Teilnehmer)** | **Gestrichen** – wird nicht gebaut | Teil-Code (`abmelden(token)`, `abmeldetoken`, Repo-Query) **vorerst liegen lassen**, nur als „nicht mehr vorgesehen" dokumentiert |
-| **E-Mail-Versand** | **Ruht** – Bestätigungsmail wird nicht mehr ausgelöst | **Aktive Verbindung kappen** (kein Versand bei Anmeldung), Mail-Code (`MailService`, Listener, Events) **behalten**, aber inaktiv |
+| **E-Mail-Versand** | **Ruht** → **inzwischen per #113 vollständig entfernt** | Ursprünglich nur Trigger kappen (Code behalten); mit #113 wurde der gesamte Mail-Layer (`MailService`, Listener, Events, `AsyncConfig`) inkl. `email`-Feld und Mailpit **gelöscht** |
 | **Anmeldeschluss / `TurnierConfig`** | **Raus** – overengineered | Als Cleanup-TODO zum **Entfernen** vormerken (`TurnierConfig`, ungenutzte Felder/Exception) |
 | **Excel-Export** | **Verschoben** – nicht vor Testabnahme | (kein Code vorhanden) |
 | **Flyer-Upload** | **Bleibt/erforderlich** – vor Testabnahme umsetzen | (neu zu bauen) |
@@ -29,5 +29,6 @@ Anmeldeschluss bringen für den aktuellen Ablauf mehr Komplexität als Nutzen.
 - „Liegen lassen" (Abmelde-Code) vs. „raus" (Anmeldeschluss) ist bewusst
   unterschiedlich: Ersteres kostet nichts und stört nicht, Letzteres ist toter
   Ballast im Datenmodell.
-- Mail kann später reaktiviert werden, ohne neu gebaut zu werden (Code bleibt).
+- Mail wurde mit #113 vollständig entfernt (Code ist **weg**); eine Reaktivierung
+  wäre daher ein Neubau, kein Wieder-Anschalten.
 - Vor Reaktivierung/Ausbau dieser Themen: neuer ADR, der diesen hier ergänzt.

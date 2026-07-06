@@ -11,7 +11,7 @@ Entscheidungen bekommen ein neues ADR mit Status „ersetzt durch …".
 |----|-------|--------|
 | [0001](0001-sqlite-pool-1.md) | SQLite mit Hikari-Pool = 1 + busy_timeout | Akzeptiert |
 | [0002](0002-jwt-stateless.md) | JWT stateless statt Server-Sessions | Akzeptiert |
-| [0003](0003-async-mail-events.md) | Asynchroner Mailversand über Application Events | Akzeptiert |
+| [0003](0003-async-mail-events.md) | Asynchroner Mailversand über Application Events | Zurückgezogen (#113) |
 | [0004](0004-ddl-auto-update.md) | `ddl-auto: update` statt Migrations-Tooling | Akzeptiert (befristet) |
 | [0005](0005-docs-agents-kontext.md) | `docs/` + `AGENTS.md` als Projektkontext | Akzeptiert |
 | [0006](0006-github-gh-cli.md) | GitHub-Zusammenarbeit über gh CLI | Akzeptiert |

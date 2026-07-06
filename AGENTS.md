@@ -22,7 +22,6 @@ im kommenden Jahr statt.
 | Frontend   | Angular 21 (Standalone Components) |
 | Datenbank  | SQLite via Spring Data JPA / Hibernate (community dialect) |
 | Auth       | Spring Security + JWT (jjwt) |
-| Mail       | Spring Mail; lokal über Mailpit (Docker) |
 | Build      | Maven (backend, mit frontend-maven-plugin), npm/Angular CLI (frontend) |
 | CI/CD      | GitHub Actions (`.github/workflows/`) |
 
@@ -37,7 +36,6 @@ im kommenden Jahr statt.
 │       ├── controller/          # REST: Anmeldung, Teilnehmer, AdminTeilnehmer
 │       ├── dto/                 # Request/Response-DTOs
 │       ├── entity/              # Teilnehmer, Anmeldung, Disziplin, AdminUser, TurnierConfig
-│       ├── event/ + mail/       # Event-basierter Mailversand (async)
 │       ├── exception/           # GlobalExceptionHandler + fachliche Exceptions
 │       ├── repository/          # Spring Data JPA Repositories
 │       └── service/             # AnmeldungService (Kernlogik)
@@ -48,7 +46,6 @@ im kommenden Jahr statt.
 │       ├── pages/               # anmeldung, teilnehmer, flyer, login
 │       ├── shared/ + ui/        # Disziplin-Modell, Toast-Komponente
 ├── docs/                        # Backlog, Entscheidungen, Requirements, Notizen
-├── compose.yaml                 # Mailpit für lokale Entwicklung
 └── AGENTS.md                    # DIESE DATEI
 ```
 
@@ -56,15 +53,15 @@ im kommenden Jahr statt.
 
 - **Disziplinen:** Herreneinzel, Dameneinzel, Herrendoppel, Mixed-Doppel,
   Triple Mix, Teamwettbewerb – je 10 €/Person. Bezahlung nur vor Ort.
-- **Teilnehmer-Flow:** Online-Anmeldung → Bestätigungsmail mit persönlichem
-  Abmeldelink → optionale Selbst-Abmeldung → öffentliche Teilnehmerliste.
+- **Teilnehmer-Flow:** Online-Anmeldung (ohne E-Mail) → öffentliche Teilnehmerliste.
+  Bezahlung ausschließlich vor Ort.
 - **Admin-Flow (Ist):** Login → Teilnehmerverwaltung + manuelle Abmeldung/Reaktivieren
   → Anwesenheitskontrolle. Das ist implementiert.
 - **Scope-Stand 2026-07-04** (siehe `docs/adr/0008-scope-reduktion-testabnahme.md`):
   - **Flyer-Upload** → umsetzen (vor Testabnahme), **QR-Code** → gewünscht.
   - **Excel-Export** → verschoben. **Anmeldeschluss/`TurnierConfig`** → soll raus (toter Code).
-  - **Selbst-Abmeldung** → gestrichen (Teil-Code bleibt liegen). **E-Mail-Versand** →
-    ruht: Bestätigungsmail-Trigger wird gekappt, Mail-Code bleibt erhalten.
+  - **Selbst-Abmeldung** → gestrichen (Teil-Code bleibt liegen). **E-Mail/Mailversand** →
+    per #113 vollständig entfernt (kein Mail-Layer, kein `email`-Feld mehr).
   Verifizierter Feature-Stand: `docs/features/`. Offene Punkte: `docs/tickets/quality-roadmap.md`.
 
 ## Wichtige technische Entscheidungen (Kurzform, Details in docs/decisions.md)
@@ -73,21 +70,18 @@ im kommenden Jahr statt.
   Schreiber. Der Pool serialisiert gleichzeitige Writes, um `SQLITE_BUSY` zu
   vermeiden. **Nicht** blind hochsetzen ohne über Nebenläufigkeit nachzudenken.
 - **JWT stateless**, keine Server-Sessions. `JWT_SECRET` ist Pflicht-Env-Var.
-- **Mailversand async** über Application Events (`AnmeldungBestaetigtEvent` etc.).
 - **`ddl-auto: update`** – Schema wird von Hibernate gepflegt (keine Migrations-
   Tooling wie Flyway). Bei Entity-Änderungen daran denken.
 
 ## Konfiguration (Env-Variablen)
 
 Pflicht zum Start des Backends: `ADMIN_1_PASSWORD`, `ADMIN_2_PASSWORD`, `JWT_SECRET`.
-Optional u.a.: `ADMIN_*_USERNAME`, `MAIL_HOST/PORT/USERNAME/PASSWORD`, `MAIL_FROM`,
-`MAIL_ENABLED`, `CORS_ALLOWED_ORIGINS`, `JWT_EXPIRATION_MS`. Siehe `application.yaml`.
+Optional u.a.: `ADMIN_*_USERNAME`, `CORS_ALLOWED_ORIGINS`, `JWT_EXPIRATION_MS`.
+Siehe `application.yaml`.
 
 ## Lokale Entwicklung
 
 ```bash
-docker compose up -d          # Mailpit (SMTP :1025, Web-UI :8025)
-
 # Backend (Java 25 nötig!)
 cd backend
 export ADMIN_1_PASSWORD=... ADMIN_2_PASSWORD=... JWT_SECRET=...

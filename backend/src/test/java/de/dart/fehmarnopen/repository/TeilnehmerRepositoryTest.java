@@ -24,25 +24,9 @@ class TeilnehmerRepositoryTest {
         Teilnehmer teilnehmer = new Teilnehmer();
         teilnehmer.setVorname("Max");
         teilnehmer.setNachname("Mustermann");
-        teilnehmer.setEmail("max@example.com");
         teilnehmer.setRadicalId("RAD-001");
         teilnehmer.setInitialen("MM");
         teilnehmerRepository.save(teilnehmer);
-    }
-
-    @Test
-    void findByEmail_sollTeilnehmerZurueckgeben() {
-        Optional<Teilnehmer> result = teilnehmerRepository.findByEmail("max@example.com");
-
-        assertThat(result).isPresent();
-        assertThat(result.get().getNachname()).isEqualTo("Mustermann");
-    }
-
-    @Test
-    void findByEmail_unbekannteEmail_sollLeerSein() {
-        Optional<Teilnehmer> result = teilnehmerRepository.findByEmail("unbekannt@example.com");
-
-        assertThat(result).isEmpty();
     }
 
     @Test
@@ -62,7 +46,7 @@ class TeilnehmerRepositoryTest {
 
     @Test
     void save_sollAngemeldetAmAutomatischSetzen() {
-        Optional<Teilnehmer> result = teilnehmerRepository.findByEmail("max@example.com");
+        Optional<Teilnehmer> result = teilnehmerRepository.findByRadicalId("RAD-001");
 
         assertThat(result).isPresent();
         assertThat(result.get().getAngemeldetAm()).isNotNull();

@@ -38,7 +38,7 @@ aus GitHub gezogen. Erkennbare Nummern: #1–#14, #19, #21–#28, #34–#37, #42
 | #11 | Anmeldung Repo + Service | `e32de44` | ✅ |
 | #12 | Anmelde-Endpunkt | `c10655d` | ✅ |
 | #14 | Anmeldemaske (Frontend) | `6013a89` | ✅ |
-| #13, #22 | Bestätigungsmails An-/Abmeldung | `4293f5c` | ⚠️ Mail ja – **aber Abmelde-Endpunkt für den Link fehlt** (siehe [features/teilnehmer.md](../features/teilnehmer.md)) |
+| #13, #22 | Bestätigungsmails An-/Abmeldung | `4293f5c` | ❌ später per #113 vollständig entfernt (Mail-Layer + `email`-Feld gelöscht) |
 | #23, #26 | Teilnehmerseite mit Disziplin-Filter | `3df5ecb` | ✅ |
 
 ## Admin

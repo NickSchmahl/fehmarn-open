@@ -40,7 +40,6 @@ export interface AdminEintrag {
   id: number;
   vorname: string;
   nachname: string;
-  email: string;
   radicalId: string | null;
   teamName: string | null;
   anwesend: boolean;
@@ -200,7 +199,7 @@ export class Teilnehmer implements OnInit {
   });
 
   /**
-   * Admin: gefiltert nach Disziplin + Suchbegriff (Name/E-Mail), innerhalb der Disziplin nach
+   * Admin: gefiltert nach Disziplin + Suchbegriff (Name), innerhalb der Disziplin nach
    * Teamnamen gruppiert (Einzeldisziplinen = je eine Ein-Personen-Gruppe).
    */
   readonly sichtbareAdminGruppen = computed<AdminAnzeigeGruppe[]>(() => {
@@ -292,7 +291,7 @@ export class Teilnehmer implements OnInit {
     if (suche === '') {
       return true;
     }
-    return `${t.vorname} ${t.nachname} ${t.email}`.toLowerCase().includes(suche);
+    return `${t.vorname} ${t.nachname}`.toLowerCase().includes(suche);
   }
 
   private ladeOeffentlich(): void {

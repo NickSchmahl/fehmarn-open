@@ -6,8 +6,6 @@ Webanwendung zur Verwaltung von Anmeldungen für das jährliche Fehmarn Open Dar
 
 **Für Teilnehmer**
 - Online-Anmeldung für eine oder mehrere Disziplinen
-- Bestätigungsmail mit persönlichem Abmeldelink
-- Selbständige Abmeldung per Link
 - Einsicht in die aktuelle Teilnehmerliste
 - Ansicht des Turnier-Flyers
 
@@ -41,7 +39,6 @@ Bezahlung erfolgt ausschließlich vor Ort. Keine Online-Zahlung.
 | Frontend | Angular 21 (Standalone Components) |
 | Datenbank | SQLite via Spring Data JPA / Hibernate |
 | Auth | Spring Security, JWT |
-| Mail | Spring Mail + externer SMTP-Service |
 
 ## Projektstruktur
 

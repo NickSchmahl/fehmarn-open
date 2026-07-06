@@ -74,25 +74,6 @@
           </div>
         </div>
 
-        <!-- E-Mail -->
-        <div class="field-group">
-          <label for="email" class="field-label">E-Mail <span class="required">*</span></label>
-          <input
-            id="email"
-            type="email"
-            formControlName="email"
-            class="field-input"
-            [class.field-input--error]="email.invalid && email.touched"
-            autocomplete="email"
-            placeholder="max@beispiel.de"
-          />
-          @if (email.errors?.['required'] && email.touched) {
-            <span class="field-error">E-Mail ist erforderlich.</span>
-          } @else if (email.errors?.['email'] && email.touched) {
-            <span class="field-error">Ungültige E-Mail-Adresse.</span>
-          }
-        </div>
-
         <!-- Radikal ID -->
         <div class="field-group">
           <label for="radicalId" class="field-label">

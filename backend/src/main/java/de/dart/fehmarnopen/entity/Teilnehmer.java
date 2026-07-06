@@ -21,9 +21,6 @@ public class Teilnehmer {
     @Column(nullable = false)
     private String nachname;
 
-    @Column(nullable = false, unique = true)
-    private String email;
-
     @Column(name = "radical_id")
     private String radicalId;
 

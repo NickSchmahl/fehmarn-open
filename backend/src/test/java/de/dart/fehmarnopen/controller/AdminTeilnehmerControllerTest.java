@@ -45,15 +45,13 @@ class AdminTeilnehmerControllerTest {
                 .thenReturn(new AdminUebersichtResponse(List.of(new DisziplinGruppe(
                         Disziplin.HERRENDOPPEL,
                         1,
-                        List.of(new AdminEintrag(
-                                5L, "Max", "Mustermann", "max@example.com", "MM-1", "Team A", true, false))))));
+                        List.of(new AdminEintrag(5L, "Max", "Mustermann", "MM-1", "Team A", true, false))))));
 
         mockMvc.perform(get("/api/admin/teilnehmer"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.disziplinen[0].disziplin").value("HERRENDOPPEL"))
                 .andExpect(jsonPath("$.disziplinen[0].anzahl").value(1))
                 .andExpect(jsonPath("$.disziplinen[0].teilnehmer[0].id").value(5))
-                .andExpect(jsonPath("$.disziplinen[0].teilnehmer[0].email").value("max@example.com"))
                 .andExpect(jsonPath("$.disziplinen[0].teilnehmer[0].anwesend").value(true))
                 .andExpect(jsonPath("$.disziplinen[0].teilnehmer[0].abgemeldet").value(false));
     }

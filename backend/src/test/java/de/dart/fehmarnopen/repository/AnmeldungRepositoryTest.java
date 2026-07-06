@@ -32,7 +32,6 @@ class AnmeldungRepositoryTest {
         teilnehmer = new Teilnehmer();
         teilnehmer.setVorname("Max");
         teilnehmer.setNachname("Mustermann");
-        teilnehmer.setEmail("max@example.com");
         teilnehmerRepository.save(teilnehmer);
     }
 

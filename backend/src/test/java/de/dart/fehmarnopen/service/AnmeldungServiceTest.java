@@ -11,8 +11,6 @@ import de.dart.fehmarnopen.dto.TeilnehmerUebersichtResponse;
 import de.dart.fehmarnopen.entity.Anmeldung;
 import de.dart.fehmarnopen.entity.Disziplin;
 import de.dart.fehmarnopen.entity.Teilnehmer;
-import de.dart.fehmarnopen.event.AbmeldungBestaetigtEvent;
-import de.dart.fehmarnopen.event.AnmeldungBestaetigtEvent;
 import de.dart.fehmarnopen.exception.DoppelteAnmeldungException;
 import de.dart.fehmarnopen.exception.NichtGefundenException;
 import de.dart.fehmarnopen.repository.AnmeldungRepository;
@@ -23,11 +21,9 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.context.ApplicationEventPublisher;
 
 @ExtendWith(MockitoExtension.class)
 class AnmeldungServiceTest {
@@ -37,9 +33,6 @@ class AnmeldungServiceTest {
 
     @Mock
     private TeilnehmerRepository teilnehmerRepository;
-
-    @Mock
-    private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
     private AnmeldungService anmeldungService;
@@ -51,7 +44,6 @@ class AnmeldungServiceTest {
         teilnehmer = new Teilnehmer();
         teilnehmer.setVorname("Max");
         teilnehmer.setNachname("Mustermann");
-        teilnehmer.setEmail("max@example.com");
     }
 
     @Test
@@ -147,7 +139,6 @@ class AnmeldungServiceTest {
         Teilnehmer t = new Teilnehmer();
         t.setVorname(vorname);
         t.setNachname(nachname);
-        t.setEmail(vorname + "@example.com");
         return t;
     }
 
@@ -253,7 +244,6 @@ class AnmeldungServiceTest {
                 .get(0);
 
         assertThat(eintrag.id()).isEqualTo(5L);
-        assertThat(eintrag.email()).isEqualTo("Anna@example.com");
         assertThat(eintrag.radicalId()).isEqualTo("AS-1");
         assertThat(eintrag.teamName()).isEqualTo("Team A");
         assertThat(eintrag.anwesend()).isTrue();
@@ -315,7 +305,7 @@ class AnmeldungServiceTest {
     }
 
     @Test
-    void anmeldenMitTeilnehmer_sollAnmeldungBestaetigtEventPublizieren() {
+    void anmeldenMitTeilnehmer_sollTeilnehmerUndAnmeldungenAnlegen() {
         when(teilnehmerRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
         when(anmeldungRepository.existsByTeilnehmerAndDisziplin(any(), any())).thenReturn(false);
         when(anmeldungRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
@@ -323,55 +313,14 @@ class AnmeldungServiceTest {
         AnmeldungRequest request = new AnmeldungRequest(
                 "Anna",
                 "Schmidt",
-                "anna@example.com",
-                null,
+                "AS-1",
                 List.of(new AnmeldungRequest.DisziplinAnmeldung(Disziplin.HERRENDOPPEL, "Team A")));
 
-        anmeldungService.anmeldenMitTeilnehmer(request);
+        List<Anmeldung> result = anmeldungService.anmeldenMitTeilnehmer(request);
 
-        ArgumentCaptor<AnmeldungBestaetigtEvent> captor = ArgumentCaptor.forClass(AnmeldungBestaetigtEvent.class);
-        verify(eventPublisher).publishEvent(captor.capture());
-        AnmeldungBestaetigtEvent event = captor.getValue();
-        assertThat(event.email()).isEqualTo("anna@example.com");
-        assertThat(event.disziplinen()).hasSize(1);
-        assertThat(event.disziplinen().get(0).disziplin()).isEqualTo(Disziplin.HERRENDOPPEL);
-        assertThat(event.disziplinen().get(0).teamName()).isEqualTo("Team A");
-    }
-
-    @Test
-    void abmeldenPerId_sollAbmeldungBestaetigtEventPublizieren() {
-        Anmeldung a = anmeldung(teilnehmer("Bert", "Adam"), Disziplin.DAMENEINZEL, null);
-        when(anmeldungRepository.findById(7L)).thenReturn(Optional.of(a));
-        when(anmeldungRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
-
-        anmeldungService.abmelden(7L);
-
-        ArgumentCaptor<AbmeldungBestaetigtEvent> captor = ArgumentCaptor.forClass(AbmeldungBestaetigtEvent.class);
-        verify(eventPublisher).publishEvent(captor.capture());
-        assertThat(captor.getValue().email()).isEqualTo("Bert@example.com");
-        assertThat(captor.getValue().disziplin()).isEqualTo(Disziplin.DAMENEINZEL);
-    }
-
-    @Test
-    void reaktivieren_sollKeinEventPublizieren() {
-        Anmeldung a = anmeldung(teilnehmer("Bert", "Adam"), Disziplin.DAMENEINZEL, null);
-        a.setAbgemeldet(true);
-        when(anmeldungRepository.findById(7L)).thenReturn(Optional.of(a));
-        when(anmeldungRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
-
-        anmeldungService.reaktivieren(7L);
-
-        verify(eventPublisher, never()).publishEvent(any());
-    }
-
-    @Test
-    void abmeldenPerToken_sollAbmeldungBestaetigtEventPublizieren() {
-        Anmeldung a = anmeldung(teilnehmer("Bert", "Adam"), Disziplin.HERRENEINZEL, null);
-        when(anmeldungRepository.findByAbmeldetoken("tok")).thenReturn(Optional.of(a));
-        when(anmeldungRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
-
-        anmeldungService.abmelden("tok");
-
-        verify(eventPublisher).publishEvent(any(AbmeldungBestaetigtEvent.class));
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getDisziplin()).isEqualTo(Disziplin.HERRENDOPPEL);
+        assertThat(result.get(0).getTeamName()).isEqualTo("Team A");
+        verify(teilnehmerRepository).save(any(Teilnehmer.class));
     }
 }

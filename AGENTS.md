@@ -10,7 +10,7 @@
 ## Was ist das Projekt?
 
 Webanwendung zur Verwaltung von Anmeldungen für das jährliche **Fehmarn Open**
-Dart-Turnier (Radical-Geräte). Ersetzt die bisherige manuelle Verwaltung per
+Dart-Turnier (Radikal-Geräte). Ersetzt die bisherige manuelle Verwaltung per
 Excel und WhatsApp/E-Mail. Erste echte Testabnahme steht an; das Turnier findet
 im kommenden Jahr statt.
 
@@ -121,3 +121,8 @@ npm install && ng serve       # http://localhost:4200, /api proxied
 Siehe `docs/workflow.md` für den vollständigen Workflow (Branches, PRs via gh CLI,
 Ticket-Format). Kurz: Feature-Branch pro Ticket → committen mit Issue-Referenz →
 PR → CI grün → Merge → Auto-Deploy Test.
+
+Wichtig: **Kein `--amend`/Force-Push auf gepushten PR-Branches** – Korrekturen als
+neuen Commit obendrauf; Konflikte per `git merge origin/main` lösen. Vor jedem Commit
+die **volle** lokale Quality-Gate (Frontend: `npm run lint` + `npm test` +
+`npm run format:check`; Backend: `spotless:apply` + `verify`).

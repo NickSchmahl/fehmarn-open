@@ -1,6 +1,6 @@
 # Fehmarn Open – Turnier-Anmeldetool
 
-Webanwendung zur Verwaltung von Anmeldungen für das jährliche Fehmarn Open Dart-Turnier, das an Radical-Geräten ausgetragen wird. Das Tool ersetzt die bisherige manuelle Verwaltung per Excel und E-Mail.
+Webanwendung zur Verwaltung von Anmeldungen für das jährliche Fehmarn Open Dart-Turnier, das an Radikal-Geräten ausgetragen wird. Das Tool ersetzt die bisherige manuelle Verwaltung per Excel und E-Mail.
 
 ## Funktionsumfang
 

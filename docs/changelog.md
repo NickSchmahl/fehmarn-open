@@ -19,11 +19,15 @@ Ticket-Wahrheit gegen den tatsächlichen Repo-Stand.
 - **#49 (ArchUnit) & #50 (SpotBugs/FindSecBugs/PMD) — verifiziert & geschlossen.**
   #49 ist über PR #93 wiederhergestellt (`archunit-junit5` + `ArchitekturTest.java`),
   #50 über PR #91 auf `main`. Beide Plugins/Testklassen im Repo bestätigt.
-- **⚠️ #51 (JaCoCo) — wieder geöffnet.** Trotz gemergter PR #62 ist **kein**
-  `jacoco-maven-plugin` auf `main` (`git log -S jacoco -- backend/pom.xml` = null
-  Treffer — es war nie da). Das Backend-Coverage-Gate fehlt real. In der
-  `main`-Divergenz verloren. Muss als eigener PR nachgeholt werden; **Epic #55
-  bleibt bis dahin offen**.
+- **⛔ #51 (JaCoCo) — `wontfix`.** Das Plugin war trotz gemergter PR #62 nie auf
+  `main` (`git log -S jacoco -- backend/pom.xml` = null Treffer). Statt es nachzuholen,
+  bewusst entschieden: **Coverage wird nicht als harte Zwangsgrenze erzwungen** —
+  ein Schritt zu viel für dieses Projekt. Coverage bleibt messbar
+  (`npm run test:coverage` bzw. JaCoCo-Report on demand), aber kein Build-brechendes
+  Gate. Gilt symmetrisch fürs Frontend (#47 ohne `coverageThreshold`). Die übrigen
+  Gates (Format, Lint, statische Analyse, ArchUnit, Tests) bleiben scharf.
+- **✅ Epic #55 (Qualitäts-Big-Bang) geschlossen** — alle Tickets erledigt oder
+  bewusst `wontfix` (#51).
 
 ## 2026-07-05 — Dependency-Härtung & Abschluss Qualitäts-Big-Bang
 

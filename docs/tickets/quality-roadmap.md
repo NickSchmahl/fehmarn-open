@@ -30,10 +30,13 @@ Reihenfolge = empfohlene Abarbeitung.
   - #50 (SpotBugs/FindSecBugs/PMD) über PR #91 auf `main`, verifiziert.
   - #54 (Branch Protection) via UI als Repository-Ruleset gesetzt und **funktional getestet**
     (Direktpush auf `main` abgelehnt: `GH013: 2 of 2 required status checks are expected`).
-- ⚠️ **Offen — #51 (JaCoCo) wieder geöffnet:** Backend-Coverage-Gate ist trotz gemergter
-  PR #62 **nicht auf `main`** (`git log -S jacoco -- backend/pom.xml` = null Treffer, das
-  Plugin war nie da). In der `main`-Divergenz verloren. Muss als eigener PR nachgeholt
-  werden — bis dahin bleibt Epic #55 offen.
+- ⛔ **#51 (JaCoCo) — `wontfix` (Entscheidung 2026-07-06).** Das Backend-Coverage-Gate
+  war trotz gemergter PR #62 nie auf `main` (`git log -S jacoco -- backend/pom.xml` =
+  null Treffer). Statt es nachzuholen, ist bewusst entschieden: **Coverage wird nicht
+  als harte Zwangsgrenze erzwungen.** Damit ist auch das Frontend-Pendant (#47) bewusst
+  ohne `coverageThreshold` — Coverage bleibt messbar (`npm run test:coverage`), aber
+  ungated. Die übrigen Gates (Format, Lint, statische Analyse, ArchUnit, Tests) bleiben scharf.
+- ✅ **Epic #55 abgeschlossen** — alle Härtungs-Tickets erledigt oder bewusst `wontfix`.
 
 ## Noch nicht als Issue angelegt (kommt, wenn dran)
 

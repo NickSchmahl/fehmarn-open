@@ -19,4 +19,11 @@ describe('AnmeldungComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('zeigt im Untertitel den Zusatz "pro Person"', () => {
+    fixture.detectChanges();
+    const host = fixture.nativeElement as HTMLElement;
+    const subtitle = host.querySelector('.anmeldung-subtitle');
+    expect(subtitle?.textContent).toContain('je Disziplin pro Person');
+  });
 });

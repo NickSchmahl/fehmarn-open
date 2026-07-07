@@ -81,10 +81,10 @@ class AnmeldungRepositoryTest {
     void existsByTeilnehmerAndDisziplin_beiVorhandenerAnmeldung_sollTrueZurueckgeben() {
         Anmeldung anmeldung = new Anmeldung();
         anmeldung.setTeilnehmer(teilnehmer);
-        anmeldung.setDisziplin(Disziplin.MIXED_DOPPEL);
+        anmeldung.setDisziplin(Disziplin.DAMENDOPPEL);
         anmeldungRepository.save(anmeldung);
 
-        boolean exists = anmeldungRepository.existsByTeilnehmerAndDisziplin(teilnehmer, Disziplin.MIXED_DOPPEL);
+        boolean exists = anmeldungRepository.existsByTeilnehmerAndDisziplin(teilnehmer, Disziplin.DAMENDOPPEL);
 
         assertThat(exists).isTrue();
     }

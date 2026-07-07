@@ -1,12 +1,7 @@
 // Gemeinsames Disziplin-Modell, genutzt von Anmeldung und Teilnehmerübersicht.
 
 export type Disziplin =
-  | 'HERRENEINZEL'
-  | 'DAMENEINZEL'
-  | 'HERRENDOPPEL'
-  | 'MIXED_DOPPEL'
-  | 'TRIPLE_MIX'
-  | 'TEAMWETTBEWERB';
+  'HERRENEINZEL' | 'DAMENEINZEL' | 'HERRENDOPPEL' | 'DAMENDOPPEL' | 'TRIPLE_MIX' | 'TEAMWETTBEWERB';
 
 export interface DisziplinMeta {
   value: Disziplin;
@@ -19,12 +14,7 @@ export const DISZIPLINEN: DisziplinMeta[] = [
   { value: 'HERRENEINZEL', label: 'Herreneinzel', subtitle: '', teamName: false },
   { value: 'DAMENEINZEL', label: 'Dameneinzel', subtitle: '', teamName: false },
   { value: 'HERRENDOPPEL', label: 'Herrendoppel', subtitle: '', teamName: true },
-  {
-    value: 'MIXED_DOPPEL',
-    label: 'Mixed-Doppel',
-    subtitle: 'Mindestens eine Frau',
-    teamName: true,
-  },
+  { value: 'DAMENDOPPEL', label: 'Damendoppel', subtitle: '', teamName: true },
   { value: 'TRIPLE_MIX', label: 'Triple Mix', subtitle: 'Mindestens eine Frau', teamName: true },
   {
     value: 'TEAMWETTBEWERB',

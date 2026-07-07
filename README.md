@@ -27,7 +27,7 @@ Webanwendung zur Verwaltung von Anmeldungen für das jährliche Fehmarn Open Dar
 | Herreneinzel | Einzel | 10 € / Person |
 | Dameneinzel | Einzel | 10 € / Person |
 | Herrendoppel | Doppel | 10 € / Person |
-| Mixed-Doppel | Doppel | 10 € / Person |
+| Damendoppel | Doppel | 10 € / Person |
 | Triple Mix | Triple | 10 € / Person |
 | Teamwettbewerb | Team | 10 € / Person |
 

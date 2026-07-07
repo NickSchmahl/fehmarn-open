@@ -1,15 +1,20 @@
 package de.dart.fehmarnopen.entity;
 
 import jakarta.persistence.*;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Ein einzelner Spieler innerhalb einer Team-Anmeldung. Die Radikal ID wird entweder direkt
+ * angegeben ({@link #radicalId}) oder aus {@link #initialen} + {@link #geburtsdatum} abgeleitet
+ * (siehe {@code SpielerValidierungService}).
+ */
 @Entity
-@Table(name = "teilnehmer")
+@Table(name = "spieler")
 @Data
 @NoArgsConstructor
-public class Teilnehmer {
+public class Spieler {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,11 +31,8 @@ public class Teilnehmer {
 
     private String initialen;
 
-    @Column(name = "angemeldet_am")
-    private LocalDateTime angemeldetAm;
+    private LocalDate geburtsdatum;
 
-    @PrePersist
-    public void prePersist() {
-        this.angemeldetAm = LocalDateTime.now();
-    }
+    @Column(nullable = false)
+    private boolean istErsatz;
 }

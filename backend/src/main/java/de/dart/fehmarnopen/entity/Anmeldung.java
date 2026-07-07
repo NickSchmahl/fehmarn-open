@@ -2,9 +2,15 @@ package de.dart.fehmarnopen.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Eine Team-Anmeldung für genau eine Disziplin. Umfasst die Liste der gemeldeten
+ * {@link Spieler} (inkl. Ersatzspieler) und – bei Team-Disziplinen – den Teamnamen.
+ */
 @Entity
 @Table(name = "anmeldung")
 @Data
@@ -15,16 +21,16 @@ public class Anmeldung {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "teilnehmer_id")
-    private Teilnehmer teilnehmer;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Disziplin disziplin;
 
     @Column(name = "team_name")
     private String teamName;
+
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "anmeldung_id", nullable = false)
+    private List<Spieler> spieler = new ArrayList<>();
 
     @Column(nullable = false)
     private boolean abgemeldet;
@@ -34,4 +40,12 @@ public class Anmeldung {
 
     @Column(nullable = false)
     private boolean anwesend;
+
+    @Column(name = "angemeldet_am")
+    private LocalDateTime angemeldetAm;
+
+    @PrePersist
+    public void prePersist() {
+        this.angemeldetAm = LocalDateTime.now();
+    }
 }

@@ -6,7 +6,6 @@ import de.dart.fehmarnopen.entity.Anmeldung;
 import de.dart.fehmarnopen.entity.Disziplin;
 import de.dart.fehmarnopen.entity.Teilnehmer;
 import java.util.List;
-import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,27 +52,6 @@ class AnmeldungRepositoryTest {
         assertThat(result)
                 .extracting(Anmeldung::getDisziplin)
                 .containsExactlyInAnyOrder(Disziplin.HERRENEINZEL, Disziplin.HERRENDOPPEL);
-    }
-
-    @Test
-    void findByAbmeldetoken_sollAnmeldungZurueckgeben() {
-        Anmeldung anmeldung = new Anmeldung();
-        anmeldung.setTeilnehmer(teilnehmer);
-        anmeldung.setDisziplin(Disziplin.DAMENEINZEL);
-        anmeldungRepository.save(anmeldung);
-
-        String token = anmeldung.getAbmeldetoken();
-        Optional<Anmeldung> result = anmeldungRepository.findByAbmeldetoken(token);
-
-        assertThat(result).isPresent();
-        assertThat(result.get().getDisziplin()).isEqualTo(Disziplin.DAMENEINZEL);
-    }
-
-    @Test
-    void findByAbmeldetoken_unbekannterToken_sollLeerSein() {
-        Optional<Anmeldung> result = anmeldungRepository.findByAbmeldetoken("nicht-existent");
-
-        assertThat(result).isEmpty();
     }
 
     @Test
@@ -131,15 +109,5 @@ class AnmeldungRepositoryTest {
         assertThat(result)
                 .extracting(Anmeldung::getDisziplin)
                 .containsExactlyInAnyOrder(Disziplin.HERRENEINZEL, Disziplin.HERRENDOPPEL);
-    }
-
-    @Test
-    void save_sollAbmeldetokenAutomatischSetzen() {
-        Anmeldung anmeldung = new Anmeldung();
-        anmeldung.setTeilnehmer(teilnehmer);
-        anmeldung.setDisziplin(Disziplin.TRIPLE_MIX);
-        anmeldungRepository.save(anmeldung);
-
-        assertThat(anmeldung.getAbmeldetoken()).isNotBlank();
     }
 }

@@ -5,7 +5,7 @@ import java.util.List;
 
 /**
  * Öffentliche Teilnehmerübersicht, gruppiert nach Disziplin. Enthält bewusst keine sensiblen Felder
- * (Radikal-ID, Abmeldetoken).
+ * (Radikal-ID).
  */
 public record TeilnehmerUebersichtResponse(List<DisziplinGruppe> disziplinen) {
 

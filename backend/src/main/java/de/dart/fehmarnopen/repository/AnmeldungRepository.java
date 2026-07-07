@@ -4,7 +4,6 @@ import de.dart.fehmarnopen.entity.Anmeldung;
 import de.dart.fehmarnopen.entity.Disziplin;
 import de.dart.fehmarnopen.entity.Teilnehmer;
 import java.util.List;
-import java.util.Optional;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -17,8 +16,6 @@ public interface AnmeldungRepository extends JpaRepository<Anmeldung, Long> {
 
     @EntityGraph(attributePaths = "teilnehmer")
     List<Anmeldung> findAllBy();
-
-    Optional<Anmeldung> findByAbmeldetoken(String abmeldetoken);
 
     boolean existsByTeilnehmerAndDisziplin(Teilnehmer teilnehmer, Disziplin disziplin);
 }

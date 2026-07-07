@@ -52,9 +52,4 @@ class SecurityFilterChainTest {
     void flyer_withoutToken_shouldNotReturn401() throws Exception {
         mockMvc.perform(get("/api/flyer")).andExpect(status().isNotFound());
     }
-
-    @Test
-    void abmeldung_withoutToken_shouldNotReturn401() throws Exception {
-        mockMvc.perform(post("/api/abmeldung/irgendein-token")).andExpect(status().isNotFound());
-    }
 }

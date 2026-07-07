@@ -93,48 +93,6 @@ class AnmeldungServiceTest {
         assertThat(result).hasSize(2);
     }
 
-    @Test
-    void findeByAbmeldetoken_sollAnmeldungZurueckgeben() {
-        Anmeldung anmeldung = new Anmeldung();
-        when(anmeldungRepository.findByAbmeldetoken("token-123")).thenReturn(Optional.of(anmeldung));
-
-        Optional<Anmeldung> result = anmeldungService.findeByAbmeldetoken("token-123");
-
-        assertThat(result).isPresent();
-    }
-
-    @Test
-    void findeByAbmeldetoken_unbekannterToken_sollLeerSein() {
-        when(anmeldungRepository.findByAbmeldetoken("unbekannt")).thenReturn(Optional.empty());
-
-        Optional<Anmeldung> result = anmeldungService.findeByAbmeldetoken("unbekannt");
-
-        assertThat(result).isEmpty();
-    }
-
-    @Test
-    void abmelden_sollAbgemeldetAufTrueSetzen() {
-        Anmeldung anmeldung = anmeldung(teilnehmer("Max", "Mustermann"), Disziplin.HERRENEINZEL, null);
-        anmeldung.setAbgemeldet(false);
-        when(anmeldungRepository.findByAbmeldetoken("token-abc")).thenReturn(Optional.of(anmeldung));
-        when(anmeldungRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
-
-        anmeldungService.abmelden("token-abc");
-
-        assertThat(anmeldung.isAbgemeldet()).isTrue();
-        assertThat(anmeldung.getAbgemeldetAm()).isNotNull();
-        verify(anmeldungRepository).save(anmeldung);
-    }
-
-    @Test
-    void abmelden_mitUnbekanntemToken_sollNichtsSpeichern() {
-        when(anmeldungRepository.findByAbmeldetoken("unbekannt")).thenReturn(Optional.empty());
-
-        anmeldungService.abmelden("unbekannt");
-
-        verify(anmeldungRepository, never()).save(any());
-    }
-
     private Teilnehmer teilnehmer(String vorname, String nachname) {
         Teilnehmer t = new Teilnehmer();
         t.setVorname(vorname);

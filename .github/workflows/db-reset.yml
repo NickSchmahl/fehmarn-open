@@ -1,0 +1,80 @@
+name: DB-Reset (manuell)
+
+# Manueller, bewusst ausgelöster Reset der SQLite-Datenbank einer Umgebung.
+#
+# Wozu: In der Testphase pflegt Hibernate das Schema über `ddl-auto: update`.
+# `update` fügt nur hinzu – Änderungen an Enum-Werten oder Spalten-Constraints
+# (CHECK, NOT NULL, unique, entfernte Spalten) greifen NICHT auf eine bestehende
+# DB. Symptom z. B. SQLITE_CONSTRAINT_CHECK (#102) oder NOT-NULL-Fehler auf einer
+# liegengebliebenen Spalte (#113). Solange Alt-Daten verworfen werden dürfen
+# (ADR 0008), ist der einfachste Fix: DB löschen -> Backend baut das Schema beim
+# Start frisch auf.
+#
+# ACHTUNG: Löscht ALLE Daten der gewählten Umgebung unwiderruflich.
+# Nach dem ersten produktiven Go-Live NICHT mehr auf prod verwenden -> stattdessen
+# Flyway-Migrationen (siehe Issue #117).
+#
+# Nur manuell auslösbar (workflow_dispatch). Zur Sicherheit muss der Umgebungsname
+# im Feld "confirm" erneut eingegeben werden.
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Umgebung, deren DB zurückgesetzt wird'
+        required: true
+        default: test
+        type: choice
+        options: [ test, prod ]
+      confirm:
+        description: "Zur Bestätigung den Umgebungsnamen erneut eingeben ('test' oder 'prod')"
+        required: true
+        type: string
+
+# Nicht parallel zu einem Deploy derselben Umgebung laufen (gleiche Gruppe wie der
+# Deploy-Job in ci.yml).
+concurrency:
+  group: deploy-${{ github.event.inputs.environment }}
+  cancel-in-progress: false
+
+jobs:
+  db-reset:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Bestätigung prüfen
+        run: |
+          if [ "${{ inputs.confirm }}" != "${{ inputs.environment }}" ]; then
+            echo "::error::Bestätigung stimmt nicht. Gib '${{ inputs.environment }}' im Feld 'confirm' erneut ein."
+            exit 1
+          fi
+          echo "Bestätigt: Reset der Umgebung '${{ inputs.environment }}'."
+
+      - name: Service stoppen, DB löschen, Service starten & Healthcheck
+        uses: appleboy/ssh-action@v1.2.5
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            set -e
+            ENV=${{ inputs.environment }}
+            if [ "$ENV" = "prod" ]; then PORT=8080; else PORT=8081; fi
+            APP_DIR=/opt/fehmarnopen/$ENV
+
+            echo "== Service stoppen: fehmarnopen-$ENV =="
+            systemctl stop fehmarnopen-$ENV
+
+            echo "== DB-Dateien vor dem Löschen =="
+            ls -la "$APP_DIR"/fehmarnopen.db* 2>/dev/null || echo "(keine DB-Datei gefunden)"
+
+            # SQLite-Hauptdatei plus WAL/SHM-Begleitdateien entfernen.
+            rm -f "$APP_DIR"/fehmarnopen.db "$APP_DIR"/fehmarnopen.db-wal "$APP_DIR"/fehmarnopen.db-shm
+
+            echo "== Service starten =="
+            systemctl start fehmarnopen-$ENV
+            sleep 8
+
+            systemctl is-active fehmarnopen-$ENV
+            echo "Healthcheck auf Port $PORT ..."
+            curl -fsS -o /dev/null -w "HTTP %{http_code}\n" http://localhost:$PORT/api/teilnehmer
+            echo "DB-Reset ($ENV) erfolgreich – Schema wurde beim Start neu aufgebaut."

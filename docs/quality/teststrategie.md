@@ -8,7 +8,7 @@ KI-Agenten) gefahrlos ermöglichen. Tests sind die wichtigste Vertrauensschicht.
 ```
         ╱ E2E ╲          wenige, kritische Flows (Anmeldung, Login) – Roadmap (Playwright)
       ╱─────────╲
-    ╱ Integration ╲      @WebMvcTest, @DataJpaTest, Security-, Mail-Tests
+    ╱ Integration ╲      @WebMvcTest, @DataJpaTest, Security-Tests
   ╱─────────────────╲
  ╱     Unit-Tests     ╲   Service-/Validierungslogik, reine Funktionen, Guards/Interceptors
 ```
@@ -25,7 +25,6 @@ Schwerpunkt auf **Unit + Integration**. E2E bewusst sparsam (teuer, langsam, br�
 | `auth/` (JWT, Filter) | Unit + Slice | JUnit + security-test | `JwtServiceTest`, `AuthControllerTest` |
 | Security-Regeln (welche Route ist geschützt?) | Integration | `spring-security-test` | `SecurityFilterChainTest` |
 | `exception/` (Fehler→HTTP) | Unit/Slice | MockMvc | `GlobalExceptionHandlerTest` |
-| `mail/` (Versand) | Unit | mail-test / GreenMail | `MailServiceTest` |
 | SPA-Fallback-Routing | Slice | MockMvc | `SpaFallbackControllerTest` |
 
 **Konventionen Backend**

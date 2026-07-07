@@ -10,7 +10,6 @@ function adminEintrag(over: Partial<AdminEintrag>): AdminEintrag {
     id: 0,
     vorname: 'V',
     nachname: 'N',
-    email: 'v.n@example.de',
     radicalId: null,
     teamName: null,
     anwesend: false,
@@ -177,7 +176,6 @@ describe('Teilnehmer (admin)', () => {
             id: 1,
             vorname: 'Anna',
             nachname: 'Schmidt',
-            email: 'anna@example.com',
             radicalId: null,
             teamName: null,
             anwesend: false,
@@ -187,7 +185,6 @@ describe('Teilnehmer (admin)', () => {
             id: 2,
             vorname: 'Bert',
             nachname: 'Adam',
-            email: 'bert@example.com',
             radicalId: null,
             teamName: null,
             anwesend: false,
@@ -258,7 +255,7 @@ describe('Teilnehmer (admin)', () => {
     httpTesting.expectOne('/api/admin/teilnehmer').flush(adminResponse);
   });
 
-  it('filtert nach Suchbegriff über Name und E-Mail', () => {
+  it('filtert nach Suchbegriff über Name', () => {
     fixture.detectChanges();
     httpTesting.expectOne('/api/admin/teilnehmer').flush(adminResponse);
 

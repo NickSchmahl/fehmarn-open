@@ -45,7 +45,7 @@ sobald wir es angehen:
 
 **Cleanup / Scope-Reduktion** ([ADR 0008](../adr/0008-scope-reduktion-testabnahme.md))
 - Anmeldeschluss-Code entfernen (`TurnierConfig`, `AnmeldungGesperrtException`, Handler). *(Die Build-Issues #16/#17 wurden als `wontfix` geschlossen.)*
-- Bestätigungsmail-Trigger kappen (kein Versand mehr), Mail-Code behalten. *(Bezug: #43, on hold.)*
+- E-Mail-Funktionalität vollständig entfernt (Mail-Layer, `email`-Feld, Mailpit). *(Umgesetzt in #113; #43 obsolet.)*
 - Abmelde-Teilcode aufräumen — **zurückgestellt**, vorerst liegen lassen. *(Build-Issues #18/#20 als `wontfix` geschlossen.)*
 
 **Weitere Backend-/Test-Härtung (P3)**

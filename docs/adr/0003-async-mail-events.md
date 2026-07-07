@@ -1,6 +1,11 @@
 # ADR 0003 – Asynchroner Mailversand über Application Events
 
-**Status:** Akzeptiert · **Datum:** aus Code rekonstruiert (#13, #22)
+**Status:** Zurückgezogen (abgelöst durch #113) · **Datum:** aus Code rekonstruiert (#13, #22)
+
+> **Hinweis (#113):** Die E-Mail-Funktionalität wurde vollständig entfernt
+> (Mail-Layer, Events, `AsyncConfig`, `email`-Feld, Mailpit). Es werden vorerst **keine
+> E-Mails** verschickt und keine E-Mail-Adressen erfasst. Dieser ADR bleibt als
+> historische Begründung erhalten; eine Reaktivierung wäre ein Neubau.
 
 ## Kontext
 Bei An-/Abmeldung soll eine Bestätigungsmail rausgehen. SMTP-Versand kann langsam

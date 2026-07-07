@@ -13,9 +13,9 @@ JUnit-Tests im `verify`-Lauf.
 
 ```
 controller  →  service  →  repository  →  (JPA / entity)
-     │            │
-     └── dto      └── event → mail
-   config (Security, Async, Properties, DataInitializer)
+     │
+     └── dto
+   config (Security, Properties, DataInitializer)
    exception (GlobalExceptionHandler + fachliche Exceptions)
    auth (Controller, Filter, Service, DTOs)
 ```

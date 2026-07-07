@@ -28,7 +28,7 @@ Läuft als Big-Bang, getrackt in GitHub. Sammelticket **#55**, Einzeltickets **#
 
 ### Cleanup / Vereinfachung (Issue anlegen, wenn dran)
 - [ ] Anmeldeschluss-Code entfernen (`TurnierConfig` etc., overengineered)
-- [ ] Bestätigungsmail-Trigger kappen (kein Versand mehr), Mail-Code behalten (Bezug #43)
+- [x] E-Mail-Funktionalität vollständig entfernt (Mail-Layer, `email`-Feld, Mailpit) — #113 (macht #43 obsolet)
 
 ## Später / Nice-to-have
 - [ ] Migrations-Tooling (Flyway) statt `ddl-auto: update`, sobald Prod-Daten schützenswert

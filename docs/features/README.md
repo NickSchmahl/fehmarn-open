@@ -6,10 +6,10 @@ einem Feature wird das passende Dokument im selben PR aktualisiert.
 
 | Dokument | Bereich | Zielgruppe |
 |----------|---------|------------|
-| [teilnehmer.md](teilnehmer.md) | Öffentlicher Flow: Anmeldung, Bestätigung, Selbst-Abmeldung, Teilnehmerliste, Flyer | Turnier-Teilnehmer |
+| [teilnehmer.md](teilnehmer.md) | Öffentlicher Flow: Anmeldung, Teilnehmerliste, Flyer | Turnier-Teilnehmer |
 | [admin.md](admin.md) | Admin-Bereich: Teilnehmerverwaltung, Anwesenheit, Anmeldeschluss, Flyer-Upload, Export, QR | Organisatoren |
 | [auth-security.md](auth-security.md) | Login, JWT, geschützte Routen, Security-Konfiguration | Querschnitt |
-| [mail-benachrichtigungen.md](mail-benachrichtigungen.md) | Asynchroner Mailversand bei An-/Abmeldung | Querschnitt |
+| [mail-benachrichtigungen.md](mail-benachrichtigungen.md) | ❌ Entfernt (#113) – ehemals asynchroner Mailversand | Historie |
 
 ## Fachlicher Gesamtüberblick
 
@@ -17,11 +17,7 @@ einem Feature wird das passende Dokument im selben PR aktualisiert.
 Teilnehmer                                  Admin
    │                                          │
    ├─ Anmeldung (Disziplinen wählen) ─────────┤
-   │      │                                   │
-   │      ▼ Event                             │
-   │   Bestätigungsmail + Abmeldelink         │
-   │      │                                   │
-   ├─ Selbst-Abmeldung (per Link) ────────────┤
+   │                                          │
    │                                          ├─ Login (JWT)
    ├─ Öffentliche Teilnehmerliste ◄───────────┤  Teilnehmerverwaltung / manuelle Abmeldung
    │   (Disziplin-Filter)                     │  Anwesenheit am Turniertag

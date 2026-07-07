@@ -47,7 +47,6 @@ class AnmeldungControllerTest {
         teilnehmer = new Teilnehmer();
         teilnehmer.setVorname("Max");
         teilnehmer.setNachname("Mustermann");
-        teilnehmer.setEmail("max@example.com");
     }
 
     private Anmeldung buildAnmeldung(Disziplin disziplin, String teamName) {
@@ -63,7 +62,6 @@ class AnmeldungControllerTest {
         AnmeldungRequest request = new AnmeldungRequest(
                 "Max",
                 "Mustermann",
-                "max@example.com",
                 "RAD-001",
                 List.of(new AnmeldungRequest.DisziplinAnmeldung(Disziplin.HERRENEINZEL, null)));
 
@@ -84,7 +82,6 @@ class AnmeldungControllerTest {
         AnmeldungRequest request = new AnmeldungRequest(
                 "Max",
                 "Mustermann",
-                "max@example.com",
                 null,
                 List.of(
                         new AnmeldungRequest.DisziplinAnmeldung(Disziplin.HERRENEINZEL, null),
@@ -106,26 +103,7 @@ class AnmeldungControllerTest {
     @Test
     void postAnmeldung_ohneVorname_sollBadRequestZurueckgeben() throws Exception {
         AnmeldungRequest request = new AnmeldungRequest(
-                "",
-                "Mustermann",
-                "max@example.com",
-                null,
-                List.of(new AnmeldungRequest.DisziplinAnmeldung(Disziplin.HERRENEINZEL, null)));
-
-        mockMvc.perform(post("/api/anmeldung")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    void postAnmeldung_mitUngueltigerEmail_sollBadRequestZurueckgeben() throws Exception {
-        AnmeldungRequest request = new AnmeldungRequest(
-                "Max",
-                "Mustermann",
-                "keine-email",
-                null,
-                List.of(new AnmeldungRequest.DisziplinAnmeldung(Disziplin.HERRENEINZEL, null)));
+                "", "Mustermann", null, List.of(new AnmeldungRequest.DisziplinAnmeldung(Disziplin.HERRENEINZEL, null)));
 
         mockMvc.perform(post("/api/anmeldung")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -135,7 +113,7 @@ class AnmeldungControllerTest {
 
     @Test
     void postAnmeldung_ohneDisziplinen_sollBadRequestZurueckgeben() throws Exception {
-        AnmeldungRequest request = new AnmeldungRequest("Max", "Mustermann", "max@example.com", null, List.of());
+        AnmeldungRequest request = new AnmeldungRequest("Max", "Mustermann", null, List.of());
 
         mockMvc.perform(post("/api/anmeldung")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -148,7 +126,6 @@ class AnmeldungControllerTest {
         AnmeldungRequest request = new AnmeldungRequest(
                 "Max",
                 "Mustermann",
-                "max@example.com",
                 null,
                 List.of(
                         new AnmeldungRequest.DisziplinAnmeldung(Disziplin.HERRENEINZEL, null),

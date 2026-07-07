@@ -22,4 +22,4 @@ Kurzfristige, gemischte Aufgaben stehen im [backlog.md](../backlog.md).
 
 - **Qualitäts-Härtung** (Big-Bang): Sammelticket **#55**, Einzeltickets **#44–#54**.
 - Durch [ADR 0008](../adr/0008-scope-reduktion-testabnahme.md) obsolet und geschlossen
-  (`wontfix`): #16, #17 (Anmeldeschluss), #18, #20 (Abmeldung). #43 (Mail) on hold.
+  (`wontfix`): #16, #17 (Anmeldeschluss), #18, #20 (Abmeldung). #43 (Mail) obsolet durch #113 (Mail entfernt).

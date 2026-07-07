@@ -35,7 +35,7 @@
         <input
           type="search"
           class="search-input"
-          placeholder="Suche nach Name oder E-Mail"
+          placeholder="Suche nach Name"
           (input)="setSuche($any($event.target).value)"
         />
 
@@ -106,7 +106,6 @@
                             <span class="status-badge">abgemeldet</span>
                           }
                         </span>
-                        <span class="admin-email">{{ t.email }}</span>
                       </div>
 
                       <div class="admin-row-actions">

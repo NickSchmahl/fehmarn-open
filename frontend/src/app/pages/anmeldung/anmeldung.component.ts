@@ -57,7 +57,6 @@ export class AnmeldungComponent {
     {
       vorname: ['', [Validators.required]],
       nachname: ['', [Validators.required]],
-      email: ['', [Validators.required, Validators.email]],
       radicalId: [''],
       disziplinen: this.formBuilder.array(
         DISZIPLINEN.map(() =>
@@ -145,10 +144,6 @@ export class AnmeldungComponent {
     return this.form.controls.nachname;
   }
 
-  get email() {
-    return this.form.controls.email;
-  }
-
   get radicalId() {
     return this.form.controls.radicalId;
   }
@@ -184,7 +179,6 @@ export class AnmeldungComponent {
     const body = {
       vorname: this.form.value.vorname,
       nachname: this.form.value.nachname,
-      email: this.form.value.email,
       // Bewusst `||`: ein leeres Eingabefeld ('') soll ebenfalls zu null werden.
       // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
       radicalId: this.form.value.radicalId || null,
@@ -198,7 +192,7 @@ export class AnmeldungComponent {
     this.httpClient.post('/api/anmeldung', body).subscribe({
       next: () => {
         this.loading.set(false);
-        this.successMsg.set('Anmeldung erfolgreich! Du erhältst in Kürze eine Bestätigung.');
+        this.successMsg.set('Anmeldung erfolgreich! Wir sehen uns beim Turnier.');
         this.form.reset();
         this._formValue.set(this.form.getRawValue());
       },

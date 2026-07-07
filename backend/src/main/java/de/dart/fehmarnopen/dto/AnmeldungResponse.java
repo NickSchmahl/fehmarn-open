@@ -5,10 +5,9 @@ import de.dart.fehmarnopen.entity.Disziplin;
 import java.util.List;
 
 public record AnmeldungResponse(List<DisziplinAnmeldungResponse> anmeldungen) {
-    public record DisziplinAnmeldungResponse(Long id, Disziplin disziplin, String teamName, String abmeldetoken) {
+    public record DisziplinAnmeldungResponse(Long id, Disziplin disziplin, String teamName) {
         public static DisziplinAnmeldungResponse from(Anmeldung anmeldung) {
-            return new DisziplinAnmeldungResponse(
-                    anmeldung.getId(), anmeldung.getDisziplin(), anmeldung.getTeamName(), anmeldung.getAbmeldetoken());
+            return new DisziplinAnmeldungResponse(anmeldung.getId(), anmeldung.getDisziplin(), anmeldung.getTeamName());
         }
     }
 

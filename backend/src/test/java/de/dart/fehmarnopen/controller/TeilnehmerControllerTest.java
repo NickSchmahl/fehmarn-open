@@ -58,9 +58,7 @@ class TeilnehmerControllerTest {
         mockMvc.perform(get("/api/teilnehmer"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.disziplinen[0].teilnehmer[0].email").doesNotExist())
-                .andExpect(jsonPath("$.disziplinen[0].teilnehmer[0].radicalId").doesNotExist())
-                .andExpect(
-                        jsonPath("$.disziplinen[0].teilnehmer[0].abmeldetoken").doesNotExist());
+                .andExpect(jsonPath("$.disziplinen[0].teilnehmer[0].radicalId").doesNotExist());
     }
 
     @Test

@@ -2,7 +2,6 @@ package de.dart.fehmarnopen.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
-import java.util.UUID;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -27,9 +26,6 @@ public class Anmeldung {
     @Column(name = "team_name")
     private String teamName;
 
-    @Column(nullable = false, unique = true)
-    private String abmeldetoken;
-
     @Column(nullable = false)
     private boolean abgemeldet;
 
@@ -38,9 +34,4 @@ public class Anmeldung {
 
     @Column(nullable = false)
     private boolean anwesend;
-
-    @PrePersist
-    public void prePersist() {
-        this.abmeldetoken = UUID.randomUUID().toString();
-    }
 }

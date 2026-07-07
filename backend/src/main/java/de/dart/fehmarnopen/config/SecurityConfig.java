@@ -43,8 +43,6 @@ public class SecurityConfig {
                                 .permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/flyer")
                                 .permitAll()
-                                .requestMatchers(HttpMethod.POST, "/api/abmeldung/**")
-                                .permitAll()
                                 .requestMatchers("/api/admin/**")
                                 .hasRole("ADMIN")
                                 .anyRequest()

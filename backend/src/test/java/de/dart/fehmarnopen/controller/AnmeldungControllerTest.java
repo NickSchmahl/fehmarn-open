@@ -74,7 +74,8 @@ class AnmeldungControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.anmeldungen").isArray())
                 .andExpect(jsonPath("$.anmeldungen.length()").value(1))
-                .andExpect(jsonPath("$.anmeldungen[0].disziplin").value("HERRENEINZEL"));
+                .andExpect(jsonPath("$.anmeldungen[0].disziplin").value("HERRENEINZEL"))
+                .andExpect(jsonPath("$.anmeldungen[0].abmeldetoken").doesNotExist());
     }
 
     @Test

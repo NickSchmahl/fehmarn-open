@@ -16,7 +16,6 @@ import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -60,11 +59,6 @@ public class AnmeldungService {
     @Transactional(readOnly = true)
     public List<Anmeldung> findeAnmeldungenFuerTeilnehmer(Teilnehmer teilnehmer) {
         return anmeldungRepository.findByTeilnehmer(teilnehmer);
-    }
-
-    @Transactional(readOnly = true)
-    public Optional<Anmeldung> findeByAbmeldetoken(String abmeldetoken) {
-        return anmeldungRepository.findByAbmeldetoken(abmeldetoken);
     }
 
     @Transactional(readOnly = true)
@@ -155,14 +149,5 @@ public class AnmeldungService {
     private Map<Disziplin, List<Anmeldung>> gruppiereNachDisziplin(List<Anmeldung> anmeldungen) {
         return anmeldungen.stream()
                 .collect(Collectors.groupingBy(Anmeldung::getDisziplin, TreeMap::new, Collectors.toList()));
-    }
-
-    @Transactional
-    public void abmelden(String abmeldetoken) {
-        anmeldungRepository.findByAbmeldetoken(abmeldetoken).ifPresent(anmeldung -> {
-            anmeldung.setAbgemeldet(true);
-            anmeldung.setAbgemeldetAm(LocalDateTime.now());
-            anmeldungRepository.save(anmeldung);
-        });
     }
 }

@@ -17,10 +17,9 @@ public record AnmeldungResponse(List<DisziplinAnmeldungResponse> anmeldungen) {
         }
     }
 
-    public record SpielerResponse(String vorname, String nachname, String radicalId, boolean istErsatz) {
+    public record SpielerResponse(String vorname, String nachname, String radicalId) {
         public static SpielerResponse from(Spieler spieler) {
-            return new SpielerResponse(
-                    spieler.getVorname(), spieler.getNachname(), spieler.getRadicalId(), spieler.isIstErsatz());
+            return new SpielerResponse(spieler.getVorname(), spieler.getNachname(), spieler.getRadicalId());
         }
     }
 

@@ -3,6 +3,8 @@ package de.dart.fehmarnopen.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import de.dart.fehmarnopen.dto.AdminUebersichtResponse;
@@ -20,9 +22,9 @@ import de.dart.fehmarnopen.repository.AnmeldungRepository;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -32,36 +34,35 @@ class AnmeldungServiceTest {
     @Mock
     private AnmeldungRepository anmeldungRepository;
 
+    // Blackbox: die Validierungsregeln selbst sind in SpielerValidierungServiceTest abgedeckt.
+    @Mock
+    private SpielerValidierungService spielerValidierungService;
+
+    @InjectMocks
     private AnmeldungService anmeldungService;
 
-    @BeforeEach
-    void setUp() {
-        // echter Validator – die Validierungsregeln sind separat in SpielerValidierungServiceTest abgedeckt
-        anmeldungService = new AnmeldungService(anmeldungRepository, new SpielerValidierungService());
-    }
-
     private SpielerRequest spieler(String vorname, String nachname) {
-        return new SpielerRequest(vorname, nachname, "RAD-1", null, null, false);
+        return new SpielerRequest(vorname, nachname, "RAD-1", null, null);
     }
 
     private Spieler spielerEntity(String vorname, String nachname) {
-        Spieler s = new Spieler();
-        s.setVorname(vorname);
-        s.setNachname(nachname);
-        s.setRadicalId("RAD-1");
-        return s;
+        Spieler spieler = new Spieler();
+        spieler.setVorname(vorname);
+        spieler.setNachname(nachname);
+        spieler.setRadicalId("RAD-1");
+        return spieler;
     }
 
     private Anmeldung anmeldung(Disziplin disziplin, String teamName, Spieler... spieler) {
-        Anmeldung a = new Anmeldung();
-        a.setDisziplin(disziplin);
-        a.setTeamName(teamName);
-        a.setSpieler(List.of(spieler));
-        return a;
+        Anmeldung anmeldung = new Anmeldung();
+        anmeldung.setDisziplin(disziplin);
+        anmeldung.setTeamName(teamName);
+        anmeldung.setSpieler(List.of(spieler));
+        return anmeldung;
     }
 
     @Test
-    void anmelden_mitGueltigerEinzelmeldung_speichertAnmeldungMitSpieler() {
+    void anmelden_mitGueltigerEinzelmeldung_validiertUndSpeichertSpieler() {
         when(anmeldungRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
         AnmeldungRequest request = new AnmeldungRequest(
                 List.of(new DisziplinAnmeldung(Disziplin.HERRENEINZEL, null, List.of(spieler("Max", "Mustermann")))));
@@ -69,9 +70,8 @@ class AnmeldungServiceTest {
         List<Anmeldung> result = anmeldungService.anmelden(request);
 
         assertThat(result).hasSize(1);
-        assertThat(result.get(0).getDisziplin()).isEqualTo(Disziplin.HERRENEINZEL);
-        assertThat(result.get(0).getSpieler()).hasSize(1);
         assertThat(result.get(0).getSpieler().get(0).getNachname()).isEqualTo("Mustermann");
+        verify(spielerValidierungService).validiere(eq(Disziplin.HERRENEINZEL), anyList());
         verify(anmeldungRepository).save(any(Anmeldung.class));
     }
 
@@ -115,7 +115,10 @@ class AnmeldungServiceTest {
     }
 
     @Test
-    void anmelden_beiFalscherSpielerzahl_wirftUngueltigeAnmeldung() {
+    void anmelden_wennValidierungWirft_speichertNichts() {
+        doThrow(new UngueltigeAnmeldungException("zu viele Spieler"))
+                .when(spielerValidierungService)
+                .validiere(eq(Disziplin.HERRENEINZEL), anyList());
         AnmeldungRequest request = new AnmeldungRequest(List.of(new DisziplinAnmeldung(
                 Disziplin.HERRENEINZEL, null, List.of(spieler("Max", "M"), spieler("Tim", "T")))));
 
@@ -177,12 +180,12 @@ class AnmeldungServiceTest {
 
     @Test
     void adminUebersicht_liefertVolleFelderJeSpieler() {
-        Spieler s = spielerEntity("Anna", "Schmidt");
-        s.setRadicalId("AS-1");
-        Anmeldung a = anmeldung(Disziplin.HERRENDOPPEL, "Team A", s);
-        a.setId(5L);
-        a.setAnwesend(true);
-        when(anmeldungRepository.findAllBy()).thenReturn(List.of(a));
+        Spieler spieler = spielerEntity("Anna", "Schmidt");
+        spieler.setRadicalId("AS-1");
+        Anmeldung anmeldung = anmeldung(Disziplin.HERRENDOPPEL, "Team A", spieler);
+        anmeldung.setId(5L);
+        anmeldung.setAnwesend(true);
+        when(anmeldungRepository.findAllBy()).thenReturn(List.of(anmeldung));
 
         AdminUebersichtResponse.AdminEintrag eintrag = anmeldungService
                 .adminUebersicht()
@@ -200,14 +203,14 @@ class AnmeldungServiceTest {
 
     @Test
     void abmelden_sollAbgemeldetSetzen() {
-        Anmeldung a = anmeldung(Disziplin.HERRENEINZEL, null, spielerEntity("Max", "M"));
-        when(anmeldungRepository.findById(7L)).thenReturn(Optional.of(a));
+        Anmeldung anmeldung = anmeldung(Disziplin.HERRENEINZEL, null, spielerEntity("Max", "M"));
+        when(anmeldungRepository.findById(7L)).thenReturn(Optional.of(anmeldung));
         when(anmeldungRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
         anmeldungService.abmelden(7L);
 
-        assertThat(a.isAbgemeldet()).isTrue();
-        assertThat(a.getAbgemeldetAm()).isNotNull();
+        assertThat(anmeldung.isAbgemeldet()).isTrue();
+        assertThat(anmeldung.getAbgemeldetAm()).isNotNull();
     }
 
     @Test
@@ -220,27 +223,27 @@ class AnmeldungServiceTest {
 
     @Test
     void reaktivieren_sollAbmeldungZuruecknehmen() {
-        Anmeldung a = anmeldung(Disziplin.HERRENEINZEL, null, spielerEntity("Max", "M"));
-        a.setAbgemeldet(true);
-        a.setAbgemeldetAm(LocalDateTime.now());
-        when(anmeldungRepository.findById(7L)).thenReturn(Optional.of(a));
+        Anmeldung anmeldung = anmeldung(Disziplin.HERRENEINZEL, null, spielerEntity("Max", "M"));
+        anmeldung.setAbgemeldet(true);
+        anmeldung.setAbgemeldetAm(LocalDateTime.now());
+        when(anmeldungRepository.findById(7L)).thenReturn(Optional.of(anmeldung));
         when(anmeldungRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
         anmeldungService.reaktivieren(7L);
 
-        assertThat(a.isAbgemeldet()).isFalse();
-        assertThat(a.getAbgemeldetAm()).isNull();
+        assertThat(anmeldung.isAbgemeldet()).isFalse();
+        assertThat(anmeldung.getAbgemeldetAm()).isNull();
     }
 
     @Test
     void setAnwesenheit_sollAnwesendSetzen() {
-        Anmeldung a = anmeldung(Disziplin.HERRENEINZEL, null, spielerEntity("Max", "M"));
-        when(anmeldungRepository.findById(7L)).thenReturn(Optional.of(a));
+        Anmeldung anmeldung = anmeldung(Disziplin.HERRENEINZEL, null, spielerEntity("Max", "M"));
+        when(anmeldungRepository.findById(7L)).thenReturn(Optional.of(anmeldung));
         when(anmeldungRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
         anmeldungService.setAnwesenheit(7L, true);
 
-        assertThat(a.isAnwesend()).isTrue();
+        assertThat(anmeldung.isAnwesend()).isTrue();
     }
 
     @Test

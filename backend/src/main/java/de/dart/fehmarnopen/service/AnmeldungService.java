@@ -30,7 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class AnmeldungService {
 
     private final AnmeldungRepository anmeldungRepository;
-    private final SpielerValidierungService spielerValidierung;
+    private final SpielerValidierungService spielerValidierungService;
 
     @Transactional
     public List<Anmeldung> anmelden(AnmeldungRequest request) {
@@ -39,12 +39,13 @@ public class AnmeldungService {
     }
 
     private Anmeldung anmeldenFuerDisziplin(AnmeldungRequest.DisziplinAnmeldung eingabe) {
-        spielerValidierung.validiere(eingabe.disziplin(), zuSpielerDaten(eingabe.spieler()));
+        List<Spieler> spieler = eingabe.spieler().stream().map(this::zuSpieler).toList();
+        spielerValidierungService.validiere(eingabe.disziplin(), spieler);
 
         Anmeldung anmeldung = new Anmeldung();
         anmeldung.setDisziplin(eingabe.disziplin());
         anmeldung.setTeamName(eingabe.teamName());
-        anmeldung.setSpieler(eingabe.spieler().stream().map(this::zuSpieler).toList());
+        anmeldung.setSpieler(spieler);
 
         return anmeldungRepository.save(anmeldung);
     }
@@ -58,13 +59,6 @@ public class AnmeldungService {
         }
     }
 
-    private List<SpielerValidierungService.SpielerDaten> zuSpielerDaten(List<SpielerRequest> spieler) {
-        return spieler.stream()
-                .map(s -> new SpielerValidierungService.SpielerDaten(
-                        s.vorname(), s.nachname(), s.radicalId(), s.initialen(), s.geburtsdatum(), s.istErsatz()))
-                .toList();
-    }
-
     private Spieler zuSpieler(SpielerRequest request) {
         Spieler spieler = new Spieler();
         spieler.setVorname(request.vorname());
@@ -72,7 +66,6 @@ public class AnmeldungService {
         spieler.setRadicalId(request.radicalId());
         spieler.setInitialen(request.initialen());
         spieler.setGeburtsdatum(request.geburtsdatum());
-        spieler.setIstErsatz(request.istErsatz());
         return spieler;
     }
 
@@ -80,14 +73,14 @@ public class AnmeldungService {
     public TeilnehmerUebersichtResponse oeffentlicheUebersicht() {
         List<DisziplinGruppe> gruppen =
                 gruppiereNachDisziplin(anmeldungRepository.findByAbgemeldetFalse()).entrySet().stream()
-                        .map(entry -> {
-                            List<TeilnehmerEintrag> teilnehmer = spielerStroem(entry.getValue())
-                                    .map(sp -> new TeilnehmerEintrag(
-                                            sp.spieler().getVorname(),
-                                            sp.spieler().getNachname(),
-                                            sp.anmeldung().getTeamName()))
+                        .map(gruppe -> {
+                            List<TeilnehmerEintrag> teilnehmer = sortierteSpielerMitAnmeldung(gruppe.getValue())
+                                    .map(paar -> new TeilnehmerEintrag(
+                                            paar.spieler().getVorname(),
+                                            paar.spieler().getNachname(),
+                                            paar.anmeldung().getTeamName()))
                                     .toList();
-                            return new DisziplinGruppe(entry.getKey(), teilnehmer.size(), teilnehmer);
+                            return new DisziplinGruppe(gruppe.getKey(), teilnehmer.size(), teilnehmer);
                         })
                         .toList();
 
@@ -98,15 +91,18 @@ public class AnmeldungService {
     public AdminUebersichtResponse adminUebersicht() {
         List<AdminUebersichtResponse.DisziplinGruppe> gruppen =
                 gruppiereNachDisziplin(anmeldungRepository.findAllBy()).entrySet().stream()
-                        .map(entry -> {
-                            List<AdminUebersichtResponse.AdminEintrag> teilnehmer = spielerStroem(entry.getValue())
-                                    .map(sp -> toAdminEintrag(sp.anmeldung(), sp.spieler()))
+                        .map(gruppe -> {
+                            List<AdminUebersichtResponse.AdminEintrag> teilnehmer = sortierteSpielerMitAnmeldung(
+                                            gruppe.getValue())
+                                    .map(paar -> toAdminEintrag(paar.anmeldung(), paar.spieler()))
                                     .toList();
-                            int aktive = entry.getValue().stream()
-                                    .filter(a -> !a.isAbgemeldet())
-                                    .mapToInt(a -> a.getSpieler().size())
+                            int aktiveSpieler = gruppe.getValue().stream()
+                                    .filter(anmeldung -> !anmeldung.isAbgemeldet())
+                                    .mapToInt(
+                                            anmeldung -> anmeldung.getSpieler().size())
                                     .sum();
-                            return new AdminUebersichtResponse.DisziplinGruppe(entry.getKey(), aktive, teilnehmer);
+                            return new AdminUebersichtResponse.DisziplinGruppe(
+                                    gruppe.getKey(), aktiveSpieler, teilnehmer);
                         })
                         .toList();
 
@@ -142,27 +138,28 @@ public class AnmeldungService {
                 .orElseThrow(() -> new NichtGefundenException("Anmeldung nicht gefunden: " + anmeldungId));
     }
 
-    private AdminUebersichtResponse.AdminEintrag toAdminEintrag(Anmeldung a, Spieler s) {
+    private AdminUebersichtResponse.AdminEintrag toAdminEintrag(Anmeldung anmeldung, Spieler spieler) {
         return new AdminUebersichtResponse.AdminEintrag(
-                a.getId(),
-                s.getVorname(),
-                s.getNachname(),
-                s.getRadicalId(),
-                a.getTeamName(),
-                a.isAnwesend(),
-                a.isAbgemeldet());
+                anmeldung.getId(),
+                spieler.getVorname(),
+                spieler.getNachname(),
+                spieler.getRadicalId(),
+                anmeldung.getTeamName(),
+                anmeldung.isAnwesend(),
+                anmeldung.isAbgemeldet());
     }
 
-    /** Alle (Anmeldung, Spieler)-Paare einer Gruppe, nach Spieler-Nachname sortiert. */
-    private Stream<AnmeldungSpieler> spielerStroem(List<Anmeldung> anmeldungen) {
+    /** Alle (Anmeldung, Spieler)-Paare einer Gruppe, nach Spieler-Nachname (dann Vorname) sortiert. */
+    private Stream<SpielerMitAnmeldung> sortierteSpielerMitAnmeldung(List<Anmeldung> anmeldungen) {
         return anmeldungen.stream()
-                .flatMap(a -> a.getSpieler().stream().map(s -> new AnmeldungSpieler(a, s)))
+                .flatMap(anmeldung ->
+                        anmeldung.getSpieler().stream().map(spieler -> new SpielerMitAnmeldung(anmeldung, spieler)))
                 .sorted(Comparator.comparing(
-                                (AnmeldungSpieler sp) -> sp.spieler().getNachname())
-                        .thenComparing(sp -> sp.spieler().getVorname()));
+                                (SpielerMitAnmeldung paar) -> paar.spieler().getNachname())
+                        .thenComparing(paar -> paar.spieler().getVorname()));
     }
 
-    private record AnmeldungSpieler(Anmeldung anmeldung, Spieler spieler) {}
+    private record SpielerMitAnmeldung(Anmeldung anmeldung, Spieler spieler) {}
 
     /** Gruppiert Anmeldungen nach Disziplin; TreeMap sortiert die Gruppen in Enum-Reihenfolge. */
     private Map<Disziplin, List<Anmeldung>> gruppiereNachDisziplin(List<Anmeldung> anmeldungen) {

@@ -27,6 +27,5 @@ public record AnmeldungRequest(
             @NotBlank(message = "Nachname ist Pflichtfeld") String nachname,
             String radicalId,
             String initialen,
-            LocalDate geburtsdatum,
-            boolean istErsatz) {}
+            LocalDate geburtsdatum) {}
 }

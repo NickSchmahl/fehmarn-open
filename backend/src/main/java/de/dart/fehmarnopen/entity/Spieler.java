@@ -32,7 +32,4 @@ public class Spieler {
     private String initialen;
 
     private LocalDate geburtsdatum;
-
-    @Column(nullable = false)
-    private boolean istErsatz;
 }

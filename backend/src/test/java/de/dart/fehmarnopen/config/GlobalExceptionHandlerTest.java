@@ -110,8 +110,8 @@ class GlobalExceptionHandlerTest {
         String body =
                 """
                 {"disziplinen":[{"disziplin":"HERRENEINZEL","teamName":null,"spieler":[
-                  {"vorname":"Max","nachname":"Mustermann","radicalId":"MM-1","initialen":null,"geburtsdatum":null,"istErsatz":false},
-                  {"vorname":"Tim","nachname":"Test","radicalId":"TT-1","initialen":null,"geburtsdatum":null,"istErsatz":false}
+                  {"vorname":"Max","nachname":"Mustermann","radicalId":"MM-1","initialen":null,"geburtsdatum":null},
+                  {"vorname":"Tim","nachname":"Test","radicalId":"TT-1","initialen":null,"geburtsdatum":null}
                 ]}]}""";
 
         mockMvc.perform(post("/api/anmeldung")

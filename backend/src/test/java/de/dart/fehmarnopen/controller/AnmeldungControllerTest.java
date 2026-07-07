@@ -42,7 +42,7 @@ class AnmeldungControllerTest {
     private AnmeldungService anmeldungService;
 
     private SpielerRequest spielerRequest(String vorname) {
-        return new SpielerRequest(vorname, "Mustermann", "RAD-1", null, null, false);
+        return new SpielerRequest(vorname, "Mustermann", "RAD-1", null, null);
     }
 
     private Anmeldung buildAnmeldung(Disziplin disziplin, String teamName, String... vornamen) {
@@ -118,9 +118,7 @@ class AnmeldungControllerTest {
     @Test
     void postAnmeldung_mitSpielerOhneVorname_sollBadRequestZurueckgeben() throws Exception {
         AnmeldungRequest request = new AnmeldungRequest(List.of(new DisziplinAnmeldung(
-                Disziplin.HERRENEINZEL,
-                null,
-                List.of(new SpielerRequest("", "Mustermann", "RAD-1", null, null, false)))));
+                Disziplin.HERRENEINZEL, null, List.of(new SpielerRequest("", "Mustermann", "RAD-1", null, null)))));
 
         mockMvc.perform(post("/api/anmeldung")
                         .contentType(MediaType.APPLICATION_JSON)

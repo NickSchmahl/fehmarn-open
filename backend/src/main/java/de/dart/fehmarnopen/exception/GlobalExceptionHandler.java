@@ -51,6 +51,11 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ErrorResponse.of(404, ex.getMessage()));
     }
 
+    @ExceptionHandler(UngueltigeAnmeldungException.class)
+    public ResponseEntity<ErrorResponse> handleUngueltigeAnmeldung(UngueltigeAnmeldungException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ErrorResponse.of(400, ex.getMessage()));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleUnexpected(Exception ex) {
         log.error("Unerwarteter Fehler aufgetreten", ex);

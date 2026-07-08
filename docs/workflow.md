@@ -75,6 +75,13 @@ GitHub schliesst ein Issue beim Merge nur, wenn **beides** stimmt:
 
 Die Vorlage `.github/pull_request_template.md` gibt die `Closes #`-Zeile vor.
 
+## Doku aktuell halten
+
+- Wenn eine Korrektur oder Entscheidung eine bestehende Doku veralten lässt, wird die
+  betroffene Doku **im selben Zug** mit angepasst – nicht erst auf Hinweis.
+- **Reine Doku-Änderungen brauchen kein Ticket und keinen langen PR-Text** – nur Branch +
+  kurzer PR (`main` ist geschützt, daher PR nötig); Nick liest den Commit und merged.
+
 ## Definition of Done (pro Ticket)
 
 - [ ] Code umgesetzt, deutsch kommentiert wo sinnvoll

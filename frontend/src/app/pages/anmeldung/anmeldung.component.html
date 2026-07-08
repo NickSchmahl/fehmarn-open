@@ -32,88 +32,9 @@
     }
 
     <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate class="anmeldung-form">
-      <!-- ── Persönliche Daten ──────────────────────────────────────────── -->
-      <section class="form-section">
-        <h2 class="section-title">Persönliche Daten</h2>
-
-        <div class="field-row">
-          <!-- Vorname -->
-          <div class="field-group">
-            <label for="vorname" class="field-label">Vorname <span class="required">*</span></label>
-            <input
-              id="vorname"
-              type="text"
-              formControlName="vorname"
-              class="field-input"
-              [class.field-input--error]="vorname.invalid && vorname.touched"
-              autocomplete="given-name"
-              placeholder="Max"
-            />
-            @if (vorname.errors?.['required'] && vorname.touched) {
-              <span class="field-error">Vorname ist erforderlich.</span>
-            }
-          </div>
-
-          <!-- Nachname -->
-          <div class="field-group">
-            <label for="nachname" class="field-label"
-              >Nachname <span class="required">*</span></label
-            >
-            <input
-              id="nachname"
-              type="text"
-              formControlName="nachname"
-              class="field-input"
-              [class.field-input--error]="nachname.invalid && nachname.touched"
-              autocomplete="family-name"
-              placeholder="Mustermann"
-            />
-            @if (nachname.errors?.['required'] && nachname.touched) {
-              <span class="field-error">Nachname ist erforderlich.</span>
-            }
-          </div>
-        </div>
-
-        <!-- Radikal ID -->
-        <div class="field-group">
-          <label for="radicalId" class="field-label">
-            Radikal ID
-            <span class="field-label-optional">(optional)</span>
-          </label>
-          <input
-            id="radicalId"
-            type="text"
-            formControlName="radicalId"
-            class="field-input"
-            placeholder="MM-12345"
-          />
-          <p class="field-hint">
-            <svg
-              width="13"
-              height="13"
-              viewBox="0 0 16 16"
-              fill="none"
-              aria-hidden="true"
-              class="hint-icon"
-            >
-              <circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.5" />
-              <path
-                d="M8 7v5M8 5v.5"
-                stroke="currentColor"
-                stroke-width="1.5"
-                stroke-linecap="round"
-              />
-            </svg>
-            Noch keine Radikal ID? Das Format ist
-            <strong>Initialen-Nummer</strong>, z.&nbsp;B.&nbsp;<code>MM-12345</code>
-            für Max Mustermann. Du kannst dich auch ohne Radikal ID anmelden.
-          </p>
-        </div>
-      </section>
-
-      <!-- ── Disziplinen ────────────────────────────────────────────────── -->
+      <!-- ── Disziplinen + Spieler ──────────────────────────────────────── -->
       <section class="form-section" formArrayName="disziplinen">
-        <h2 class="section-title">Disziplinen</h2>
+        <h2 class="section-title">Disziplinen &amp; Spieler</h2>
 
         @if (form.errors?.['noDisziplin'] && form.touched) {
           <div class="alert-error" role="alert">Bitte wähle mindestens eine Disziplin aus.</div>
@@ -151,7 +72,7 @@
                 <span class="disziplin-subtitle">{{ disziplin.subtitle }}</span>
               </label>
 
-              <!-- Teamname – nur wenn Doppel/Triple/Team gewählt -->
+              <!-- Teamname – nur bei Doppel/Triple/Team -->
               @if (needsTeamName(i)) {
                 <div class="teamname-field">
                   <label [for]="'teamname-' + i" class="field-label">
@@ -167,6 +88,144 @@
                   />
                   @if (teamNameInvalid(i)) {
                     <span class="field-error">Teamname ist erforderlich.</span>
+                  }
+                </div>
+              }
+
+              <!-- Spielerzeilen – nur wenn Disziplin gewählt -->
+              @if (isDisziplinSelected(i)) {
+                <div class="spieler-block" formArrayName="spieler">
+                  @for (
+                    spielerCtrl of spielerArray(i).controls;
+                    track spielerCtrl;
+                    let j = $index
+                  ) {
+                    <div class="spieler-row" [formGroupName]="j">
+                      <div class="spieler-row-head">
+                        <span class="spieler-nr">Spieler {{ j + 1 }}</span>
+                        @if (canRemoveSpieler(i)) {
+                          <button
+                            type="button"
+                            class="spieler-remove"
+                            (click)="removeSpieler(i, j)"
+                            [attr.aria-label]="'Spieler ' + (j + 1) + ' entfernen'"
+                          >
+                            Entfernen
+                          </button>
+                        }
+                      </div>
+
+                      <div class="field-row">
+                        <div class="field-group">
+                          <label [for]="'vorname-' + i + '-' + j" class="field-label">
+                            Vorname <span class="required">*</span>
+                          </label>
+                          <input
+                            [id]="'vorname-' + i + '-' + j"
+                            type="text"
+                            formControlName="vorname"
+                            class="field-input field-input--sm"
+                            [class.field-input--error]="spielerFeldInvalid(i, j, 'vorname')"
+                            autocomplete="given-name"
+                            placeholder="Max"
+                          />
+                          @if (spielerFeldInvalid(i, j, 'vorname')) {
+                            <span class="field-error">Vorname ist erforderlich.</span>
+                          }
+                        </div>
+
+                        <div class="field-group">
+                          <label [for]="'nachname-' + i + '-' + j" class="field-label">
+                            Nachname <span class="required">*</span>
+                          </label>
+                          <input
+                            [id]="'nachname-' + i + '-' + j"
+                            type="text"
+                            formControlName="nachname"
+                            class="field-input field-input--sm"
+                            [class.field-input--error]="spielerFeldInvalid(i, j, 'nachname')"
+                            autocomplete="family-name"
+                            placeholder="Mustermann"
+                          />
+                          @if (spielerFeldInvalid(i, j, 'nachname')) {
+                            <span class="field-error">Nachname ist erforderlich.</span>
+                          }
+                        </div>
+                      </div>
+
+                      <!-- Radikal-ID-Angabe: entweder Radikal ID oder Initialen + Geburtsdatum -->
+                      @if (!hatKeineRadikalId(i, j)) {
+                        <div class="field-group">
+                          <label [for]="'radikalId-' + i + '-' + j" class="field-label">
+                            Radikal ID <span class="required">*</span>
+                          </label>
+                          <input
+                            [id]="'radikalId-' + i + '-' + j"
+                            type="text"
+                            formControlName="radikalId"
+                            class="field-input field-input--sm"
+                            [class.field-input--error]="radikalAngabeInvalid(i, j)"
+                            placeholder="MM-12345"
+                          />
+                        </div>
+                      } @else {
+                        <div class="field-row">
+                          <div class="field-group">
+                            <label [for]="'initialen-' + i + '-' + j" class="field-label">
+                              Initialen <span class="required">*</span>
+                            </label>
+                            <input
+                              [id]="'initialen-' + i + '-' + j"
+                              type="text"
+                              formControlName="initialen"
+                              class="field-input field-input--sm"
+                              [class.field-input--error]="radikalAngabeInvalid(i, j)"
+                              placeholder="MM"
+                            />
+                          </div>
+                          <div class="field-group">
+                            <label [for]="'geburtsdatum-' + i + '-' + j" class="field-label">
+                              Geburtsdatum <span class="required">*</span>
+                            </label>
+                            <input
+                              [id]="'geburtsdatum-' + i + '-' + j"
+                              type="date"
+                              formControlName="geburtsdatum"
+                              class="field-input field-input--sm"
+                              [class.field-input--error]="radikalAngabeInvalid(i, j)"
+                            />
+                          </div>
+                        </div>
+                      }
+
+                      <label class="radikal-toggle">
+                        <input
+                          type="checkbox"
+                          formControlName="hatKeineRadikalId"
+                          (change)="toggleRadikalId(i, j)"
+                        />
+                        Ich habe noch keine Radikal ID
+                      </label>
+
+                      @if (radikalAngabeInvalid(i, j)) {
+                        <span class="field-error">
+                          Bitte Radikal ID angeben – oder Initialen und Geburtsdatum, damit eine
+                          erstellt werden kann.
+                        </span>
+                      }
+
+                      @if (zeigtErsatzHinweis(i, j)) {
+                        <p class="ersatz-hinweis">
+                          Die vierte Person kann als Ersatz eingetragen werden.
+                        </p>
+                      }
+                    </div>
+                  }
+
+                  @if (canAddSpieler(i)) {
+                    <button type="button" class="spieler-add" (click)="addSpieler(i)">
+                      + Spieler hinzufügen
+                    </button>
                   }
                 </div>
               }

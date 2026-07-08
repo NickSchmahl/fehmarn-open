@@ -3,7 +3,9 @@ import {
   AbstractControl,
   FormArray,
   FormBuilder,
+  FormGroup,
   ReactiveFormsModule,
+  ValidationErrors,
   Validators,
 } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -29,6 +31,30 @@ function extractFehlermeldung(err: unknown): string {
   return 'Unbekannter Fehler';
 }
 
+/** Liest den Wert eines Controls typsicher als String (dynamisches `.value` ist sonst `any`). */
+function stringWert(group: AbstractControl, feld: string): string {
+  const value: unknown = group.get(feld)?.value;
+  return typeof value === 'string' ? value : '';
+}
+
+/** Leere bzw. nur aus Leerzeichen bestehende Eingaben werden zu null (fürs Backend-DTO). */
+function leerZuNull(value: string): string | null {
+  return value.trim() !== '' ? value : null;
+}
+
+/**
+ * Validator je Spielerzeile: Es muss entweder eine Radikal ID angegeben sein ODER
+ * Initialen + Geburtsdatum, damit eine Radikal ID erstellt werden kann.
+ */
+function radikalIdAngabeValidator(group: AbstractControl): ValidationErrors | null {
+  const radikalId = stringWert(group, 'radikalId').trim();
+  const initialen = stringWert(group, 'initialen').trim();
+  const geburtsdatum = stringWert(group, 'geburtsdatum');
+  if (radikalId !== '') return null;
+  if (initialen !== '' && geburtsdatum !== '') return null;
+  return { radikalIdAngabeFehlt: true };
+}
+
 // ── Component ────────────────────────────────────────────────────────────────
 
 @Component({
@@ -52,17 +78,17 @@ export class AnmeldungComponent {
   errorMessage = signal<string | null>(null);
 
   // ── Formular ────────────────────────────────────────────────────────────
+  // Es gibt kein Kontaktfeld mehr: Name & Radikal-ID-Angabe leben ausschliesslich in den
+  // Spielerzeilen. Je gewählter Disziplin klappt ein Block mit Spielerzeilen (+ Teamname) auf.
 
   form = this.formBuilder.group(
     {
-      vorname: ['', [Validators.required]],
-      nachname: ['', [Validators.required]],
-      radicalId: [''],
       disziplinen: this.formBuilder.array(
         DISZIPLINEN.map(() =>
           this.formBuilder.group({
             selected: [false],
             teamName: [''],
+            spieler: this.formBuilder.array<FormGroup>([]),
           }),
         ),
       ),
@@ -74,56 +100,111 @@ export class AnmeldungComponent {
     return this.form.get('disziplinen') as FormArray;
   }
 
-  disziplinGroup(i: number): AbstractControl {
-    return this.disziplinenArray.at(i);
+  disziplinGroup(i: number): FormGroup {
+    return this.disziplinenArray.at(i) as FormGroup;
+  }
+
+  spielerArray(i: number): FormArray {
+    return this.disziplinGroup(i).get('spieler') as FormArray;
+  }
+
+  spielerGroup(i: number, j: number): FormGroup {
+    return this.spielerArray(i).at(j) as FormGroup;
   }
 
   // ── Computed ─────────────────────────────────────────────────────────────
 
+  /** Signal-Brücke: hält immer den aktuellen Formularwert, damit computed() reagieren kann. */
+  private _formValue = signal(this.form.getRawValue());
+
   /** Wie viele Disziplinen sind aktuell angehakt? */
   selectedCount = computed(() => {
-    // Wir lesen den Formwert reaktiv über ein Signal, das bei
-    // valueChanges aktualisiert wird (s.u. via trackFormValue).
-    return this._formValue().disziplinen.filter(
-      (d: { selected: boolean | null }) => d.selected === true,
-    ).length;
+    const disziplinen = this._formValue().disziplinen as { selected: boolean | null }[];
+    return disziplinen.filter((d) => d.selected === true).length;
   });
 
   gesamtpreis = computed(() => this.selectedCount() * PREIS_PRO_DISZIPLIN);
-
-  /**
-   * Signal-Brücke: hält immer den aktuellen Formularwert,
-   * damit computed() darauf reagieren kann.
-   */
-  private _formValue = signal(this.form.getRawValue());
 
   constructor() {
     this.form.valueChanges.subscribe(() => {
       this._formValue.set(this.form.getRawValue());
     });
 
-    // Teamname-Pflichtfeld dynamisch setzen
+    // Beim An-/Abwählen einer Disziplin Spielerzeilen und Teamname-Pflicht dynamisch setzen.
     this.disziplinenArray.controls.forEach((ctrl, i) => {
-      const selectedCtrl = ctrl.get('selected');
-      const teamNameCtrl = ctrl.get('teamName');
-      if (!selectedCtrl || !teamNameCtrl) return;
-      selectedCtrl.valueChanges.subscribe((checked) => {
-        const needsTeam = DISZIPLINEN[i].teamName;
-        if (needsTeam && checked) {
-          teamNameCtrl.setValidators([Validators.required]);
-        } else {
-          teamNameCtrl.clearValidators();
-          teamNameCtrl.setValue('');
-        }
-        teamNameCtrl.updateValueAndValidity();
+      ctrl.get('selected')?.valueChanges.subscribe((checked) => {
+        this.onDisziplinToggle(i, checked === true);
       });
     });
   }
 
-  // ── Hilfsmethoden ────────────────────────────────────────────────────────
+  // ── Spieler-Verwaltung ─────────────────────────────────────────────────────
+
+  private createSpielerGroup(): FormGroup {
+    return this.formBuilder.group(
+      {
+        vorname: ['', [Validators.required]],
+        nachname: ['', [Validators.required]],
+        hatKeineRadikalId: [false],
+        radikalId: [''],
+        initialen: [''],
+        geburtsdatum: [''],
+      },
+      { validators: radikalIdAngabeValidator },
+    );
+  }
+
+  private onDisziplinToggle(i: number, selected: boolean): void {
+    const meta = DISZIPLINEN[i];
+    const teamNameCtrl = this.disziplinGroup(i).get('teamName');
+    const spieler = this.spielerArray(i);
+
+    if (selected) {
+      if (meta.teamName) {
+        teamNameCtrl?.setValidators([Validators.required]);
+      }
+      // Auf die Pflichtanzahl auffüllen (idempotent, falls bereits Zeilen vorhanden sind).
+      while (spieler.length < meta.minSpieler) {
+        spieler.push(this.createSpielerGroup());
+      }
+    } else {
+      teamNameCtrl?.clearValidators();
+      teamNameCtrl?.setValue('');
+      spieler.clear();
+    }
+    teamNameCtrl?.updateValueAndValidity();
+  }
+
+  addSpieler(i: number): void {
+    if (this.canAddSpieler(i)) {
+      this.spielerArray(i).push(this.createSpielerGroup());
+    }
+  }
+
+  removeSpieler(i: number, j: number): void {
+    if (this.canRemoveSpieler(i)) {
+      this.spielerArray(i).removeAt(j);
+    }
+  }
+
+  /**
+   * Umschalter „Ich habe noch keine Radikal ID": leert die jeweils ausgeblendeten Felder,
+   * damit kein veralteter Wert ans Backend gesendet wird.
+   */
+  toggleRadikalId(i: number, j: number): void {
+    const group = this.spielerGroup(i, j);
+    if (this.hatKeineRadikalId(i, j)) {
+      group.get('radikalId')?.setValue('');
+    } else {
+      group.get('initialen')?.setValue('');
+      group.get('geburtsdatum')?.setValue('');
+    }
+  }
+
+  // ── Hilfsmethoden fürs Template ────────────────────────────────────────────
 
   isDisziplinSelected(i: number): boolean {
-    return !!this.disziplinenArray.at(i).get('selected')?.value;
+    return this.disziplinGroup(i).get('selected')?.value === true;
   }
 
   needsTeamName(i: number): boolean {
@@ -131,26 +212,40 @@ export class AnmeldungComponent {
   }
 
   teamNameInvalid(i: number): boolean {
-    const ctrl = this.disziplinenArray.at(i).get('teamName');
+    const ctrl = this.disziplinGroup(i).get('teamName');
     return ctrl !== null && ctrl.invalid && ctrl.touched;
   }
 
-  /** Shortcut-Getter für Template-Validierungsfeedback (typisierte Controls) */
-  get vorname() {
-    return this.form.controls.vorname;
+  canAddSpieler(i: number): boolean {
+    return this.spielerArray(i).length < DISZIPLINEN[i].maxSpieler;
   }
 
-  get nachname() {
-    return this.form.controls.nachname;
+  canRemoveSpieler(i: number): boolean {
+    return this.spielerArray(i).length > DISZIPLINEN[i].minSpieler;
   }
 
-  get radicalId() {
-    return this.form.controls.radicalId;
+  hatKeineRadikalId(i: number, j: number): boolean {
+    return this.spielerGroup(i, j).get('hatKeineRadikalId')?.value === true;
+  }
+
+  spielerFeldInvalid(i: number, j: number, feld: string): boolean {
+    const ctrl = this.spielerGroup(i, j).get(feld);
+    return ctrl !== null && ctrl.invalid && ctrl.touched;
+  }
+
+  radikalAngabeInvalid(i: number, j: number): boolean {
+    const group = this.spielerGroup(i, j);
+    return group.hasError('radikalIdAngabeFehlt') && group.touched;
+  }
+
+  /** Die (optionale) 4. Zeile bei Triple Mix darf als Ersatz eingetragen werden. */
+  zeigtErsatzHinweis(i: number, j: number): boolean {
+    return DISZIPLINEN[i].value === 'TRIPLE_MIX' && j === 3;
   }
 
   // ── Validator ────────────────────────────────────────────────────────────
 
-  private mindestensEineDisziplinValidator(group: AbstractControl) {
+  private mindestensEineDisziplinValidator(group: AbstractControl): ValidationErrors | null {
     const arr = (group.get('disziplinen') as FormArray).controls;
     const anySelected = arr.some((c) => c.get('selected')?.value === true);
     return anySelected ? null : { noDisziplin: true };
@@ -158,32 +253,20 @@ export class AnmeldungComponent {
 
   // ── Submit ───────────────────────────────────────────────────────────────
 
-  onSubmit() {
+  onSubmit(): void {
     this.form.markAllAsTouched();
     if (this.form.invalid) return;
 
-    // Nur ausgewählte Disziplinen ans Backend schicken
-    const rawDisziplinen = (this.form.value.disziplinen ?? []) as {
-      selected: boolean;
-      teamName: string;
-    }[];
-
-    const selectedDisziplinen = rawDisziplinen
-      .map((d, i) => ({ ...d, meta: DISZIPLINEN[i] }))
-      .filter((d) => d.selected)
-      .map((d) => ({
-        disziplin: d.meta.value,
-        teamName: d.teamName || null,
+    const disziplinen = this.disziplinenArray.controls
+      .map((ctrl, i) => ({ ctrl, meta: DISZIPLINEN[i] }))
+      .filter(({ ctrl }) => ctrl.get('selected')?.value === true)
+      .map(({ ctrl, meta }) => ({
+        disziplin: meta.value,
+        teamName: leerZuNull(stringWert(ctrl, 'teamName')),
+        spieler: (ctrl.get('spieler') as FormArray).controls.map((s) => this.toSpielerPayload(s)),
       }));
 
-    const body = {
-      vorname: this.form.value.vorname,
-      nachname: this.form.value.nachname,
-      // Bewusst `||`: ein leeres Eingabefeld ('') soll ebenfalls zu null werden.
-      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-      radicalId: this.form.value.radicalId || null,
-      disziplinen: selectedDisziplinen,
-    };
+    const body = { disziplinen };
 
     this.loading.set(true);
     this.errorMessage.set(null);
@@ -201,5 +284,17 @@ export class AnmeldungComponent {
         this.errorMessage.set(`Fehler bei der Anmeldung: ${extractFehlermeldung(err)}`);
       },
     });
+  }
+
+  /** Baut das Spieler-DTO; je nach Umschalter wird Radikal ID oder Initialen+Geburtsdatum gesendet. */
+  private toSpielerPayload(group: AbstractControl) {
+    const hatKeine = group.get('hatKeineRadikalId')?.value === true;
+    return {
+      vorname: stringWert(group, 'vorname'),
+      nachname: stringWert(group, 'nachname'),
+      radikalId: hatKeine ? null : leerZuNull(stringWert(group, 'radikalId')),
+      initialen: hatKeine ? leerZuNull(stringWert(group, 'initialen')) : null,
+      geburtsdatum: hatKeine ? leerZuNull(stringWert(group, 'geburtsdatum')) : null,
+    };
   }
 }

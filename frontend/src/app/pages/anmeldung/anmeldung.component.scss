@@ -311,16 +311,18 @@
 
 /* ── Disziplin-Cards ────────────────────────────────────── */
 .disziplin-grid {
-  columns: 2;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 0.625rem;
+  align-items: start;
 
-  .disziplin-card {
-    break-inside: avoid;
-    margin-bottom: 0.625rem;
+  /* Gewählte Disziplinen klappen Spielerzeilen aus und nehmen die volle Breite ein. */
+  .disziplin-card--selected {
+    grid-column: 1 / -1;
   }
 
   @media (max-width: 480px) {
-    columns: 1;
+    grid-template-columns: 1fr;
   }
 }
 
@@ -432,6 +434,93 @@
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* ── Spielerzeilen ───────────────────────────────────────── */
+.spieler-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding-top: 0.25rem;
+  border-top: 1px solid var(--border);
+  animation: slide-down 0.2s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.spieler-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  padding: 0.75rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.spieler-row-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.spieler-nr {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.spieler-remove {
+  background: none;
+  border: none;
+  color: var(--danger);
+  font-family: inherit;
+  font-size: 0.75rem;
+  cursor: pointer;
+  padding: 0.15rem 0.35rem;
+  border-radius: 3px;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.spieler-add {
+  align-self: flex-start;
+  background: none;
+  border: 1px dashed var(--border);
+  color: var(--accent);
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.5rem 0.875rem;
+  border-radius: var(--radius);
+  transition:
+    border-color 0.15s,
+    background 0.15s;
+
+  &:hover {
+    border-color: var(--accent);
+    background: var(--accent-dim);
+  }
+}
+
+.radikal-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.ersatz-hinweis {
+  margin: 0;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+  font-style: italic;
 }
 
 /* ── Preisübersicht ──────────────────────────────────────── */

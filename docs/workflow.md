@@ -42,7 +42,9 @@ Branch, Nick pusht/merged selbst.
 
 1. Neue Aufgabe → als Eintrag in `docs/backlog.md` (und optional GitHub Issue).
 2. Assistent nimmt Ticket, legt Branch an, setzt um, schreibt/aktualisiert Tests.
-3. PR öffnen, CI abwarten (grün = Build-Wahrheit).
+3. PR öffnen (Vorlage `.github/pull_request_template.md`), CI abwarten (grün = Build-Wahrheit).
+   Der PR-Body enthält eine Zeile **`Closes #<nr>`** und geht gegen base **`main`** –
+   sonst schliesst das Ticket beim Merge nicht automatisch (siehe Auto-Close-Regel unten).
 4. Nick reviewt & merged → Auto-Deploy auf Test-Umgebung (Port 8081).
 5. Testabnahme durch Nick → Feedback als neue Tickets in `docs/backlog.md`.
 6. Freigabe prod: manueller Deploy-Workflow (`workflow_dispatch` → prod).
@@ -61,10 +63,22 @@ Branch, Nick pusht/merged selbst.
   gemergt** wird (`git merge origin/main`, Konflikte auflösen, neuer Merge-Commit) –
   **nicht** per Rebase mit Force-Push.
 
+## Auto-Close von Issues
+
+GitHub schliesst ein Issue beim Merge nur, wenn **beides** stimmt:
+
+- Der **PR-Body** enthält ein **englisches** Closing-Keyword mit Nummer:
+  `Closes #<nr>` (auch `Fixes`/`Resolves`). **Deutsche Prosa wie „Schliesst #107"
+  schliesst nichts**, und eine Nummer nur im Titel reicht ebenfalls nicht.
+- Der PR wird in den **Default-Branch `main`** gemergt. Gestackte PRs in andere
+  Feature-Branches lösen kein Auto-Close aus.
+
+Die Vorlage `.github/pull_request_template.md` gibt die `Closes #`-Zeile vor.
+
 ## Definition of Done (pro Ticket)
 
 - [ ] Code umgesetzt, deutsch kommentiert wo sinnvoll
 - [ ] Tests angepasst/ergänzt, lokal bzw. in CI grün
 - [ ] `spotless:apply` gelaufen (Backend)
 - [ ] `docs/` aktualisiert falls Architektur/Entscheidung betroffen
-- [ ] PR mit kurzer Beschreibung + Ticket-Referenz
+- [ ] PR mit kurzer Beschreibung + **`Closes #<nr>`** im Body (base `main`)

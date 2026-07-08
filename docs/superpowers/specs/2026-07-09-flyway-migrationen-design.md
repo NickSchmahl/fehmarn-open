@@ -1,8 +1,15 @@
-# #117 — Flyway-Migrationen einführen (`ddl-auto: update → validate`)
+# #117 — Migrations-Tooling einführen (`ddl-auto: update → validate`)
 
 **Datum:** 2026-07-09
 **Ticket:** #117 (vor Go-Live)
 **Branch:** `feat/117-flyway-migrationen`
+
+> **Tool-Wahl:** Das Ticket nannte Flyway. **Flyway 12** (von Spring Boot 4.1 gemanagt)
+> **unterstützt SQLite nicht** — es gibt kein SQLite-DB-Modul mehr (`flyway-database-sqlite`
+> existiert nicht auf Maven Central). Wir nutzen daher **Liquibase 5.0.3** (ebenfalls von Boot
+> gemanagt): SQLite ist nativ unterstützt (`liquibase.database.core.SQLiteDatabase`), inkl.
+> automatischem Umgang mit SQLites ALTER-TABLE-Grenzen (Table-Rebuild). Gleiches Ziel,
+> für SQLite der robustere Weg.
 
 ## Problem
 
@@ -14,75 +21,76 @@ Go-Live ist Reset keine Option mehr** (echte Anmeldungen).
 
 ## Lösung
 
-Versioniertes Schema-Management mit **Flyway**; Hibernate nur noch `validate`.
+Versioniertes Schema-Management mit **Liquibase**; Hibernate nur noch `validate`.
 
-### 1. Abhängigkeiten & Haupt-Konfiguration
+### 1. Abhängigkeit & Haupt-Konfiguration
 
-- `flyway-core` + das SQLite-Modul (`flyway-database-sqlite`; Version von Spring Boot 4.1
-  gemanagt — korrekte Artefakt-Koordinaten bei der Umsetzung verifizieren).
+- `org.liquibase:liquibase-core` (Version von Spring Boot 4.1 gemanagt → 5.0.3).
 - `application.yaml`:
   - `spring.jpa.hibernate.ddl-auto: validate`
-  - `spring.flyway.enabled: true`
-  - `spring.flyway.baseline-on-migrate: true`
-  - `spring.flyway.baseline-version: 1`
+  - `spring.liquibase.enabled: true`
+  - `spring.liquibase.change-log: classpath:db/changelog/db.changelog-master.yaml`
 
-### 2. Baseline `V1__init.sql`
+### 2. Changelog-Struktur & Baseline
 
-- Abgeleitet aus dem **Hibernate-generierten DDL** (Schema-Export gegen den SQLite-
-  Community-Dialekt), dann aufgeräumt. So trifft die Baseline exakt die von Hibernate
-  erwartete Struktur — inklusive der **Enum-CHECK-Constraint** auf `anmeldung.disziplin`
-  und `admin_user.benutzername UNIQUE`.
-- Ort: `backend/src/main/resources/db/migration/V1__init.sql`.
-- Nur DDL: `anmeldung`, `spieler` (FK `anmeldung_id`), `admin_user`. **Keine Daten** —
-  Admins legt weiterhin der `DataInitializer` (Java) an, Anmeldungen sind Nutzdaten.
+- Master-Changelog `backend/src/main/resources/db/changelog/db.changelog-master.yaml`, das die
+  einzelnen Änderungs-Changelogs `include`t.
+- **Baseline** `db/changelog/changes/001-init.sql` als **Liquibase formatted SQL**: Inhalt aus
+  dem **Hibernate-generierten DDL** (Schema-Export gegen den SQLite-Community-Dialekt) abgeleitet
+  und aufgeräumt — so trifft die Baseline exakt die von Hibernate erwartete Struktur (inkl.
+  Enum-CHECK auf `anmeldung.disziplin`, `admin_user.benutzername UNIQUE`, FK `spieler.anmeldung_id`).
+  Nur DDL: `anmeldung`, `spieler`, `admin_user`. Keine Daten (Admins legt der `DataInitializer`
+  an, Anmeldungen sind Nutzdaten).
 
-### 3. Cutover (baseline-on-migrate)
+### 3. Cutover auf bestehende DBs (Precondition MARK_RAN)
 
-- Bestehendes Schema (Test mit Daten, Prod leer/frisch) wird beim ersten Start als
-  „V1 bereits angewendet" markiert; leere/neue DBs bekommen V1 regulär. **Kein Reset nötig.**
-- **Vorbedingung:** `baseline-on-migrate` vertraut darauf, dass das vorhandene Schema V1
-  entspricht. Test/Prod sind aktuell in sync (Prod leer; Test per Reset gepflegt). Falls je
-  Drift auf einer Umgebung vermutet wird, einmalig `db-reset.yml` **vor** dem Flyway-Deploy —
-  danach nie wieder.
-- Deploy selbst bleibt unverändert (JAR + `systemctl restart`); Flyway läuft beim Start
-  automatisch mit.
+- Der Init-ChangeSet trägt eine **Precondition** `onFail: MARK_RAN`, die prüft, ob die Tabellen
+  schon existieren: leere/neue DB → Init läuft; bestehende DB mit Schema (Test mit Daten,
+  Prod falls schon angelegt) → Init wird als „bereits angewendet" markiert, ohne ausgeführt zu
+  werden. **Kein Reset nötig.** (Liquibase-Äquivalent zu Flyways baseline-on-migrate.)
+- **Vorbedingung:** Der MARK_RAN-Pfad vertraut darauf, dass das vorhandene Schema der Baseline
+  entspricht. Test/Prod sind aktuell in sync (Prod leer; Test per Reset gepflegt). Falls je Drift
+  vermutet wird, einmalig `db-reset.yml` **vor** dem Liquibase-Deploy — danach nie wieder.
+- Deploy bleibt unverändert (JAR + `systemctl restart`); Liquibase läuft beim Start automatisch.
 
 ### 4. Tests
 
-- Test-Profil (`application-test.yaml`): `create-drop` → `validate`, Flyway aktiv. Die
-  DB-berührenden Tests bauen das Schema über V1; Hibernate `validate` beweist
+- Test-Profil (`application-test.yaml`): `create-drop` → `validate`, Liquibase aktiv. Die
+  DB-berührenden Tests bauen das Schema über die Changelogs; Hibernate `validate` beweist
   Entity↔Schema-Konsistenz. Test-DB liegt unter `target/` (durch `mvn clean` frisch).
-- Neuer Test, der belegt, dass die Migrationen auf einer leeren DB sauber durchlaufen und
-  der Kontext mit `validate` hochkommt (Sicherheitsnetz gegen Baseline-Drift).
+- Neuer Test, der belegt, dass der Kontext mit Liquibase + `validate` hochkommt (Sicherheitsnetz
+  gegen Baseline-Drift).
 - **Risiko/Fallback:** Sollte Hibernate-`validate` auf dem SQLite-Community-Dialekt bei
-  Typ-Äquivalenz zicken, Fallback = Flyway baut das Schema, Test prüft nur sauberes
+  Typ-Äquivalenz zicken, Fallback = Liquibase baut das Schema, Test prüft nur sauberes
   Anwenden (ohne `validate`). Empirisch bei der Umsetzung entscheiden und im PR dokumentieren.
 
 ### 5. Dokumentation & Workflow (fester Bestandteil dieses Tickets)
 
-- **Neuer ADR** „Flyway statt ddl-auto"; ADR 0004 auf Status „abgelöst durch ADR 00xx".
+- **Neuer ADR** „Liquibase statt ddl-auto"; ADR 0004 auf Status „abgelöst durch ADR 00xx".
 - **Workflow verankern** (in `AGENTS.md` und `docs/`): Ab jetzt bedeutet **jede
-  Schema-Änderung eine neue versionierte Migrationsdatei** `V<n>__beschreibung.sql` —
-  Entity-Änderung ohne zugehörige Migration ist unvollständig. Jede Migration **muss
-  getestet** werden (der `validate`-Kontexttest fängt fehlende/fehlerhafte Migrationen ab).
-- **SQLite-Spezifika** dokumentieren: kein `ALTER TABLE … DROP CONSTRAINT`/`DROP COLUMN` mit
-  Constraints → Muster „neue Tabelle + `INSERT … SELECT` + `DROP` + `RENAME`".
+  Schema-Änderung ein neues Changelog** (`changes/<n>-<beschreibung>.(sql|yaml)`, im Master
+  eingebunden) — Entity-Änderung ohne zugehörige Migration ist unvollständig. Jede Migration
+  **muss getestet** werden (der `validate`-Kontexttest fängt fehlende/fehlerhafte Migrationen ab).
+- **SQLite-Spezifika** dokumentieren: kein `ALTER TABLE … DROP COLUMN/CONSTRAINT`. Liquibase
+  löst das für deklarative Changesets (XML/YAML) automatisch (Table-Rebuild via
+  `AlterTableVisitor`); bei formatted-SQL das Rebuild-Muster „neue Tabelle + `INSERT … SELECT` +
+  `DROP` + `RENAME`" von Hand. Empfehlung: strukturelle Änderungen als YAML/XML-Changeset.
 - `docs/decisions.md` und ggf. `docs/quality/` aktualisieren.
 
 ## Scope
 
-Ein PR für #117. Backend + Doku/ADR. Keine Deploy-Pipeline-Änderung nötig (Flyway läuft
+Ein PR für #117. Backend + Doku/ADR. Keine Deploy-Pipeline-Änderung nötig (Liquibase läuft
 beim App-Start). Kein Frontend.
 
 ## Nicht in Scope
 
-- `db-reset.yml` bleibt bestehen (Test-Werkzeug); nur der Hinweis „nach Go-Live nicht auf
-  prod" ist durch Flyway künftig faktisch erfüllt.
+- `db-reset.yml` bleibt bestehen (Test-Werkzeug); der Hinweis „nach Go-Live nicht auf prod" ist
+  durch Liquibase künftig faktisch erfüllt.
 - Keine fachlichen Schema-Änderungen — reine Einführung des Migrationswerkzeugs mit der
   aktuellen Struktur als Baseline.
 
 ## Akzeptanzkriterien
 
-- Backend startet mit `ddl-auto: validate` + Flyway-Migrationen grün (Test).
+- Backend startet mit `ddl-auto: validate` + Liquibase-Migrationen grün (Test).
 - Voller `./mvnw verify` grün (inkl. neuem Migrations-/`validate`-Test, PMD, SpotBugs, ArchUnit).
 - ADR + Workflow-Doku aktualisiert; Migrations-Konvention inkl. SQLite-Spezifika dokumentiert.

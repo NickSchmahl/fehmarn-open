@@ -18,6 +18,7 @@ import de.dart.fehmarnopen.entity.Spieler;
 import de.dart.fehmarnopen.exception.DoppelteAnmeldungException;
 import de.dart.fehmarnopen.exception.NichtGefundenException;
 import de.dart.fehmarnopen.exception.UngueltigeAnmeldungException;
+import de.dart.fehmarnopen.mapper.UebersichtMapper;
 import de.dart.fehmarnopen.repository.AnmeldungRepository;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -37,6 +38,10 @@ class AnmeldungServiceTest {
     // Blackbox: die Validierungsregeln selbst sind in SpielerValidierungServiceTest abgedeckt.
     @Mock
     private SpielerValidierungService spielerValidierungService;
+
+    // Blackbox: die Gruppier-/Sortierlogik ist in UebersichtMapperTest abgedeckt.
+    @Mock
+    private UebersichtMapper uebersichtMapper;
 
     @InjectMocks
     private AnmeldungService anmeldungService;
@@ -128,115 +133,29 @@ class AnmeldungServiceTest {
     }
 
     @Test
-    void oeffentlicheUebersicht_zeigtAlleSpielerEinerMeldungGruppiert() {
-        Anmeldung doppel = anmeldung(
-                Disziplin.HERRENDOPPEL, "Team A", spielerEntity("Anna", "Schmidt"), spielerEntity("Bea", "Adam"));
-        when(anmeldungRepository.findByAbgemeldetFalse()).thenReturn(List.of(doppel));
+    void oeffentlicheUebersicht_reichtAktiveAnmeldungenAnMapperDurch() {
+        List<Anmeldung> aktive = List.of(anmeldung(Disziplin.HERRENDOPPEL, "Team A", spielerEntity("Anna", "Schmidt")));
+        TeilnehmerUebersichtResponse erwartet = new TeilnehmerUebersichtResponse(List.of());
+        when(anmeldungRepository.findByAbgemeldetFalse()).thenReturn(aktive);
+        when(uebersichtMapper.zuOeffentlicheUebersicht(aktive)).thenReturn(erwartet);
 
         TeilnehmerUebersichtResponse result = anmeldungService.oeffentlicheUebersicht();
 
-        assertThat(result.disziplinen()).hasSize(1);
-        assertThat(result.disziplinen().get(0).anzahl()).isEqualTo(1); // eine Meldung
-        assertThat(result.disziplinen().get(0).meldungen()).hasSize(1);
-        TeilnehmerUebersichtResponse.MeldungEintrag meldung =
-                result.disziplinen().get(0).meldungen().get(0);
-        assertThat(meldung.teamName()).isEqualTo("Team A");
-        assertThat(meldung.spieler())
-                .extracting(TeilnehmerUebersichtResponse.SpielerEintrag::nachname)
-                .containsExactly("Adam", "Schmidt"); // innerhalb der Meldung nach Nachname sortiert
+        assertThat(result).isSameAs(erwartet);
+        verify(uebersichtMapper).zuOeffentlicheUebersicht(aktive);
     }
 
     @Test
-    void oeffentlicheUebersicht_zaehltMeldungenNichtSpieler() {
-        when(anmeldungRepository.findByAbgemeldetFalse())
-                .thenReturn(List.of(
-                        anmeldung(
-                                Disziplin.HERRENDOPPEL,
-                                "Team A",
-                                spielerEntity("Anna", "Schmidt"),
-                                spielerEntity("Bea", "Adam")),
-                        anmeldung(
-                                Disziplin.HERRENDOPPEL,
-                                "Team B",
-                                spielerEntity("Cara", "Berg"),
-                                spielerEntity("Dora", "Cornelius"))));
-
-        TeilnehmerUebersichtResponse result = anmeldungService.oeffentlicheUebersicht();
-
-        assertThat(result.disziplinen().get(0).anzahl()).isEqualTo(2); // zwei Meldungen, vier Spieler
-    }
-
-    @Test
-    void oeffentlicheUebersicht_haeltGleichnamigeTeamsGetrennt() {
-        when(anmeldungRepository.findByAbgemeldetFalse())
-                .thenReturn(List.of(
-                        anmeldung(Disziplin.HERRENDOPPEL, "Falcons", spielerEntity("Anna", "Schmidt")),
-                        anmeldung(Disziplin.HERRENDOPPEL, "Falcons", spielerEntity("Bea", "Adam"))));
-
-        TeilnehmerUebersichtResponse result = anmeldungService.oeffentlicheUebersicht();
-
-        assertThat(result.disziplinen().get(0).meldungen()).hasSize(2); // nicht verschmolzen
-    }
-
-    @Test
-    void oeffentlicheUebersicht_gruppiertInEnumReihenfolgeUndReichtTeamNameDurch() {
-        when(anmeldungRepository.findByAbgemeldetFalse())
-                .thenReturn(List.of(
-                        anmeldung(Disziplin.HERRENDOPPEL, "Team A", spielerEntity("Anna", "Schmidt")),
-                        anmeldung(Disziplin.HERRENEINZEL, null, spielerEntity("Bert", "Adam"))));
-
-        TeilnehmerUebersichtResponse result = anmeldungService.oeffentlicheUebersicht();
-
-        assertThat(result.disziplinen())
-                .extracting(TeilnehmerUebersichtResponse.DisziplinGruppe::disziplin)
-                .containsExactly(Disziplin.HERRENEINZEL, Disziplin.HERRENDOPPEL);
-        assertThat(result.disziplinen().get(1).meldungen().get(0).teamName()).isEqualTo("Team A");
-    }
-
-    @Test
-    void oeffentlicheUebersicht_ohneAnmeldungen_sollLeereListeZurueckgeben() {
-        when(anmeldungRepository.findByAbgemeldetFalse()).thenReturn(List.of());
-
-        assertThat(anmeldungService.oeffentlicheUebersicht().disziplinen()).isEmpty();
-    }
-
-    @Test
-    void adminUebersicht_zaehltNurAktiveMeldungenAberZeigtAbgemeldete() {
-        Anmeldung aktiv = anmeldung(Disziplin.HERRENEINZEL, null, spielerEntity("Anna", "Schmidt"));
-        Anmeldung abgemeldet = anmeldung(Disziplin.HERRENEINZEL, null, spielerEntity("Bert", "Adam"));
-        abgemeldet.setAbgemeldet(true);
-        when(anmeldungRepository.findAllBy()).thenReturn(List.of(aktiv, abgemeldet));
+    void adminUebersicht_reichtAlleAnmeldungenAnMapperDurch() {
+        List<Anmeldung> alle = List.of(anmeldung(Disziplin.HERRENEINZEL, null, spielerEntity("Anna", "Schmidt")));
+        AdminUebersichtResponse erwartet = new AdminUebersichtResponse(List.of());
+        when(anmeldungRepository.findAllBy()).thenReturn(alle);
+        when(uebersichtMapper.zuAdminUebersicht(alle)).thenReturn(erwartet);
 
         AdminUebersichtResponse result = anmeldungService.adminUebersicht();
 
-        AdminUebersichtResponse.DisziplinGruppe gruppe = result.disziplinen().get(0);
-        assertThat(gruppe.meldungen()).hasSize(2); // beide sichtbar
-        assertThat(gruppe.anzahl()).isEqualTo(1); // nur aktive Meldungen gezaehlt
-    }
-
-    @Test
-    void adminUebersicht_liefertVolleFelderJeMeldung() {
-        Spieler ersterSpieler = spielerEntity("Anna", "Schmidt");
-        ersterSpieler.setRadikalId("AS-1");
-        Anmeldung anmeldung = anmeldung(Disziplin.HERRENDOPPEL, "Team A", ersterSpieler, spielerEntity("Bea", "Adam"));
-        anmeldung.setId(5L);
-        anmeldung.setAnwesend(true);
-        when(anmeldungRepository.findAllBy()).thenReturn(List.of(anmeldung));
-
-        AdminUebersichtResponse.MeldungEintrag meldung = anmeldungService
-                .adminUebersicht()
-                .disziplinen()
-                .get(0)
-                .meldungen()
-                .get(0);
-
-        assertThat(meldung.id()).isEqualTo(5L);
-        assertThat(meldung.teamName()).isEqualTo("Team A");
-        assertThat(meldung.anwesend()).isTrue();
-        assertThat(meldung.abgemeldet()).isFalse();
-        assertThat(meldung.spieler()).hasSize(2);
-        assertThat(meldung.spieler().get(0).nachname()).isEqualTo("Adam"); // nach Nachname sortiert
-        assertThat(meldung.spieler().get(1).radikalId()).isEqualTo("AS-1");
+        assertThat(result).isSameAs(erwartet);
+        verify(uebersichtMapper).zuAdminUebersicht(alle);
     }
 
     @Test

@@ -10,7 +10,7 @@
       </div>
       <h1 class="anmeldung-title">Turnieranmeldung</h1>
       <p class="anmeldung-subtitle">
-        Darts Turnierverwaltung · {{ preisProDisziplin }} € je Disziplin pro Person
+        Darts Turnierverwaltung · {{ preisProSpieler }} € je Disziplin pro Person
       </p>
     </header>
 
@@ -67,7 +67,7 @@
                     </svg>
                   </span>
                   <span class="disziplin-name">{{ disziplin.label }}</span>
-                  <span class="disziplin-price">{{ preisProDisziplin }}&nbsp;€</span>
+                  <span class="disziplin-price">{{ preisProSpieler }}&nbsp;€ / Spieler</span>
                 </div>
                 <span class="disziplin-subtitle">{{ disziplin.subtitle }}</span>
               </label>
@@ -262,13 +262,19 @@
       </section>
 
       <!-- ── Preisübersicht ─────────────────────────────────────────────── -->
-      @if (selectedCount() > 0) {
+      @if (preisPosten().length > 0) {
         <div class="price-summary">
-          <div class="price-row">
-            <span class="price-label">
-              {{ selectedCount() }} {{ selectedCount() === 1 ? 'Disziplin' : 'Disziplinen' }} ×
-              {{ preisProDisziplin }}&nbsp;€
-            </span>
+          @for (posten of preisPosten(); track posten.label) {
+            <div class="price-row price-line">
+              <span class="price-label">
+                {{ posten.label }} · {{ posten.spielerAnzahl }} Spieler ×
+                {{ preisProSpieler }}&nbsp;€
+              </span>
+              <span class="price-amount">{{ posten.betrag }}&nbsp;€</span>
+            </div>
+          }
+          <div class="price-row price-summary-total">
+            <span class="price-label">Gesamt</span>
             <span class="price-total">{{ gesamtpreis() }}&nbsp;€</span>
           </div>
         </div>

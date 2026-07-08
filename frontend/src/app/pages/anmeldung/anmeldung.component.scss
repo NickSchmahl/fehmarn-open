@@ -545,6 +545,23 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 0.75rem;
+}
+
+.price-line + .price-line {
+  margin-top: 0.25rem;
+}
+
+.price-amount {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.price-summary-total {
+  margin-top: 0.625rem;
+  padding-top: 0.625rem;
+  border-top: 1px solid rgba(232, 197, 71, 0.25);
 }
 
 .price-label {

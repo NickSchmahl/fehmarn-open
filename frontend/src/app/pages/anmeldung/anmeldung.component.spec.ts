@@ -8,6 +8,7 @@ import { DISZIPLINEN } from '../../shared/disziplin';
 
 // ── Testhilfen ─────────────────────────────────────────────────────────────
 
+const HERRENEINZEL = DISZIPLINEN.findIndex((d) => d.value === 'HERRENEINZEL');
 const HERRENDOPPEL = DISZIPLINEN.findIndex((d) => d.value === 'HERRENDOPPEL');
 const TRIPLE_MIX = DISZIPLINEN.findIndex((d) => d.value === 'TRIPLE_MIX');
 const TEAMWETTBEWERB = DISZIPLINEN.findIndex((d) => d.value === 'TEAMWETTBEWERB');
@@ -299,6 +300,58 @@ describe('AnmeldungComponent', () => {
     expect(body.disziplinen[0].spieler[0].radikalId).toBe('MM-1234');
     req.flush({});
     expect(component.successMsg()).toContain('Anmeldung erfolgreich');
+  });
+
+  // ── Preisberechnung (10 € pro Spieler) ────────────────────────────────────
+
+  function preisTexte(): string[] {
+    return Array.from(host().querySelectorAll('.price-line')).map((e) => e.textContent);
+  }
+
+  it('Teamwettbewerb mit 5 Spielern kostet 50 € für diese Disziplin', () => {
+    waehleDisziplin(TEAMWETTBEWERB);
+    klickeSpielerHinzufuegen(); // 4 → 5 Spieler
+
+    expect(component.spielerArray(TEAMWETTBEWERB).length).toBe(5);
+    expect(component.preisPosten()[0].betrag).toBe(50);
+    expect(component.gesamtpreis()).toBe(50);
+  });
+
+  it('Herrendoppel (20 €) + Herreneinzel (10 €) ergeben Gesamt 30 €', () => {
+    waehleDisziplin(HERRENDOPPEL);
+    waehleDisziplin(HERRENEINZEL);
+
+    const betraege = component.preisPosten().map((p) => p.betrag);
+    expect(betraege).toContain(20);
+    expect(betraege).toContain(10);
+    expect(component.gesamtpreis()).toBe(30);
+  });
+
+  it('Triple Mix kostet 30 € mit 3 Spielern und 40 € mit 4 Spielern', () => {
+    waehleDisziplin(TRIPLE_MIX);
+    expect(component.gesamtpreis()).toBe(30);
+
+    klickeSpielerHinzufuegen(); // 3 → 4 Spieler
+    expect(component.gesamtpreis()).toBe(40);
+  });
+
+  it('zeigt die Aufschlüsselung je Disziplin und die Gesamtsumme an', () => {
+    waehleDisziplin(HERRENDOPPEL);
+    waehleDisziplin(HERRENEINZEL);
+    fixture.detectChanges();
+
+    const zeilen = preisTexte();
+    expect(zeilen.some((t) => t.includes('Herrendoppel') && t.includes('20'))).toBe(true);
+    expect(zeilen.some((t) => t.includes('Herreneinzel') && t.includes('10'))).toBe(true);
+    expect(host().querySelector('.price-total')?.textContent).toContain('30');
+  });
+
+  it('aktualisiert den Preis reaktiv beim Hinzufügen eines Spielers', () => {
+    waehleDisziplin(TRIPLE_MIX);
+    expect(host().querySelector('.price-total')?.textContent).toContain('30');
+
+    klickeSpielerHinzufuegen(); // 3 → 4 Spieler
+    expect(host().querySelector('.price-total')?.textContent).toContain('40');
   });
 
   it('typt FormGroup korrekt für Spieler-Zugriff', () => {

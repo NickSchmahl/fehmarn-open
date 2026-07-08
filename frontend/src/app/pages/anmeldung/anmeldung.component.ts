@@ -13,7 +13,14 @@ import { DISZIPLINEN } from '../../shared/disziplin';
 
 // ── Typen ────────────────────────────────────────────────────────────────────
 
-const PREIS_PRO_DISZIPLIN = 10;
+const PREIS_PRO_SPIELER = 10;
+
+/** Eine Zeile der Preisaufschlüsselung: eine gewählte Disziplin mit Spielerzahl und Betrag. */
+interface PreisPosten {
+  label: string;
+  spielerAnzahl: number;
+  betrag: number;
+}
 
 /** Extrahiert typsicher eine Fehlermeldung aus einem unbekannten Fehlerobjekt. */
 function extractFehlermeldung(err: unknown): string {
@@ -90,7 +97,7 @@ export class AnmeldungComponent {
 
   // Öffentliche Metadaten für das Template
   readonly disziplinen = DISZIPLINEN;
-  readonly preisProDisziplin = PREIS_PRO_DISZIPLIN;
+  readonly preisProSpieler = PREIS_PRO_SPIELER;
 
   // State
   loading = signal(false);
@@ -143,7 +150,27 @@ export class AnmeldungComponent {
     return disziplinen.filter((d) => d.selected === true).length;
   });
 
-  gesamtpreis = computed(() => this.selectedCount() * PREIS_PRO_DISZIPLIN);
+  /**
+   * Aufschlüsselung je gewählter Disziplin: jede erfasste Person kostet
+   * {@link PREIS_PRO_SPIELER} €, der Betrag richtet sich also nach der Spielerzahl.
+   */
+  preisPosten = computed<PreisPosten[]>(() => {
+    const disziplinen = this._formValue().disziplinen as {
+      selected: boolean | null;
+      spieler: unknown[];
+    }[];
+    return disziplinen
+      .map((disziplin, i) => ({ disziplin, meta: DISZIPLINEN[i] }))
+      .filter(({ disziplin }) => disziplin.selected === true)
+      .map(({ disziplin, meta }) => {
+        const spielerAnzahl = disziplin.spieler.length;
+        return { label: meta.label, spielerAnzahl, betrag: spielerAnzahl * PREIS_PRO_SPIELER };
+      });
+  });
+
+  gesamtpreis = computed(() =>
+    this.preisPosten().reduce((summe, posten) => summe + posten.betrag, 0),
+  );
 
   constructor() {
     this.form.valueChanges.subscribe(() => {

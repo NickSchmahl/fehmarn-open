@@ -36,6 +36,14 @@
       <section class="form-section" formArrayName="disziplinen">
         <h2 class="section-title">Disziplinen &amp; Spieler</h2>
 
+        <p class="radikal-hinweis" role="note">
+          Die Radikal ID ist von <strong>jeder teilnehmenden Person</strong> anzugeben. Sie besteht
+          aus <strong>Initialen&nbsp;+&nbsp;Nummer</strong> (z.&nbsp;B. <code>MM-1234</code> für Max
+          Mustermann) und leitet sich aus <strong>Name und Geburtsdatum</strong> ab. Wer
+          <strong>noch keine Radikal ID</strong> hat, gibt stattdessen Initialen und Geburtsdatum an
+          – daraus wird eine erstellt.
+        </p>
+
         @if (form.errors?.['noDisziplin'] && form.touched) {
           <div class="alert-error" role="alert">Bitte wähle mindestens eine Disziplin aus.</div>
         }

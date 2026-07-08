@@ -110,6 +110,18 @@ describe('AnmeldungComponent', () => {
     );
   });
 
+  it('erklärt die Radikal ID zentral: Format, Herkunft und Pfad ohne bestehende ID', () => {
+    fixture.detectChanges();
+    const text = host()
+      .querySelector('.radikal-hinweis')
+      ?.textContent.replace(/\u00a0/g, ' ');
+    expect(text).toContain('jeder teilnehmenden Person');
+    expect(text).toContain('Initialen + Nummer');
+    expect(text).toContain('MM-1234');
+    expect(text).toContain('Name und Geburtsdatum');
+    expect(text).toContain('noch keine Radikal ID');
+  });
+
   it('schreibt den Markennamen als „Radikal" (mit K), nicht „Radical"', () => {
     waehleDisziplin(HERRENDOPPEL);
     const text = host().textContent;

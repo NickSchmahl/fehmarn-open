@@ -8,7 +8,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import de.dart.fehmarnopen.config.TestSecurityConfig;
 import de.dart.fehmarnopen.dto.TeilnehmerUebersichtResponse;
 import de.dart.fehmarnopen.dto.TeilnehmerUebersichtResponse.DisziplinGruppe;
-import de.dart.fehmarnopen.dto.TeilnehmerUebersichtResponse.TeilnehmerEintrag;
+import de.dart.fehmarnopen.dto.TeilnehmerUebersichtResponse.MeldungEintrag;
+import de.dart.fehmarnopen.dto.TeilnehmerUebersichtResponse.SpielerEintrag;
 import de.dart.fehmarnopen.entity.Disziplin;
 import de.dart.fehmarnopen.exception.GlobalExceptionHandler;
 import de.dart.fehmarnopen.service.AnmeldungService;
@@ -38,27 +39,38 @@ class TeilnehmerControllerTest {
                 .thenReturn(new TeilnehmerUebersichtResponse(List.of(new DisziplinGruppe(
                         Disziplin.HERRENDOPPEL,
                         1,
-                        List.of(new TeilnehmerEintrag("Max", "Mustermann", "Die Bullseye Boys"))))));
+                        List.of(new MeldungEintrag(
+                                "Die Bullseye Boys",
+                                List.of(
+                                        new SpielerEintrag("Max", "Mustermann"),
+                                        new SpielerEintrag("Tim", "Test"))))))));
 
         mockMvc.perform(get("/api/teilnehmer"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.disziplinen").isArray())
                 .andExpect(jsonPath("$.disziplinen[0].disziplin").value("HERRENDOPPEL"))
                 .andExpect(jsonPath("$.disziplinen[0].anzahl").value(1))
-                .andExpect(jsonPath("$.disziplinen[0].teilnehmer[0].vorname").value("Max"))
-                .andExpect(jsonPath("$.disziplinen[0].teilnehmer[0].teamName").value("Die Bullseye Boys"));
+                .andExpect(jsonPath("$.disziplinen[0].meldungen[0].teamName").value("Die Bullseye Boys"))
+                .andExpect(jsonPath("$.disziplinen[0].meldungen[0].spieler[0].vorname")
+                        .value("Max"))
+                .andExpect(jsonPath("$.disziplinen[0].meldungen[0].spieler[1].vorname")
+                        .value("Tim"));
     }
 
     @Test
     void getTeilnehmer_sollKeineSensiblenFelderEnthalten() throws Exception {
         when(anmeldungService.oeffentlicheUebersicht())
                 .thenReturn(new TeilnehmerUebersichtResponse(List.of(new DisziplinGruppe(
-                        Disziplin.HERRENEINZEL, 1, List.of(new TeilnehmerEintrag("Max", "Mustermann", null))))));
+                        Disziplin.HERRENEINZEL,
+                        1,
+                        List.of(new MeldungEintrag(null, List.of(new SpielerEintrag("Max", "Mustermann"))))))));
 
         mockMvc.perform(get("/api/teilnehmer"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.disziplinen[0].teilnehmer[0].email").doesNotExist())
-                .andExpect(jsonPath("$.disziplinen[0].teilnehmer[0].radikalId").doesNotExist());
+                .andExpect(jsonPath("$.disziplinen[0].meldungen[0].spieler[0].email")
+                        .doesNotExist())
+                .andExpect(jsonPath("$.disziplinen[0].meldungen[0].spieler[0].radikalId")
+                        .doesNotExist());
     }
 
     @Test

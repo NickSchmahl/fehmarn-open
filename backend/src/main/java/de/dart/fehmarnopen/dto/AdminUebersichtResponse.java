@@ -4,20 +4,21 @@ import de.dart.fehmarnopen.entity.Disziplin;
 import java.util.List;
 
 /**
- * Admin-Teilnehmerübersicht, gruppiert nach Disziplin. Enthält im Gegensatz zur öffentlichen
- * Übersicht alle Felder (inkl. Radikal-ID) sowie Verwaltungs-Status (anwesend, abgemeldet)
- * und die Anmeldung-ID als Ziel der Admin-Aktionen. Abgemeldete bleiben enthalten.
+ * Admin-Teilnehmerübersicht, gruppiert nach Disziplin und darunter je Meldung. Enthält im
+ * Gegensatz zur öffentlichen Übersicht die Radikal-ID je Spieler sowie den Verwaltungs-Status
+ * (anwesend, abgemeldet) und die Anmeldung-ID je Meldung als Ziel der Admin-Aktionen. Abgemeldete
+ * Meldungen bleiben enthalten; {@code anzahl} zählt nur die aktiven (nicht abgemeldeten) Meldungen.
  */
 public record AdminUebersichtResponse(List<DisziplinGruppe> disziplinen) {
 
-    public record DisziplinGruppe(Disziplin disziplin, int anzahl, List<AdminEintrag> teilnehmer) {}
+    public record DisziplinGruppe(Disziplin disziplin, int anzahl, List<MeldungEintrag> meldungen) {}
 
-    public record AdminEintrag(
-            Long id,
-            String vorname,
-            String nachname,
-            String radikalId,
-            String teamName,
-            boolean anwesend,
-            boolean abgemeldet) {}
+    /**
+     * Eine Meldung mit ihren Spielern. Status und {@code id} liegen auf Meldungsebene – Admin-Aktionen
+     * (anwesend/abmelden/reaktivieren) wirken damit auf die ganze Meldung, nicht auf einzelne Spieler.
+     */
+    public record MeldungEintrag(
+            Long id, String teamName, boolean anwesend, boolean abgemeldet, List<SpielerEintrag> spieler) {}
+
+    public record SpielerEintrag(String vorname, String nachname, String radikalId) {}
 }

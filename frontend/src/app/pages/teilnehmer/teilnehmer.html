@@ -62,72 +62,51 @@
               <span class="section-count">{{ gruppe.anzahl }}</span>
             </h2>
 
-            @for (team of gruppe.teams; track team.teamName ?? team.ids[0]) {
-              <div class="team-block" [class.team-block--named]="team.teamName">
-                @if (team.teamName) {
-                  <div class="team-head" [class.team-head--abgemeldet]="team.alleAbgemeldet">
-                    <span class="team-head-name">{{ team.teamName }}</span>
-                    <div class="team-head-actions">
+            @for (meldung of gruppe.meldungen; track meldung.id) {
+              <div
+                class="team-block"
+                [class.team-block--named]="meldung.teamName"
+                [class.admin-row--abgemeldet]="meldung.abgemeldet"
+              >
+                <div class="team-head" [class.team-head--abgemeldet]="meldung.abgemeldet">
+                  <span class="team-head-name">
+                    @if (meldung.teamName) {
+                      {{ meldung.teamName }}
+                    }
+                    @if (meldung.abgemeldet) {
+                      <span class="status-badge">abgemeldet</span>
+                    }
+                  </span>
+                  <div class="team-head-actions">
+                    <label class="anwesend-toggle">
+                      <input
+                        type="checkbox"
+                        [checked]="meldung.anwesend"
+                        (change)="toggleAnwesenheit(meldung.id, !meldung.anwesend)"
+                      />
+                      anwesend
+                    </label>
+                    @if (meldung.abgemeldet) {
                       <button
                         type="button"
                         class="btn btn-ghost"
-                        (click)="teamAnwesenheit(team.ids, !team.alleAnwesend)"
+                        (click)="reaktivieren(meldung.id)"
                       >
-                        {{ team.alleAnwesend ? 'Alle abwesend' : 'Alle anwesend' }}
+                        Reaktivieren
                       </button>
-                      @if (team.alleAbgemeldet) {
-                        <button
-                          type="button"
-                          class="btn btn-ghost"
-                          (click)="teamReaktivieren(team.ids)"
-                        >
-                          Team reaktivieren
-                        </button>
-                      } @else {
-                        <button
-                          type="button"
-                          class="btn btn-danger"
-                          (click)="teamAbmelden(team.ids)"
-                        >
-                          Team abmelden
-                        </button>
-                      }
-                    </div>
+                    } @else {
+                      <button type="button" class="btn btn-danger" (click)="abmelden(meldung.id)">
+                        Abmelden
+                      </button>
+                    }
                   </div>
-                }
+                </div>
 
                 <ul class="admin-list">
-                  @for (t of team.mitglieder; track t.id) {
-                    <li class="admin-row" [class.admin-row--abgemeldet]="t.abgemeldet">
-                      <div class="admin-row-info">
-                        <span class="admin-name">
-                          {{ t.vorname }} {{ t.nachname }}
-                          @if (t.abgemeldet) {
-                            <span class="status-badge">abgemeldet</span>
-                          }
-                        </span>
-                      </div>
-
-                      <div class="admin-row-actions">
-                        <label class="anwesend-toggle">
-                          <input
-                            type="checkbox"
-                            [checked]="t.anwesend"
-                            (change)="toggleAnwesenheit(t.id, !t.anwesend)"
-                          />
-                          anwesend
-                        </label>
-
-                        @if (t.abgemeldet) {
-                          <button type="button" class="btn btn-ghost" (click)="reaktivieren(t.id)">
-                            Reaktivieren
-                          </button>
-                        } @else {
-                          <button type="button" class="btn btn-danger" (click)="abmelden(t.id)">
-                            Abmelden
-                          </button>
-                        }
-                      </div>
+                  @for (spieler of meldung.spieler; track $index) {
+                    <li class="admin-row">
+                      <span class="admin-name">{{ spieler.vorname }} {{ spieler.nachname }}</span>
+                      <span class="admin-radikal-id">{{ spieler.radikalId ?? '—' }}</span>
                     </li>
                   }
                 </ul>
@@ -164,12 +143,12 @@
           </h2>
 
           <ul class="team-list">
-            @for (team of gruppe.teams; track $index) {
-              <li class="team-item" [class.team-item--named]="team.teamName">
-                @if (team.teamName) {
-                  <span class="team-name">{{ team.teamName }}</span>
+            @for (meldung of gruppe.meldungen; track $index) {
+              <li class="team-item" [class.team-item--named]="meldung.teamName">
+                @if (meldung.teamName) {
+                  <span class="team-name">{{ meldung.teamName }}</span>
                 }
-                <span class="team-members">{{ team.mitglieder.join(', ') }}</span>
+                <span class="team-members">{{ meldung.mitglieder.join(', ') }}</span>
               </li>
             }
           </ul>

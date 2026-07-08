@@ -128,7 +128,7 @@ class AnmeldungServiceTest {
     }
 
     @Test
-    void oeffentlicheUebersicht_zeigtAlleSpielerJeMeldung() {
+    void oeffentlicheUebersicht_zeigtAlleSpielerEinerMeldungGruppiert() {
         Anmeldung doppel = anmeldung(
                 Disziplin.HERRENDOPPEL, "Team A", spielerEntity("Anna", "Schmidt"), spielerEntity("Bea", "Adam"));
         when(anmeldungRepository.findByAbgemeldetFalse()).thenReturn(List.of(doppel));
@@ -136,10 +136,46 @@ class AnmeldungServiceTest {
         TeilnehmerUebersichtResponse result = anmeldungService.oeffentlicheUebersicht();
 
         assertThat(result.disziplinen()).hasSize(1);
-        assertThat(result.disziplinen().get(0).anzahl()).isEqualTo(2);
-        assertThat(result.disziplinen().get(0).teilnehmer())
-                .extracting(TeilnehmerUebersichtResponse.TeilnehmerEintrag::nachname)
-                .containsExactly("Adam", "Schmidt"); // nach Nachname sortiert
+        assertThat(result.disziplinen().get(0).anzahl()).isEqualTo(1); // eine Meldung
+        assertThat(result.disziplinen().get(0).meldungen()).hasSize(1);
+        TeilnehmerUebersichtResponse.MeldungEintrag meldung =
+                result.disziplinen().get(0).meldungen().get(0);
+        assertThat(meldung.teamName()).isEqualTo("Team A");
+        assertThat(meldung.spieler())
+                .extracting(TeilnehmerUebersichtResponse.SpielerEintrag::nachname)
+                .containsExactly("Adam", "Schmidt"); // innerhalb der Meldung nach Nachname sortiert
+    }
+
+    @Test
+    void oeffentlicheUebersicht_zaehltMeldungenNichtSpieler() {
+        when(anmeldungRepository.findByAbgemeldetFalse())
+                .thenReturn(List.of(
+                        anmeldung(
+                                Disziplin.HERRENDOPPEL,
+                                "Team A",
+                                spielerEntity("Anna", "Schmidt"),
+                                spielerEntity("Bea", "Adam")),
+                        anmeldung(
+                                Disziplin.HERRENDOPPEL,
+                                "Team B",
+                                spielerEntity("Cara", "Berg"),
+                                spielerEntity("Dora", "Cornelius"))));
+
+        TeilnehmerUebersichtResponse result = anmeldungService.oeffentlicheUebersicht();
+
+        assertThat(result.disziplinen().get(0).anzahl()).isEqualTo(2); // zwei Meldungen, vier Spieler
+    }
+
+    @Test
+    void oeffentlicheUebersicht_haeltGleichnamigeTeamsGetrennt() {
+        when(anmeldungRepository.findByAbgemeldetFalse())
+                .thenReturn(List.of(
+                        anmeldung(Disziplin.HERRENDOPPEL, "Falcons", spielerEntity("Anna", "Schmidt")),
+                        anmeldung(Disziplin.HERRENDOPPEL, "Falcons", spielerEntity("Bea", "Adam"))));
+
+        TeilnehmerUebersichtResponse result = anmeldungService.oeffentlicheUebersicht();
+
+        assertThat(result.disziplinen().get(0).meldungen()).hasSize(2); // nicht verschmolzen
     }
 
     @Test
@@ -154,7 +190,7 @@ class AnmeldungServiceTest {
         assertThat(result.disziplinen())
                 .extracting(TeilnehmerUebersichtResponse.DisziplinGruppe::disziplin)
                 .containsExactly(Disziplin.HERRENEINZEL, Disziplin.HERRENDOPPEL);
-        assertThat(result.disziplinen().get(1).teilnehmer().get(0).teamName()).isEqualTo("Team A");
+        assertThat(result.disziplinen().get(1).meldungen().get(0).teamName()).isEqualTo("Team A");
     }
 
     @Test
@@ -165,7 +201,7 @@ class AnmeldungServiceTest {
     }
 
     @Test
-    void adminUebersicht_zaehltNurAktiveSpielerAberZeigtAbgemeldete() {
+    void adminUebersicht_zaehltNurAktiveMeldungenAberZeigtAbgemeldete() {
         Anmeldung aktiv = anmeldung(Disziplin.HERRENEINZEL, null, spielerEntity("Anna", "Schmidt"));
         Anmeldung abgemeldet = anmeldung(Disziplin.HERRENEINZEL, null, spielerEntity("Bert", "Adam"));
         abgemeldet.setAbgemeldet(true);
@@ -174,31 +210,33 @@ class AnmeldungServiceTest {
         AdminUebersichtResponse result = anmeldungService.adminUebersicht();
 
         AdminUebersichtResponse.DisziplinGruppe gruppe = result.disziplinen().get(0);
-        assertThat(gruppe.teilnehmer()).hasSize(2); // beide sichtbar
-        assertThat(gruppe.anzahl()).isEqualTo(1); // nur aktive Spieler gezaehlt
+        assertThat(gruppe.meldungen()).hasSize(2); // beide sichtbar
+        assertThat(gruppe.anzahl()).isEqualTo(1); // nur aktive Meldungen gezaehlt
     }
 
     @Test
-    void adminUebersicht_liefertVolleFelderJeSpieler() {
-        Spieler spieler = spielerEntity("Anna", "Schmidt");
-        spieler.setRadikalId("AS-1");
-        Anmeldung anmeldung = anmeldung(Disziplin.HERRENDOPPEL, "Team A", spieler);
+    void adminUebersicht_liefertVolleFelderJeMeldung() {
+        Spieler ersterSpieler = spielerEntity("Anna", "Schmidt");
+        ersterSpieler.setRadikalId("AS-1");
+        Anmeldung anmeldung = anmeldung(Disziplin.HERRENDOPPEL, "Team A", ersterSpieler, spielerEntity("Bea", "Adam"));
         anmeldung.setId(5L);
         anmeldung.setAnwesend(true);
         when(anmeldungRepository.findAllBy()).thenReturn(List.of(anmeldung));
 
-        AdminUebersichtResponse.AdminEintrag eintrag = anmeldungService
+        AdminUebersichtResponse.MeldungEintrag meldung = anmeldungService
                 .adminUebersicht()
                 .disziplinen()
                 .get(0)
-                .teilnehmer()
+                .meldungen()
                 .get(0);
 
-        assertThat(eintrag.id()).isEqualTo(5L);
-        assertThat(eintrag.radikalId()).isEqualTo("AS-1");
-        assertThat(eintrag.teamName()).isEqualTo("Team A");
-        assertThat(eintrag.anwesend()).isTrue();
-        assertThat(eintrag.abgemeldet()).isFalse();
+        assertThat(meldung.id()).isEqualTo(5L);
+        assertThat(meldung.teamName()).isEqualTo("Team A");
+        assertThat(meldung.anwesend()).isTrue();
+        assertThat(meldung.abgemeldet()).isFalse();
+        assertThat(meldung.spieler()).hasSize(2);
+        assertThat(meldung.spieler().get(0).nachname()).isEqualTo("Adam"); // nach Nachname sortiert
+        assertThat(meldung.spieler().get(1).radikalId()).isEqualTo("AS-1");
     }
 
     @Test

@@ -70,8 +70,16 @@ im kommenden Jahr statt.
   Schreiber. Der Pool serialisiert gleichzeitige Writes, um `SQLITE_BUSY` zu
   vermeiden. **Nicht** blind hochsetzen ohne über Nebenläufigkeit nachzudenken.
 - **JWT stateless**, keine Server-Sessions. `JWT_SECRET` ist Pflicht-Env-Var.
-- **`ddl-auto: update`** – Schema wird von Hibernate gepflegt (keine Migrations-
-  Tooling wie Flyway). Bei Entity-Änderungen daran denken.
+- **Schema via Liquibase, `ddl-auto: none`** (ADR 0009, löst ADR 0004 ab): Das DB-Schema
+  wird ausschließlich über **Liquibase-Migrationen** gepflegt, Hibernate fasst es nicht mehr an.
+  **Jede Schema-Änderung (Entity-Feld/-Tabelle/Constraint) braucht ein neues Changelog** unter
+  `backend/src/main/resources/db/changelog/changes/<n>-<beschreibung>.sql` (bzw. `.yaml`),
+  im `db.changelog-master.yaml` eingebunden. Eine Entity-Änderung **ohne** zugehörige Migration
+  ist unvollständig und **muss getestet** werden (Round-Trip-Test, siehe `SchemaMigrationTest`) —
+  `validate` ist auf SQLite nicht nutzbar (INTEGER-PK vs. BIGINT-Erwartung), Tests sind das
+  Sicherheitsnetz. **SQLite-Spezifika:** kein `ALTER TABLE … DROP COLUMN/CONSTRAINT`; strukturelle
+  Änderungen als deklaratives YAML/XML-Changeset (Liquibase baut sicher um) oder als SQL-Rebuild
+  (neue Tabelle + `INSERT … SELECT` + `DROP` + `RENAME`).
 
 ## Konfiguration (Env-Variablen)
 

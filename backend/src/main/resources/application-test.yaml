@@ -4,8 +4,12 @@ spring:
     driver-class-name: org.sqlite.JDBC
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      # Wie Produktion: Schema kommt von Liquibase, Hibernate fasst es nicht an (siehe ADR 0009).
+      ddl-auto: none
     database-platform: org.hibernate.community.dialect.SQLiteDialect
+  liquibase:
+    enabled: true
+    change-log: classpath:db/changelog/db.changelog-master.yaml
 
 app:
   cors:

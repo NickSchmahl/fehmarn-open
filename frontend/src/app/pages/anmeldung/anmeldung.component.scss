@@ -534,7 +534,8 @@
   border-radius: var(--radius);
 
   strong {
-    color: var(--text);
+    /* Betonung dezent: heller als der Fliesstext, aber weit weg vom harten Weiss (--text). */
+    color: #a7adc8;
     font-weight: 600;
   }
 

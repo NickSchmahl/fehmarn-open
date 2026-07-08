@@ -63,7 +63,7 @@ public class AnmeldungService {
         Spieler spieler = new Spieler();
         spieler.setVorname(request.vorname());
         spieler.setNachname(request.nachname());
-        spieler.setRadicalId(request.radicalId());
+        spieler.setRadikalId(request.radikalId());
         spieler.setInitialen(request.initialen());
         spieler.setGeburtsdatum(request.geburtsdatum());
         return spieler;
@@ -143,7 +143,7 @@ public class AnmeldungService {
                 anmeldung.getId(),
                 spieler.getVorname(),
                 spieler.getNachname(),
-                spieler.getRadicalId(),
+                spieler.getRadikalId(),
                 anmeldung.getTeamName(),
                 anmeldung.isAnwesend(),
                 anmeldung.isAbgemeldet());

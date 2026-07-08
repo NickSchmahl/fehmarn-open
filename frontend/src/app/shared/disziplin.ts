@@ -8,19 +8,58 @@ export interface DisziplinMeta {
   label: string;
   subtitle: string;
   teamName: boolean; // benötigt Teamname-Feld
+  minSpieler: number; // Untergrenze Spielerzahl (deckt sich mit Backend-SpielerValidierungService)
+  maxSpieler: number; // Obergrenze Spielerzahl
 }
 
 export const DISZIPLINEN: DisziplinMeta[] = [
-  { value: 'HERRENEINZEL', label: 'Herreneinzel', subtitle: '', teamName: false },
-  { value: 'DAMENEINZEL', label: 'Dameneinzel', subtitle: '', teamName: false },
-  { value: 'HERRENDOPPEL', label: 'Herrendoppel', subtitle: '', teamName: true },
-  { value: 'DAMENDOPPEL', label: 'Damendoppel', subtitle: '', teamName: true },
-  { value: 'TRIPLE_MIX', label: 'Triple Mix', subtitle: 'Mindestens eine Frau', teamName: true },
+  {
+    value: 'HERRENEINZEL',
+    label: 'Herreneinzel',
+    subtitle: '',
+    teamName: false,
+    minSpieler: 1,
+    maxSpieler: 1,
+  },
+  {
+    value: 'DAMENEINZEL',
+    label: 'Dameneinzel',
+    subtitle: '',
+    teamName: false,
+    minSpieler: 1,
+    maxSpieler: 1,
+  },
+  {
+    value: 'HERRENDOPPEL',
+    label: 'Herrendoppel',
+    subtitle: '',
+    teamName: true,
+    minSpieler: 2,
+    maxSpieler: 2,
+  },
+  {
+    value: 'DAMENDOPPEL',
+    label: 'Damendoppel',
+    subtitle: '',
+    teamName: true,
+    minSpieler: 2,
+    maxSpieler: 2,
+  },
+  {
+    value: 'TRIPLE_MIX',
+    label: 'Triple Mix',
+    subtitle: 'Mindestens eine Frau',
+    teamName: true,
+    minSpieler: 3,
+    maxSpieler: 4,
+  },
   {
     value: 'TEAMWETTBEWERB',
     label: 'Teamwettbewerb',
     subtitle: 'Mindestens 4 Spieler',
     teamName: true,
+    minSpieler: 4,
+    maxSpieler: 6,
   },
 ];
 

@@ -49,7 +49,7 @@ class AnmeldungServiceTest {
         Spieler spieler = new Spieler();
         spieler.setVorname(vorname);
         spieler.setNachname(nachname);
-        spieler.setRadicalId("RAD-1");
+        spieler.setRadikalId("RAD-1");
         return spieler;
     }
 
@@ -181,7 +181,7 @@ class AnmeldungServiceTest {
     @Test
     void adminUebersicht_liefertVolleFelderJeSpieler() {
         Spieler spieler = spielerEntity("Anna", "Schmidt");
-        spieler.setRadicalId("AS-1");
+        spieler.setRadikalId("AS-1");
         Anmeldung anmeldung = anmeldung(Disziplin.HERRENDOPPEL, "Team A", spieler);
         anmeldung.setId(5L);
         anmeldung.setAnwesend(true);
@@ -195,7 +195,7 @@ class AnmeldungServiceTest {
                 .get(0);
 
         assertThat(eintrag.id()).isEqualTo(5L);
-        assertThat(eintrag.radicalId()).isEqualTo("AS-1");
+        assertThat(eintrag.radikalId()).isEqualTo("AS-1");
         assertThat(eintrag.teamName()).isEqualTo("Team A");
         assertThat(eintrag.anwesend()).isTrue();
         assertThat(eintrag.abgemeldet()).isFalse();

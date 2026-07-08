@@ -5,6 +5,8 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Past;
+import jakarta.validation.constraints.Pattern;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -25,7 +27,11 @@ public record AnmeldungRequest(
     public record SpielerRequest(
             @NotBlank(message = "Vorname ist Pflichtfeld") String vorname,
             @NotBlank(message = "Nachname ist Pflichtfeld") String nachname,
-            String radicalId,
+            @Pattern(
+                            regexp = "^[A-Za-z]{2}-\\d{4}$",
+                            message =
+                                    "Radikal ID muss zwei Buchstaben, Bindestrich und vier Ziffern sein (z. B. MM-1234)")
+                    String radikalId,
             String initialen,
-            LocalDate geburtsdatum) {}
+            @Past(message = "Geburtsdatum muss in der Vergangenheit liegen") LocalDate geburtsdatum) {}
 }

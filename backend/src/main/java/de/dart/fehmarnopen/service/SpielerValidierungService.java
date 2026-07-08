@@ -41,7 +41,7 @@ public class SpielerValidierungService {
 
     private void pruefeRadikalId(Spieler spieler) {
         boolean hatId =
-                spieler.getRadicalId() != null && !spieler.getRadicalId().isBlank();
+                spieler.getRadikalId() != null && !spieler.getRadikalId().isBlank();
         boolean hatAbleitung = spieler.getInitialen() != null
                 && !spieler.getInitialen().isBlank()
                 && spieler.getGeburtsdatum() != null;

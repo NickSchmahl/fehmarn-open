@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 
 /**
  * Ein einzelner Spieler innerhalb einer Team-Anmeldung. Die Radikal ID wird entweder direkt
- * angegeben ({@link #radicalId}) oder aus {@link #initialen} + {@link #geburtsdatum} abgeleitet
+ * angegeben ({@link #radikalId}) oder aus {@link #initialen} + {@link #geburtsdatum} abgeleitet
  * (siehe {@code SpielerValidierungService}).
  */
 @Entity
@@ -26,8 +26,8 @@ public class Spieler {
     @Column(nullable = false)
     private String nachname;
 
-    @Column(name = "radical_id")
-    private String radicalId;
+    @Column(name = "radikal_id")
+    private String radikalId;
 
     private String initialen;
 

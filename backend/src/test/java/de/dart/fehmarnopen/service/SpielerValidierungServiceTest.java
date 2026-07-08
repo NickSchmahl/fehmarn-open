@@ -19,7 +19,7 @@ class SpielerValidierungServiceTest {
         Spieler spieler = new Spieler();
         spieler.setVorname("Max");
         spieler.setNachname("Mustermann");
-        spieler.setRadicalId("MM-12345");
+        spieler.setRadikalId("MM-12345");
         return spieler;
     }
 

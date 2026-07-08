@@ -25,7 +25,7 @@ public record AnmeldungRequest(
     public record SpielerRequest(
             @NotBlank(message = "Vorname ist Pflichtfeld") String vorname,
             @NotBlank(message = "Nachname ist Pflichtfeld") String nachname,
-            String radicalId,
+            String radikalId,
             String initialen,
             LocalDate geburtsdatum) {}
 }

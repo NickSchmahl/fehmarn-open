@@ -40,7 +40,7 @@ export interface AdminEintrag {
   id: number;
   vorname: string;
   nachname: string;
-  radicalId: string | null;
+  radikalId: string | null;
   teamName: string | null;
   anwesend: boolean;
   abgemeldet: boolean;

@@ -24,7 +24,7 @@ class AnmeldungRepositoryTest {
         Spieler s = new Spieler();
         s.setVorname(vorname);
         s.setNachname(nachname);
-        s.setRadicalId(vorname.charAt(0) + "" + nachname.charAt(0) + "-1");
+        s.setRadikalId(vorname.charAt(0) + "" + nachname.charAt(0) + "-1");
         return s;
     }
 

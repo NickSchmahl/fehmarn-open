@@ -16,7 +16,7 @@ public record AdminUebersichtResponse(List<DisziplinGruppe> disziplinen) {
             Long id,
             String vorname,
             String nachname,
-            String radicalId,
+            String radikalId,
             String teamName,
             boolean anwesend,
             boolean abgemeldet) {}

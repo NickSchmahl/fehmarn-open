@@ -54,7 +54,7 @@ class AnmeldungControllerTest {
                     Spieler s = new Spieler();
                     s.setVorname(v);
                     s.setNachname("Mustermann");
-                    s.setRadicalId("RAD-1");
+                    s.setRadikalId("RAD-1");
                     return s;
                 })
                 .toList());

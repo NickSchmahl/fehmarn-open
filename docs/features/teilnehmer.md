@@ -27,7 +27,7 @@ Flyer ansehen
 
 ## Datenmodell (relevant)
 
-- **`Teilnehmer`**: `vorname`, `nachname`, `radicalId`, `initialen`, `angemeldetAm`.
+- **`Teilnehmer`**: `vorname`, `nachname`, `radikalId`, `initialen`, `angemeldetAm`.
 - **`Anmeldung`**: `teilnehmer` (FK), `disziplin` (Enum), `teamName`, `abmeldetoken`
   (unique), `abgemeldet`/`abgemeldetAm`, `anwesend`.
 - Eine Person kann mehrere Disziplinen belegen → mehrere `Anmeldung`-Zeilen je `Teilnehmer`.

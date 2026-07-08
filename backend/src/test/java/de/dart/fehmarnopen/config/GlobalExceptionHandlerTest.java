@@ -104,6 +104,25 @@ class GlobalExceptionHandlerTest {
                 .andExpect(jsonPath("$.errors").doesNotExist());
     }
 
+    @Test
+    void ungueltigeAnmeldung_falscheSpielerzahl_shouldReturn400WithMessage() throws Exception {
+        // Herreneinzel mit zwei Spielern → fachlich ungültig (kein Feldfehler, sondern 400-Message)
+        String body =
+                """
+                {"disziplinen":[{"disziplin":"HERRENEINZEL","teamName":null,"spieler":[
+                  {"vorname":"Max","nachname":"Mustermann","radicalId":"MM-1","initialen":null,"geburtsdatum":null},
+                  {"vorname":"Tim","nachname":"Test","radicalId":"TT-1","initialen":null,"geburtsdatum":null}
+                ]}]}""";
+
+        mockMvc.perform(post("/api/anmeldung")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.message").isNotEmpty())
+                .andExpect(jsonPath("$.errors").doesNotExist());
+    }
+
     // -------------------------------------------------------------------------
     // Sicherheits-Tests – keine internen Details in der Response
     // -------------------------------------------------------------------------

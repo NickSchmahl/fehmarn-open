@@ -8,14 +8,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import de.dart.fehmarnopen.config.TestSecurityConfig;
 import de.dart.fehmarnopen.dto.AnmeldungRequest;
+import de.dart.fehmarnopen.dto.AnmeldungRequest.DisziplinAnmeldung;
+import de.dart.fehmarnopen.dto.AnmeldungRequest.SpielerRequest;
 import de.dart.fehmarnopen.entity.Anmeldung;
 import de.dart.fehmarnopen.entity.Disziplin;
-import de.dart.fehmarnopen.entity.Teilnehmer;
+import de.dart.fehmarnopen.entity.Spieler;
 import de.dart.fehmarnopen.exception.DoppelteAnmeldungException;
 import de.dart.fehmarnopen.exception.GlobalExceptionHandler;
 import de.dart.fehmarnopen.service.AnmeldungService;
 import java.util.List;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -40,71 +41,62 @@ class AnmeldungControllerTest {
     @MockitoBean
     private AnmeldungService anmeldungService;
 
-    private Teilnehmer teilnehmer;
-
-    @BeforeEach
-    void setUp() {
-        teilnehmer = new Teilnehmer();
-        teilnehmer.setVorname("Max");
-        teilnehmer.setNachname("Mustermann");
+    private SpielerRequest spielerRequest(String vorname) {
+        return new SpielerRequest(vorname, "Mustermann", "RAD-1", null, null);
     }
 
-    private Anmeldung buildAnmeldung(Disziplin disziplin, String teamName) {
+    private Anmeldung buildAnmeldung(Disziplin disziplin, String teamName, String... vornamen) {
         Anmeldung a = new Anmeldung();
-        a.setTeilnehmer(teilnehmer);
         a.setDisziplin(disziplin);
         a.setTeamName(teamName);
+        a.setSpieler(List.of(vornamen).stream()
+                .map(v -> {
+                    Spieler s = new Spieler();
+                    s.setVorname(v);
+                    s.setNachname("Mustermann");
+                    s.setRadicalId("RAD-1");
+                    return s;
+                })
+                .toList());
         return a;
     }
 
     @Test
-    void postAnmeldung_mitGueltigemRequest_sollCreatedZurueckgeben() throws Exception {
+    void postAnmeldung_mitGueltigemRequest_sollAnmeldungMitSpielernZurueckgeben() throws Exception {
         AnmeldungRequest request = new AnmeldungRequest(
-                "Max",
-                "Mustermann",
-                "RAD-001",
-                List.of(new AnmeldungRequest.DisziplinAnmeldung(Disziplin.HERRENEINZEL, null)));
+                List.of(new DisziplinAnmeldung(Disziplin.HERRENEINZEL, null, List.of(spielerRequest("Max")))));
 
-        when(anmeldungService.anmeldenMitTeilnehmer(any()))
-                .thenReturn(List.of(buildAnmeldung(Disziplin.HERRENEINZEL, null)));
+        when(anmeldungService.anmelden(any())).thenReturn(List.of(buildAnmeldung(Disziplin.HERRENEINZEL, null, "Max")));
 
         mockMvc.perform(post("/api/anmeldung")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.anmeldungen").isArray())
                 .andExpect(jsonPath("$.anmeldungen.length()").value(1))
                 .andExpect(jsonPath("$.anmeldungen[0].disziplin").value("HERRENEINZEL"))
+                .andExpect(jsonPath("$.anmeldungen[0].spieler[0].vorname").value("Max"))
                 .andExpect(jsonPath("$.anmeldungen[0].abmeldetoken").doesNotExist());
     }
 
     @Test
-    void postAnmeldung_mitMehrerenDisziplinen_sollAlleZurueckgeben() throws Exception {
-        AnmeldungRequest request = new AnmeldungRequest(
-                "Max",
-                "Mustermann",
-                null,
-                List.of(
-                        new AnmeldungRequest.DisziplinAnmeldung(Disziplin.HERRENEINZEL, null),
-                        new AnmeldungRequest.DisziplinAnmeldung(Disziplin.HERRENDOPPEL, "Team Fehmarn")));
+    void postAnmeldung_mitTeamDisziplin_sollTeamNameUndSpielerZurueckgeben() throws Exception {
+        AnmeldungRequest request = new AnmeldungRequest(List.of(new DisziplinAnmeldung(
+                Disziplin.HERRENDOPPEL, "Team Fehmarn", List.of(spielerRequest("Max"), spielerRequest("Tim")))));
 
-        when(anmeldungService.anmeldenMitTeilnehmer(any()))
-                .thenReturn(List.of(
-                        buildAnmeldung(Disziplin.HERRENEINZEL, null),
-                        buildAnmeldung(Disziplin.HERRENDOPPEL, "Team Fehmarn")));
+        when(anmeldungService.anmelden(any()))
+                .thenReturn(List.of(buildAnmeldung(Disziplin.HERRENDOPPEL, "Team Fehmarn", "Max", "Tim")));
 
         mockMvc.perform(post("/api/anmeldung")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.anmeldungen.length()").value(2))
-                .andExpect(jsonPath("$.anmeldungen[1].teamName").value("Team Fehmarn"));
+                .andExpect(jsonPath("$.anmeldungen[0].teamName").value("Team Fehmarn"))
+                .andExpect(jsonPath("$.anmeldungen[0].spieler.length()").value(2));
     }
 
     @Test
-    void postAnmeldung_ohneVorname_sollBadRequestZurueckgeben() throws Exception {
-        AnmeldungRequest request = new AnmeldungRequest(
-                "", "Mustermann", null, List.of(new AnmeldungRequest.DisziplinAnmeldung(Disziplin.HERRENEINZEL, null)));
+    void postAnmeldung_ohneDisziplinen_sollBadRequestZurueckgeben() throws Exception {
+        AnmeldungRequest request = new AnmeldungRequest(List.of());
 
         mockMvc.perform(post("/api/anmeldung")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -113,8 +105,20 @@ class AnmeldungControllerTest {
     }
 
     @Test
-    void postAnmeldung_ohneDisziplinen_sollBadRequestZurueckgeben() throws Exception {
-        AnmeldungRequest request = new AnmeldungRequest("Max", "Mustermann", null, List.of());
+    void postAnmeldung_mitDisziplinOhneSpieler_sollBadRequestZurueckgeben() throws Exception {
+        AnmeldungRequest request =
+                new AnmeldungRequest(List.of(new DisziplinAnmeldung(Disziplin.HERRENEINZEL, null, List.of())));
+
+        mockMvc.perform(post("/api/anmeldung")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void postAnmeldung_mitSpielerOhneVorname_sollBadRequestZurueckgeben() throws Exception {
+        AnmeldungRequest request = new AnmeldungRequest(List.of(new DisziplinAnmeldung(
+                Disziplin.HERRENEINZEL, null, List.of(new SpielerRequest("", "Mustermann", "RAD-1", null, null)))));
 
         mockMvc.perform(post("/api/anmeldung")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -124,15 +128,11 @@ class AnmeldungControllerTest {
 
     @Test
     void postAnmeldung_beiDoppelterDisziplin_sollConflictZurueckgeben() throws Exception {
-        AnmeldungRequest request = new AnmeldungRequest(
-                "Max",
-                "Mustermann",
-                null,
-                List.of(
-                        new AnmeldungRequest.DisziplinAnmeldung(Disziplin.HERRENEINZEL, null),
-                        new AnmeldungRequest.DisziplinAnmeldung(Disziplin.HERRENEINZEL, null)));
+        AnmeldungRequest request = new AnmeldungRequest(List.of(
+                new DisziplinAnmeldung(Disziplin.HERRENEINZEL, null, List.of(spielerRequest("Max"))),
+                new DisziplinAnmeldung(Disziplin.HERRENEINZEL, null, List.of(spielerRequest("Tim")))));
 
-        when(anmeldungService.anmeldenMitTeilnehmer(any())).thenThrow(new DoppelteAnmeldungException("HERRENEINZEL"));
+        when(anmeldungService.anmelden(any())).thenThrow(new DoppelteAnmeldungException("HERRENEINZEL"));
 
         mockMvc.perform(post("/api/anmeldung")
                         .contentType(MediaType.APPLICATION_JSON)

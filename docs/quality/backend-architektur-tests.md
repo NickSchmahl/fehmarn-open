@@ -49,6 +49,22 @@ layeredArchitecture().consideringOnlyDependenciesInLayers()
 - Klassen in `..service..` enden auf `Service` und tragen `@Service`.
 - Klassen in `..repository..` sind Interfaces und erweitern ein Spring-Data-Repository.
 - Exceptions liegen in `..exception..` und enden auf `Exception`.
+- **Injizierte Service-Felder heißen wie ihr Typ** (Feldname = kleingeschriebener
+  Klassenname): `SpielerValidierungService spielerValidierungService`, nicht
+  `spielerValidierung`. Maschinell erzwungen durch die ArchUnit-Regel
+  `serviceFelderHeissenWieIhrTyp` (`ArchitekturTest`).
+
+### Code-Konventionen (Review-Regeln, teils nicht maschinell erzwungen)
+Diese Punkte sind verbindlich, auch wo (noch) keine ArchUnit-Regel greift – im Review
+darauf achten:
+- **Sprechende Namen, keine Ein-Buchstaben-Variablen.** Kein `a`, `s`, `t` für
+  Parameter oder lokale Variablen. Auch Hilfsmethoden aussagekräftig benennen
+  (`erzeugeFehlernachricht`, nicht `fehler`; `sortierteSpielerMitAnmeldung`, nicht
+  `spielerStroem`).
+- **Eigene Typen in eigene Dateien.** Ein Typ, der von anderen Klassen gebraucht wird,
+  gehört in eine eigene Datei – nicht als `public record`/`class` in einen fremden
+  Service o. Ä. verschachtelt. (Eng gekoppelte, nur intern genutzte Nested-Records
+  eines DTOs sind ok, z. B. `AnmeldungRequest.SpielerRequest`.)
 
 ## Beispiel-Testklasse
 

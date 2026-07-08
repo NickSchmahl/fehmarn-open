@@ -4,9 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import de.dart.fehmarnopen.entity.Anmeldung;
 import de.dart.fehmarnopen.entity.Disziplin;
-import de.dart.fehmarnopen.entity.Teilnehmer;
+import de.dart.fehmarnopen.entity.Spieler;
 import java.util.List;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -21,70 +20,40 @@ class AnmeldungRepositoryTest {
     @Autowired
     private AnmeldungRepository anmeldungRepository;
 
-    @Autowired
-    private TeilnehmerRepository teilnehmerRepository;
+    private Spieler spieler(String vorname, String nachname) {
+        Spieler s = new Spieler();
+        s.setVorname(vorname);
+        s.setNachname(nachname);
+        s.setRadicalId(vorname.charAt(0) + "" + nachname.charAt(0) + "-1");
+        return s;
+    }
 
-    private Teilnehmer teilnehmer;
-
-    @BeforeEach
-    void setUp() {
-        teilnehmer = new Teilnehmer();
-        teilnehmer.setVorname("Max");
-        teilnehmer.setNachname("Mustermann");
-        teilnehmerRepository.save(teilnehmer);
+    private Anmeldung anmeldung(Disziplin disziplin, boolean abgemeldet, Spieler... spieler) {
+        Anmeldung a = new Anmeldung();
+        a.setDisziplin(disziplin);
+        a.setAbgemeldet(abgemeldet);
+        a.setSpieler(List.of(spieler));
+        return a;
     }
 
     @Test
-    void findByTeilnehmer_sollAlleAnmeldungenZurueckgeben() {
-        Anmeldung a1 = new Anmeldung();
-        a1.setTeilnehmer(teilnehmer);
-        a1.setDisziplin(Disziplin.HERRENEINZEL);
-        anmeldungRepository.save(a1);
+    void save_persistiertSpielerUndSetztAngemeldetAm() {
+        Anmeldung anmeldung =
+                anmeldung(Disziplin.HERRENDOPPEL, false, spieler("Max", "Mustermann"), spieler("Tim", "Test"));
 
-        Anmeldung a2 = new Anmeldung();
-        a2.setTeilnehmer(teilnehmer);
-        a2.setDisziplin(Disziplin.HERRENDOPPEL);
-        anmeldungRepository.save(a2);
+        Anmeldung gespeichert = anmeldungRepository.saveAndFlush(anmeldung);
 
-        List<Anmeldung> result = anmeldungRepository.findByTeilnehmer(teilnehmer);
-
-        assertThat(result).hasSize(2);
-        assertThat(result)
-                .extracting(Anmeldung::getDisziplin)
-                .containsExactlyInAnyOrder(Disziplin.HERRENEINZEL, Disziplin.HERRENDOPPEL);
-    }
-
-    @Test
-    void existsByTeilnehmerAndDisziplin_beiVorhandenerAnmeldung_sollTrueZurueckgeben() {
-        Anmeldung anmeldung = new Anmeldung();
-        anmeldung.setTeilnehmer(teilnehmer);
-        anmeldung.setDisziplin(Disziplin.DAMENDOPPEL);
-        anmeldungRepository.save(anmeldung);
-
-        boolean exists = anmeldungRepository.existsByTeilnehmerAndDisziplin(teilnehmer, Disziplin.DAMENDOPPEL);
-
-        assertThat(exists).isTrue();
-    }
-
-    @Test
-    void existsByTeilnehmerAndDisziplin_beiFehlenderAnmeldung_sollFalseZurueckgeben() {
-        boolean exists = anmeldungRepository.existsByTeilnehmerAndDisziplin(teilnehmer, Disziplin.TEAMWETTBEWERB);
-
-        assertThat(exists).isFalse();
+        assertThat(gespeichert.getId()).isNotNull();
+        assertThat(gespeichert.getAngemeldetAm()).isNotNull();
+        assertThat(gespeichert.getSpieler()).hasSize(2);
+        assertThat(gespeichert.getSpieler())
+                .allSatisfy(s -> assertThat(s.getId()).isNotNull());
     }
 
     @Test
     void findByAbgemeldetFalse_sollNurAktiveAnmeldungenZurueckgeben() {
-        Anmeldung aktiv = new Anmeldung();
-        aktiv.setTeilnehmer(teilnehmer);
-        aktiv.setDisziplin(Disziplin.HERRENEINZEL);
-        anmeldungRepository.save(aktiv);
-
-        Anmeldung abgemeldet = new Anmeldung();
-        abgemeldet.setTeilnehmer(teilnehmer);
-        abgemeldet.setDisziplin(Disziplin.HERRENDOPPEL);
-        abgemeldet.setAbgemeldet(true);
-        anmeldungRepository.save(abgemeldet);
+        anmeldungRepository.save(anmeldung(Disziplin.HERRENEINZEL, false, spieler("Max", "Mustermann")));
+        anmeldungRepository.save(anmeldung(Disziplin.HERRENDOPPEL, true, spieler("Tim", "Test")));
 
         List<Anmeldung> result = anmeldungRepository.findByAbgemeldetFalse();
 
@@ -93,16 +62,8 @@ class AnmeldungRepositoryTest {
 
     @Test
     void findAllBy_sollAlleAnmeldungenInklusiveAbgemeldeteZurueckgeben() {
-        Anmeldung aktiv = new Anmeldung();
-        aktiv.setTeilnehmer(teilnehmer);
-        aktiv.setDisziplin(Disziplin.HERRENEINZEL);
-        anmeldungRepository.save(aktiv);
-
-        Anmeldung abgemeldet = new Anmeldung();
-        abgemeldet.setTeilnehmer(teilnehmer);
-        abgemeldet.setDisziplin(Disziplin.HERRENDOPPEL);
-        abgemeldet.setAbgemeldet(true);
-        anmeldungRepository.save(abgemeldet);
+        anmeldungRepository.save(anmeldung(Disziplin.HERRENEINZEL, false, spieler("Max", "Mustermann")));
+        anmeldungRepository.save(anmeldung(Disziplin.HERRENDOPPEL, true, spieler("Tim", "Test")));
 
         List<Anmeldung> result = anmeldungRepository.findAllBy();
 

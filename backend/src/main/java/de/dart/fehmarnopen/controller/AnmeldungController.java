@@ -20,7 +20,7 @@ public class AnmeldungController {
 
     @PostMapping
     public ResponseEntity<AnmeldungResponse> anmelden(@Valid @RequestBody AnmeldungRequest request) {
-        var anmeldungen = anmeldungService.anmeldenMitTeilnehmer(request);
+        var anmeldungen = anmeldungService.anmelden(request);
         return ResponseEntity.ok(AnmeldungResponse.from(anmeldungen));
     }
 }

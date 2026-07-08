@@ -16,6 +16,7 @@ import de.dart.fehmarnopen.entity.Spieler;
 import de.dart.fehmarnopen.exception.DoppelteAnmeldungException;
 import de.dart.fehmarnopen.exception.GlobalExceptionHandler;
 import de.dart.fehmarnopen.service.AnmeldungService;
+import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,7 +43,7 @@ class AnmeldungControllerTest {
     private AnmeldungService anmeldungService;
 
     private SpielerRequest spielerRequest(String vorname) {
-        return new SpielerRequest(vorname, "Mustermann", "RAD-1", null, null);
+        return new SpielerRequest(vorname, "Mustermann", "MM-1234", null, null);
     }
 
     private Anmeldung buildAnmeldung(Disziplin disziplin, String teamName, String... vornamen) {
@@ -118,7 +119,7 @@ class AnmeldungControllerTest {
     @Test
     void postAnmeldung_mitSpielerOhneVorname_sollBadRequestZurueckgeben() throws Exception {
         AnmeldungRequest request = new AnmeldungRequest(List.of(new DisziplinAnmeldung(
-                Disziplin.HERRENEINZEL, null, List.of(new SpielerRequest("", "Mustermann", "RAD-1", null, null)))));
+                Disziplin.HERRENEINZEL, null, List.of(new SpielerRequest("", "Mustermann", "MM-1234", null, null)))));
 
         mockMvc.perform(post("/api/anmeldung")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -145,5 +146,37 @@ class AnmeldungControllerTest {
     void postAnmeldung_ohneBody_sollBadRequestZurueckgeben() throws Exception {
         mockMvc.perform(post("/api/anmeldung").contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void postAnmeldung_mitUngueltigerRadikalId_sollBadRequestMitFeldfehler() throws Exception {
+        // Radikal ID muss zwei Buchstaben, Bindestrich, vier Ziffern sein – "AB-12" ist zu kurz.
+        when(anmeldungService.anmelden(any())).thenReturn(List.of());
+        AnmeldungRequest request = new AnmeldungRequest(List.of(new DisziplinAnmeldung(
+                Disziplin.HERRENEINZEL, null, List.of(new SpielerRequest("Max", "Mustermann", "AB-12", null, null)))));
+
+        mockMvc.perform(post("/api/anmeldung")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Validierungsfehler"))
+                .andExpect(jsonPath("$.errors[?(@.field =~ /.*radikalId/)]").exists());
+    }
+
+    @Test
+    void postAnmeldung_mitGeburtsdatumInZukunft_sollBadRequestMitFeldfehler() throws Exception {
+        when(anmeldungService.anmelden(any())).thenReturn(List.of());
+        AnmeldungRequest request = new AnmeldungRequest(List.of(new DisziplinAnmeldung(
+                Disziplin.HERRENEINZEL,
+                null,
+                List.of(new SpielerRequest(
+                        "Max", "Mustermann", null, "MM", LocalDate.now().plusYears(1))))));
+
+        mockMvc.perform(post("/api/anmeldung")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Validierungsfehler"))
+                .andExpect(jsonPath("$.errors[?(@.field =~ /.*geburtsdatum/)]").exists());
     }
 }

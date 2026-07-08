@@ -42,6 +42,26 @@ function leerZuNull(value: string): string | null {
   return value.trim() !== '' ? value : null;
 }
 
+/** Radikal ID: zwei Buchstaben, Bindestrich, vier Ziffern (z. B. MM-1234). */
+const RADIKAL_ID_MUSTER = /^[A-Za-z]{2}-\d{4}$/;
+
+/**
+ * Feld-Validator fürs Geburtsdatum: erlaubt nur ein reales Datum mit vierstelligem Jahr
+ * (`YYYY-MM-DD`) und kein Datum in der Zukunft. Leer ist ok – die Pflicht-Logik steckt im
+ * Gruppen-Validator {@link radikalIdAngabeValidator}.
+ */
+function geburtsdatumValidator(control: AbstractControl): ValidationErrors | null {
+  const value: unknown = control.value;
+  if (typeof value !== 'string' || value === '') return null;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return { geburtsdatumUngueltig: true };
+  const datum = new Date(`${value}T00:00:00`);
+  if (Number.isNaN(datum.getTime())) return { geburtsdatumUngueltig: true };
+  const heute = new Date();
+  heute.setHours(0, 0, 0, 0);
+  if (datum.getTime() > heute.getTime()) return { geburtsdatumInZukunft: true };
+  return null;
+}
+
 /**
  * Validator je Spielerzeile: Es muss entweder eine Radikal ID angegeben sein ODER
  * Initialen + Geburtsdatum, damit eine Radikal ID erstellt werden kann.
@@ -146,9 +166,9 @@ export class AnmeldungComponent {
         vorname: ['', [Validators.required]],
         nachname: ['', [Validators.required]],
         hatKeineRadikalId: [false],
-        radikalId: [''],
+        radikalId: ['', [Validators.pattern(RADIKAL_ID_MUSTER)]],
         initialen: [''],
-        geburtsdatum: [''],
+        geburtsdatum: ['', [geburtsdatumValidator]],
       },
       { validators: radikalIdAngabeValidator },
     );
@@ -232,6 +252,15 @@ export class AnmeldungComponent {
     const ctrl = this.spielerGroup(i, j).get(feld);
     return ctrl !== null && ctrl.invalid && ctrl.touched;
   }
+
+  /** Prüft, ob ein Feld einen bestimmten (angefassten) Fehler trägt – für gezielte Meldungen. */
+  spielerFeldHatFehler(i: number, j: number, feld: string, fehler: string): boolean {
+    const ctrl = this.spielerGroup(i, j).get(feld);
+    return ctrl !== null && ctrl.touched && ctrl.hasError(fehler);
+  }
+
+  /** Heutiges Datum als `YYYY-MM-DD` – als `max` fürs Geburtsdatum-Feld (keine Zukunft). */
+  readonly heuteIso = new Date().toISOString().slice(0, 10);
 
   radikalAngabeInvalid(i: number, j: number): boolean {
     const group = this.spielerGroup(i, j);

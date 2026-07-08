@@ -75,7 +75,7 @@ describe('AnmeldungComponent', () => {
     const group = component.spielerGroup(i, j);
     group.get('vorname')?.setValue(vorname);
     group.get('nachname')?.setValue(nachname);
-    group.get('radikalId')?.setValue(`${vorname[0]}${nachname[0]}-12345`);
+    group.get('radikalId')?.setValue(`${vorname[0]}${nachname[0]}-1234`);
   }
 
   function setzeOhneRadikalId(
@@ -197,6 +197,89 @@ describe('AnmeldungComponent', () => {
     req.flush({});
   });
 
+  // ── Format-Validierung Radikal ID / Geburtsdatum ──────────────────────────
+
+  it('lehnt eine Radikal ID im falschen Format ab (Feldfehler, kein Request)', () => {
+    waehleDisziplin(HERRENDOPPEL);
+    component.disziplinGroup(HERRENDOPPEL).get('teamName')?.setValue('Team X');
+    setzeMitRadikalId(HERRENDOPPEL, 0, 'Max', 'Mustermann');
+    const g = component.spielerGroup(HERRENDOPPEL, 1);
+    g.get('vorname')?.setValue('Tom');
+    g.get('nachname')?.setValue('Test');
+    g.get('radikalId')?.setValue('AB-12'); // zu wenige Ziffern
+
+    component.onSubmit();
+
+    expect(component.form.invalid).toBe(true);
+    expect(component.spielerFeldInvalid(HERRENDOPPEL, 1, 'radikalId')).toBe(true);
+    httpMock.expectNone('/api/anmeldung');
+  });
+
+  it('zeigt die Format-Fehlermeldung sichtbar am Radikal-ID-Feld', () => {
+    waehleDisziplin(HERRENDOPPEL);
+    component.disziplinGroup(HERRENDOPPEL).get('teamName')?.setValue('Team X');
+    setzeMitRadikalId(HERRENDOPPEL, 0, 'Max', 'Mustermann');
+    const g = component.spielerGroup(HERRENDOPPEL, 1);
+    g.get('vorname')?.setValue('Tom');
+    g.get('nachname')?.setValue('Test');
+    g.get('radikalId')?.setValue('AB-12');
+
+    component.onSubmit();
+    fixture.detectChanges();
+
+    const fehler = Array.from(host().querySelectorAll('.field-error')).map((e) => e.textContent);
+    expect(fehler.some((t) => t.includes('zwei Buchstaben, Bindestrich, vier Ziffern'))).toBe(true);
+  });
+
+  it('akzeptiert eine korrekt formatierte Radikal ID (zwei Buchstaben, Bindestrich, vier Ziffern)', () => {
+    waehleDisziplin(HERRENDOPPEL);
+    component.disziplinGroup(HERRENDOPPEL).get('teamName')?.setValue('Team X');
+    setzeMitRadikalId(HERRENDOPPEL, 0, 'Max', 'Mustermann');
+    setzeMitRadikalId(HERRENDOPPEL, 1, 'Tom', 'Test');
+
+    expect(component.spielerFeldInvalid(HERRENDOPPEL, 0, 'radikalId')).toBe(false);
+    expect(component.form.valid).toBe(true);
+  });
+
+  it('lehnt ein Geburtsdatum mit mehr als vierstelligem Jahr ab (Feldfehler)', () => {
+    waehleDisziplin(HERRENDOPPEL);
+    component.disziplinGroup(HERRENDOPPEL).get('teamName')?.setValue('Team X');
+    setzeMitRadikalId(HERRENDOPPEL, 0, 'Max', 'Mustermann');
+    const g = component.spielerGroup(HERRENDOPPEL, 1);
+    g.get('vorname')?.setValue('Tom');
+    g.get('nachname')?.setValue('Test');
+    g.get('hatKeineRadikalId')?.setValue(true);
+    component.toggleRadikalId(HERRENDOPPEL, 1);
+    g.get('initialen')?.setValue('TT');
+    g.get('geburtsdatum')?.setValue('12345-06-15'); // 5-stelliges Jahr
+
+    component.onSubmit();
+
+    expect(component.form.invalid).toBe(true);
+    expect(component.spielerFeldInvalid(HERRENDOPPEL, 1, 'geburtsdatum')).toBe(true);
+    httpMock.expectNone('/api/anmeldung');
+  });
+
+  it('lehnt ein Geburtsdatum in der Zukunft ab (Feldfehler)', () => {
+    waehleDisziplin(HERRENDOPPEL);
+    component.disziplinGroup(HERRENDOPPEL).get('teamName')?.setValue('Team X');
+    setzeMitRadikalId(HERRENDOPPEL, 0, 'Max', 'Mustermann');
+    const g = component.spielerGroup(HERRENDOPPEL, 1);
+    g.get('vorname')?.setValue('Tom');
+    g.get('nachname')?.setValue('Test');
+    g.get('hatKeineRadikalId')?.setValue(true);
+    component.toggleRadikalId(HERRENDOPPEL, 1);
+    g.get('initialen')?.setValue('TT');
+    const naechstesJahr = new Date().getFullYear() + 1;
+    g.get('geburtsdatum')?.setValue(`${naechstesJahr}-06-15`);
+
+    component.onSubmit();
+
+    expect(component.form.invalid).toBe(true);
+    expect(component.spielerFeldInvalid(HERRENDOPPEL, 1, 'geburtsdatum')).toBe(true);
+    httpMock.expectNone('/api/anmeldung');
+  });
+
   // ── Submit-Payload ────────────────────────────────────────────────────────
 
   it('sendet ein Team-DTO mit radikalId-Feld an /api/anmeldung', () => {
@@ -213,7 +296,7 @@ describe('AnmeldungComponent', () => {
     expect(body.disziplinen[0].disziplin).toBe('HERRENDOPPEL');
     expect(body.disziplinen[0].teamName).toBe('Die Bullseye Boys');
     expect(body.disziplinen[0].spieler.length).toBe(2);
-    expect(body.disziplinen[0].spieler[0].radikalId).toBe('MM-12345');
+    expect(body.disziplinen[0].spieler[0].radikalId).toBe('MM-1234');
     req.flush({});
     expect(component.successMsg()).toContain('Anmeldung erfolgreich');
   });

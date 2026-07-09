@@ -17,6 +17,14 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/flyer/flyer').then((m) => m.Flyer),
   },
   {
+    path: 'impressum',
+    loadComponent: () => import('./pages/impressum/impressum').then((m) => m.Impressum),
+  },
+  {
+    path: 'datenschutz',
+    loadComponent: () => import('./pages/datenschutz/datenschutz').then((m) => m.Datenschutz),
+  },
+  {
     path: 'admin/login',
     component: AdminLoginComponent,
   },

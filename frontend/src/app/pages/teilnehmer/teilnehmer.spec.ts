@@ -2,85 +2,47 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 
-import { Teilnehmer, gruppiereNachTeam, gruppiereAdminNachTeam, AdminEintrag } from './teilnehmer';
+import { Teilnehmer, meldungPasstZurSuche, AdminMeldungEintrag } from './teilnehmer';
 import { AuthService } from '../../auth/service/auth.service';
 
-function adminEintrag(over: Partial<AdminEintrag>): AdminEintrag {
+function adminMeldung(over: Partial<AdminMeldungEintrag>): AdminMeldungEintrag {
   return {
     id: 0,
-    vorname: 'V',
-    nachname: 'N',
-    radikalId: null,
     teamName: null,
     anwesend: false,
     abgemeldet: false,
+    spieler: [{ vorname: 'V', nachname: 'N', radikalId: null }],
     ...over,
   };
 }
 
-describe('gruppiereNachTeam', () => {
-  it('bündelt Einträge mit gleichem Teamnamen', () => {
-    const teams = gruppiereNachTeam([
-      { vorname: 'Max', nachname: 'Mustermann', teamName: 'Die Bullseye Boys' },
-      { vorname: 'Erika', nachname: 'Musterfrau', teamName: 'Die Bullseye Boys' },
-    ]);
-
-    expect(teams).toHaveLength(1);
-    expect(teams[0].teamName).toBe('Die Bullseye Boys');
-    expect(teams[0].mitglieder).toEqual(['Max Mustermann', 'Erika Musterfrau']);
+describe('meldungPasstZurSuche', () => {
+  it('leerer Suchbegriff passt immer', () => {
+    expect(meldungPasstZurSuche(adminMeldung({}), '')).toBe(true);
   });
 
-  it('lässt Einzelspieler ohne Teamnamen separat', () => {
-    const teams = gruppiereNachTeam([
-      { vorname: 'Anna', nachname: 'Schmidt', teamName: null },
-      { vorname: 'Bert', nachname: 'Adam', teamName: null },
-    ]);
-
-    expect(teams).toHaveLength(2);
-    expect(teams[0]).toEqual({ teamName: null, mitglieder: ['Anna Schmidt'] });
-    expect(teams[1]).toEqual({ teamName: null, mitglieder: ['Bert Adam'] });
+  it('trifft über den Teamnamen', () => {
+    const meldung = adminMeldung({ teamName: 'Die Bullseye Boys' });
+    expect(meldungPasstZurSuche(meldung, 'bullseye')).toBe(true);
   });
 
-  it('behandelt leeren/whitespace-Teamnamen wie Einzelspieler', () => {
-    const teams = gruppiereNachTeam([{ vorname: 'Anna', nachname: 'Schmidt', teamName: '  ' }]);
-
-    expect(teams).toEqual([{ teamName: null, mitglieder: ['Anna Schmidt'] }]);
-  });
-});
-
-describe('gruppiereAdminNachTeam', () => {
-  it('gruppiert Mitglieder mit gleichem Teamnamen inkl. ids und Sammelflags', () => {
-    const gruppen = gruppiereAdminNachTeam([
-      adminEintrag({ id: 1, teamName: 'Team A', anwesend: true }),
-      adminEintrag({ id: 2, teamName: 'Team A', anwesend: true, abgemeldet: true }),
-    ]);
-
-    expect(gruppen).toHaveLength(1);
-    expect(gruppen[0].teamName).toBe('Team A');
-    expect(gruppen[0].ids).toEqual([1, 2]);
-    expect(gruppen[0].mitglieder).toHaveLength(2);
-    expect(gruppen[0].alleAnwesend).toBe(true);
-    expect(gruppen[0].alleAbgemeldet).toBe(false); // nur einer abgemeldet
+  it('trifft über den Namen eines beliebigen Spielers', () => {
+    const meldung = adminMeldung({
+      teamName: 'Team A',
+      spieler: [
+        { vorname: 'Anna', nachname: 'Schmidt', radikalId: null },
+        { vorname: 'Bert', nachname: 'Adam', radikalId: null },
+      ],
+    });
+    expect(meldungPasstZurSuche(meldung, 'adam')).toBe(true);
   });
 
-  it('lässt Einträge ohne Teamnamen als einzelne Gruppen', () => {
-    const gruppen = gruppiereAdminNachTeam([
-      adminEintrag({ id: 1, teamName: null }),
-      adminEintrag({ id: 2, teamName: null }),
-    ]);
-
-    expect(gruppen).toHaveLength(2);
-    expect(gruppen[0].teamName).toBeNull();
-    expect(gruppen[0].ids).toEqual([1]);
-  });
-
-  it('alleAbgemeldet ist true nur wenn alle Mitglieder abgemeldet sind', () => {
-    const gruppen = gruppiereAdminNachTeam([
-      adminEintrag({ id: 1, teamName: 'Team B', abgemeldet: true }),
-      adminEintrag({ id: 2, teamName: 'Team B', abgemeldet: true }),
-    ]);
-
-    expect(gruppen[0].alleAbgemeldet).toBe(true);
+  it('liefert false, wenn weder Team- noch Spielername passt', () => {
+    const meldung = adminMeldung({
+      teamName: 'Team A',
+      spieler: [{ vorname: 'Anna', nachname: 'Schmidt', radikalId: null }],
+    });
+    expect(meldungPasstZurSuche(meldung, 'xyz')).toBe(false);
   });
 });
 
@@ -127,12 +89,49 @@ describe('Teilnehmer (öffentlich)', () => {
         {
           disziplin: 'HERRENEINZEL',
           anzahl: 1,
-          teilnehmer: [{ vorname: 'Anna', nachname: 'Schmidt', teamName: null }],
+          meldungen: [{ teamName: null, spieler: [{ vorname: 'Anna', nachname: 'Schmidt' }] }],
         },
       ],
     });
 
     expect(component.gruppen()).toHaveLength(1);
+  });
+
+  it('zeigt alle Spieler eines Teams unter dem Teamnamen', () => {
+    fixture.detectChanges();
+    httpTesting.expectOne('/api/teilnehmer').flush({
+      disziplinen: [
+        {
+          disziplin: 'TRIPLEMIX',
+          anzahl: 1,
+          meldungen: [
+            {
+              teamName: 'Die Fünf',
+              spieler: [
+                { vorname: 'A', nachname: 'Eins' },
+                { vorname: 'B', nachname: 'Zwei' },
+                { vorname: 'C', nachname: 'Drei' },
+                { vorname: 'D', nachname: 'Vier' },
+                { vorname: 'E', nachname: 'Fünf' },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const teamItems = root.querySelectorAll('.team-item');
+    expect(teamItems).toHaveLength(1); // eine Meldung, nicht fünf Zeilen
+
+    const teamName = root.querySelector('.team-name');
+    expect(teamName?.textContent.trim()).toBe('Die Fünf');
+
+    const text = root.querySelector('.team-members')?.textContent;
+    for (const name of ['A Eins', 'B Zwei', 'C Drei', 'D Vier', 'E Fünf']) {
+      expect(text).toContain(name);
+    }
   });
 
   it('filtert die sichtbaren Gruppen nach aktiver Disziplin', () => {
@@ -142,12 +141,12 @@ describe('Teilnehmer (öffentlich)', () => {
         {
           disziplin: 'HERRENEINZEL',
           anzahl: 1,
-          teilnehmer: [{ vorname: 'Anna', nachname: 'Schmidt', teamName: null }],
+          meldungen: [{ teamName: null, spieler: [{ vorname: 'Anna', nachname: 'Schmidt' }] }],
         },
         {
           disziplin: 'DAMENEINZEL',
           anzahl: 1,
-          teilnehmer: [{ vorname: 'Eva', nachname: 'Klein', teamName: null }],
+          meldungen: [{ teamName: null, spieler: [{ vorname: 'Eva', nachname: 'Klein' }] }],
         },
       ],
     });
@@ -169,26 +168,18 @@ describe('Teilnehmer (admin)', () => {
   const adminResponse = {
     disziplinen: [
       {
-        disziplin: 'HERRENEINZEL',
-        anzahl: 2,
-        teilnehmer: [
+        disziplin: 'HERRENDOPPEL',
+        anzahl: 1,
+        meldungen: [
           {
-            id: 1,
-            vorname: 'Anna',
-            nachname: 'Schmidt',
-            radikalId: null,
-            teamName: null,
+            id: 5,
+            teamName: 'Team A',
             anwesend: false,
             abgemeldet: false,
-          },
-          {
-            id: 2,
-            vorname: 'Bert',
-            nachname: 'Adam',
-            radikalId: null,
-            teamName: null,
-            anwesend: false,
-            abgemeldet: true,
+            spieler: [
+              { vorname: 'Anna', nachname: 'Schmidt', radikalId: 'AS-1' },
+              { vorname: 'Bert', nachname: 'Adam', radikalId: 'BA-2' },
+            ],
           },
         ],
       },
@@ -212,83 +203,77 @@ describe('Teilnehmer (admin)', () => {
 
     expect(component.isAdmin()).toBe(true);
     expect(component.adminGruppen()).toHaveLength(1);
-    expect(component.adminGruppen()[0].teilnehmer).toHaveLength(2);
+    expect(component.adminGruppen()[0].meldungen).toHaveLength(1);
+    expect(component.adminGruppen()[0].meldungen[0].spieler).toHaveLength(2);
   });
 
-  it('abmelden feuert POST und lädt neu', () => {
+  it('zeigt je Spieler die Radikal-ID', () => {
     fixture.detectChanges();
     httpTesting.expectOne('/api/admin/teilnehmer').flush(adminResponse);
+    fixture.detectChanges();
 
-    component.abmelden(1);
+    const root = fixture.nativeElement as HTMLElement;
+    const ids = Array.from(root.querySelectorAll('.admin-radikal-id')).map((el) =>
+      el.textContent.trim(),
+    );
+    expect(ids).toEqual(['AS-1', 'BA-2']);
+  });
 
-    const action = httpTesting.expectOne('/api/admin/anmeldung/1/abmelden');
+  it('Anwesend-Schalter feuert genau einen Request pro Meldung (Team-Klick)', () => {
+    fixture.detectChanges();
+    httpTesting.expectOne('/api/admin/teilnehmer').flush(adminResponse);
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const checkboxes = root.querySelectorAll('.anwesend-toggle input');
+    expect(checkboxes).toHaveLength(1); // genau ein Schalter je Meldung, nicht je Spieler
+
+    (checkboxes[0] as HTMLInputElement).click();
+
+    const action = httpTesting.expectOne('/api/admin/anmeldung/5/anwesenheit');
+    expect(action.request.method).toBe('PUT');
+    expect(action.request.body).toEqual({ anwesend: true });
+    action.flush(null);
+
+    httpTesting.expectOne('/api/admin/teilnehmer').flush(adminResponse); // ein Reload
+  });
+
+  it('Abmelden-Button feuert einen POST pro Meldung', () => {
+    fixture.detectChanges();
+    httpTesting.expectOne('/api/admin/teilnehmer').flush(adminResponse);
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    root.querySelector<HTMLButtonElement>('.btn-danger')?.click();
+
+    const action = httpTesting.expectOne('/api/admin/anmeldung/5/abmelden');
     expect(action.request.method).toBe('POST');
     action.flush(null);
 
-    httpTesting.expectOne('/api/admin/teilnehmer').flush(adminResponse); // reload
+    httpTesting.expectOne('/api/admin/teilnehmer').flush(adminResponse); // ein Reload
   });
 
   it('reaktivieren feuert POST', () => {
     fixture.detectChanges();
     httpTesting.expectOne('/api/admin/teilnehmer').flush(adminResponse);
 
-    component.reaktivieren(2);
+    component.reaktivieren(5);
 
-    const action = httpTesting.expectOne('/api/admin/anmeldung/2/reaktivieren');
+    const action = httpTesting.expectOne('/api/admin/anmeldung/5/reaktivieren');
     expect(action.request.method).toBe('POST');
     action.flush(null);
 
     httpTesting.expectOne('/api/admin/teilnehmer').flush(adminResponse);
   });
 
-  it('toggleAnwesenheit feuert PUT mit dem neuen Wert', () => {
+  it('filtert nach Suchbegriff über Spielernamen', () => {
     fixture.detectChanges();
     httpTesting.expectOne('/api/admin/teilnehmer').flush(adminResponse);
 
-    component.toggleAnwesenheit(1, true);
+    component.setSuche('adam');
+    expect(component.sichtbareAdminGruppen()).toHaveLength(1);
 
-    const action = httpTesting.expectOne('/api/admin/anmeldung/1/anwesenheit');
-    expect(action.request.method).toBe('PUT');
-    expect(action.request.body).toEqual({ anwesend: true });
-    action.flush(null);
-
-    httpTesting.expectOne('/api/admin/teilnehmer').flush(adminResponse);
-  });
-
-  it('filtert nach Suchbegriff über Name', () => {
-    fixture.detectChanges();
-    httpTesting.expectOne('/api/admin/teilnehmer').flush(adminResponse);
-
-    component.setSuche('bert');
-    const namen = component
-      .sichtbareAdminGruppen()
-      .flatMap((g) => g.teams.flatMap((t) => t.mitglieder.map((m) => m.nachname)));
-    expect(namen).toEqual(['Adam']);
-  });
-
-  it('teamAbmelden meldet alle Mitglieder ab und lädt einmal neu', () => {
-    fixture.detectChanges();
-    httpTesting.expectOne('/api/admin/teilnehmer').flush(adminResponse);
-
-    component.teamAbmelden([1, 2]);
-
-    httpTesting.expectOne('/api/admin/anmeldung/1/abmelden').flush(null);
-    httpTesting.expectOne('/api/admin/anmeldung/2/abmelden').flush(null);
-    httpTesting.expectOne('/api/admin/teilnehmer').flush(adminResponse); // ein Reload
-  });
-
-  it('teamAnwesenheit setzt für alle Mitglieder den Wert', () => {
-    fixture.detectChanges();
-    httpTesting.expectOne('/api/admin/teilnehmer').flush(adminResponse);
-
-    component.teamAnwesenheit([1, 2], true);
-
-    const r1 = httpTesting.expectOne('/api/admin/anmeldung/1/anwesenheit');
-    const r2 = httpTesting.expectOne('/api/admin/anmeldung/2/anwesenheit');
-    expect(r1.request.body).toEqual({ anwesend: true });
-    expect(r2.request.body).toEqual({ anwesend: true });
-    r1.flush(null);
-    r2.flush(null);
-    httpTesting.expectOne('/api/admin/teilnehmer').flush(adminResponse);
+    component.setSuche('gibtsnicht');
+    expect(component.sichtbareAdminGruppen()).toHaveLength(0);
   });
 });

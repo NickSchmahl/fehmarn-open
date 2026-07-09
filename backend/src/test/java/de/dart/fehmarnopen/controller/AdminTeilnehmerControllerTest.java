@@ -12,8 +12,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import de.dart.fehmarnopen.config.TestSecurityConfig;
 import de.dart.fehmarnopen.dto.AdminUebersichtResponse;
-import de.dart.fehmarnopen.dto.AdminUebersichtResponse.AdminEintrag;
 import de.dart.fehmarnopen.dto.AdminUebersichtResponse.DisziplinGruppe;
+import de.dart.fehmarnopen.dto.AdminUebersichtResponse.MeldungEintrag;
+import de.dart.fehmarnopen.dto.AdminUebersichtResponse.SpielerEintrag;
 import de.dart.fehmarnopen.entity.Disziplin;
 import de.dart.fehmarnopen.exception.GlobalExceptionHandler;
 import de.dart.fehmarnopen.exception.NichtGefundenException;
@@ -40,20 +41,29 @@ class AdminTeilnehmerControllerTest {
     private AnmeldungService anmeldungService;
 
     @Test
-    void getTeilnehmer_sollVolleFelderInklusiveStatusLiefern() throws Exception {
+    void getTeilnehmer_sollMeldungMitStatusUndSpielernLiefern() throws Exception {
         when(anmeldungService.adminUebersicht())
                 .thenReturn(new AdminUebersichtResponse(List.of(new DisziplinGruppe(
                         Disziplin.HERRENDOPPEL,
                         1,
-                        List.of(new AdminEintrag(5L, "Max", "Mustermann", "MM-1", "Team A", true, false))))));
+                        List.of(new MeldungEintrag(
+                                5L,
+                                "Team A",
+                                true,
+                                false,
+                                List.of(new SpielerEintrag("Max", "Mustermann", "MM-1"))))))));
 
         mockMvc.perform(get("/api/admin/teilnehmer"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.disziplinen[0].disziplin").value("HERRENDOPPEL"))
                 .andExpect(jsonPath("$.disziplinen[0].anzahl").value(1))
-                .andExpect(jsonPath("$.disziplinen[0].teilnehmer[0].id").value(5))
-                .andExpect(jsonPath("$.disziplinen[0].teilnehmer[0].anwesend").value(true))
-                .andExpect(jsonPath("$.disziplinen[0].teilnehmer[0].abgemeldet").value(false));
+                .andExpect(jsonPath("$.disziplinen[0].meldungen[0].id").value(5))
+                .andExpect(jsonPath("$.disziplinen[0].meldungen[0].anwesend").value(true))
+                .andExpect(jsonPath("$.disziplinen[0].meldungen[0].abgemeldet").value(false))
+                .andExpect(jsonPath("$.disziplinen[0].meldungen[0].spieler[0].vorname")
+                        .value("Max"))
+                .andExpect(jsonPath("$.disziplinen[0].meldungen[0].spieler[0].radikalId")
+                        .value("MM-1"));
     }
 
     @Test

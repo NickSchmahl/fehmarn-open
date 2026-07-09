@@ -1,28 +1,32 @@
 import { Component, computed, inject, signal, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { forkJoin, Observable } from 'rxjs';
 import { Disziplin, disziplinLabel } from '../../shared/disziplin';
 import { AuthService } from '../../auth/service/auth.service';
 
 // ── Typen: öffentliche Übersicht (TeilnehmerUebersichtResponse) ───────────────
 
-export interface TeilnehmerEintrag {
+export interface SpielerEintrag {
   vorname: string;
   nachname: string;
+}
+
+export interface MeldungEintrag {
   teamName: string | null;
+  spieler: SpielerEintrag[];
 }
 
 interface DisziplinGruppe {
   disziplin: Disziplin;
   anzahl: number;
-  teilnehmer: TeilnehmerEintrag[];
+  meldungen: MeldungEintrag[];
 }
 
 interface TeilnehmerUebersicht {
   disziplinen: DisziplinGruppe[];
 }
 
-export interface TeamGruppe {
+/** Aufbereitete Meldung für die Anzeige: Teamname + Spielernamen als Strings. */
+export interface AnzeigeMeldung {
   teamName: string | null;
   mitglieder: string[];
 }
@@ -31,45 +35,41 @@ export interface AnzeigeGruppe {
   disziplin: Disziplin;
   label: string;
   anzahl: number;
-  teams: TeamGruppe[];
+  meldungen: AnzeigeMeldung[];
 }
 
 // ── Typen: Admin-Übersicht (AdminUebersichtResponse) ──────────────────────────
 
-export interface AdminEintrag {
-  id: number;
+export interface AdminSpielerEintrag {
   vorname: string;
   nachname: string;
   radikalId: string | null;
+}
+
+/** Eine Meldung im Admin: Status liegt pro Meldung, die Spieler hängen darunter. */
+export interface AdminMeldungEintrag {
+  id: number;
   teamName: string | null;
   anwesend: boolean;
   abgemeldet: boolean;
+  spieler: AdminSpielerEintrag[];
 }
 
 interface AdminGruppe {
   disziplin: Disziplin;
   anzahl: number;
-  teilnehmer: AdminEintrag[];
+  meldungen: AdminMeldungEintrag[];
 }
 
 interface AdminUebersicht {
   disziplinen: AdminGruppe[];
 }
 
-/** Team-Gruppe in der Admin-Liste: Mitglieder einzeln, plus Sammel-Status für Team-Aktionen. */
-export interface AdminTeamGruppe {
-  teamName: string | null;
-  mitglieder: AdminEintrag[];
-  ids: number[];
-  alleAnwesend: boolean;
-  alleAbgemeldet: boolean;
-}
-
 export interface AdminAnzeigeGruppe {
   disziplin: Disziplin;
   label: string;
   anzahl: number;
-  teams: AdminTeamGruppe[];
+  meldungen: AdminMeldungEintrag[];
 }
 
 type Filter = Disziplin | 'ALLE';
@@ -80,69 +80,27 @@ interface FilterChip {
   anzahl: number;
 }
 
-// ── Hilfsfunktion ─────────────────────────────────────────────────────────────
+// ── Hilfsfunktionen ───────────────────────────────────────────────────────────
 
-/**
- * Bündelt Teilnehmer einer Disziplin nach Teamnamen. Einträge ohne (bzw. mit leerem)
- * Teamnamen werden als einzelne Gruppe je Person dargestellt. Reihenfolge der ersten
- * Nennung bleibt erhalten.
- */
-export function gruppiereNachTeam(eintraege: TeilnehmerEintrag[]): TeamGruppe[] {
-  const teams: TeamGruppe[] = [];
-  const indexByTeam = new Map<string, number>();
-
-  for (const eintrag of eintraege) {
-    const name = `${eintrag.vorname} ${eintrag.nachname}`;
-    const team = eintrag.teamName?.trim() ?? '';
-
-    if (team === '') {
-      teams.push({ teamName: null, mitglieder: [name] });
-      continue;
-    }
-
-    const vorhanden = indexByTeam.get(team);
-    if (vorhanden === undefined) {
-      indexByTeam.set(team, teams.length);
-      teams.push({ teamName: team, mitglieder: [name] });
-    } else {
-      teams[vorhanden].mitglieder.push(name);
-    }
-  }
-
-  return teams;
+/** Voller Anzeigename eines Spielers. */
+function spielerName(spieler: SpielerEintrag): string {
+  return `${spieler.vorname} ${spieler.nachname}`;
 }
 
 /**
- * Gruppiert Admin-Einträge einer Disziplin nach Teamnamen. Mitglieder bleiben einzeln erhalten;
- * Einträge ohne Teamnamen werden zu je einer Ein-Personen-Gruppe. Liefert pro Gruppe die
- * Anmeldung-ids sowie Sammel-Flags für Team-Aktionen.
+ * Prüft, ob eine Meldung zum (bereits normalisierten) Suchbegriff passt: Treffer im Teamnamen
+ * oder im Namen eines beliebigen Spielers. Leerer Suchbegriff passt immer.
  */
-export function gruppiereAdminNachTeam(eintraege: AdminEintrag[]): AdminTeamGruppe[] {
-  const roh: { teamName: string | null; mitglieder: AdminEintrag[] }[] = [];
-  const indexByTeam = new Map<string, number>();
-
-  for (const e of eintraege) {
-    const team = e.teamName?.trim() ?? '';
-    if (team === '') {
-      roh.push({ teamName: null, mitglieder: [e] });
-      continue;
-    }
-    const vorhanden = indexByTeam.get(team);
-    if (vorhanden === undefined) {
-      indexByTeam.set(team, roh.length);
-      roh.push({ teamName: team, mitglieder: [e] });
-    } else {
-      roh[vorhanden].mitglieder.push(e);
-    }
+export function meldungPasstZurSuche(meldung: AdminMeldungEintrag, suche: string): boolean {
+  if (suche === '') {
+    return true;
   }
-
-  return roh.map((g) => ({
-    teamName: g.teamName,
-    mitglieder: g.mitglieder,
-    ids: g.mitglieder.map((m) => m.id),
-    alleAnwesend: g.mitglieder.every((m) => m.anwesend),
-    alleAbgemeldet: g.mitglieder.every((m) => m.abgemeldet),
-  }));
+  if (meldung.teamName?.toLowerCase().includes(suche)) {
+    return true;
+  }
+  return meldung.spieler.some((spieler) =>
+    `${spieler.vorname} ${spieler.nachname}`.toLowerCase().includes(suche),
+  );
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -171,53 +129,50 @@ export class Teilnehmer implements OnInit {
   readonly adminGruppen = signal<AdminGruppe[]>([]);
   readonly suchbegriff = signal('');
 
-  /** Filter-Chips: "Alle" + jede vorhandene Disziplin mit Anzahl. */
+  /** Filter-Chips: "Alle" + jede vorhandene Disziplin mit Anzahl (Meldungen). */
   readonly chips = computed<FilterChip[]>(() => {
     const quelle = this.isAdmin() ? this.adminGruppen() : this.gruppen();
-    const gesamt = quelle.reduce((sum, g) => sum + g.anzahl, 0);
+    const gesamt = quelle.reduce((sum, gruppe) => sum + gruppe.anzahl, 0);
     return [
       { value: 'ALLE', label: 'Alle', anzahl: gesamt },
-      ...quelle.map((g) => ({
-        value: g.disziplin,
-        label: disziplinLabel(g.disziplin),
-        anzahl: g.anzahl,
+      ...quelle.map((gruppe) => ({
+        value: gruppe.disziplin,
+        label: disziplinLabel(gruppe.disziplin),
+        anzahl: gruppe.anzahl,
       })),
     ];
   });
 
-  /** Öffentlich: gefiltert nach Disziplin und nach Team gebündelt. */
+  /** Öffentlich: gefiltert nach Disziplin; Spieler je Meldung als Namensliste aufbereitet. */
   readonly sichtbareGruppen = computed<AnzeigeGruppe[]>(() => {
     const aktiv = this.aktiveDisziplin();
     return this.gruppen()
-      .filter((g) => aktiv === 'ALLE' || g.disziplin === aktiv)
-      .map((g) => ({
-        disziplin: g.disziplin,
-        label: disziplinLabel(g.disziplin),
-        anzahl: g.anzahl,
-        teams: gruppiereNachTeam(g.teilnehmer),
+      .filter((gruppe) => aktiv === 'ALLE' || gruppe.disziplin === aktiv)
+      .map((gruppe) => ({
+        disziplin: gruppe.disziplin,
+        label: disziplinLabel(gruppe.disziplin),
+        anzahl: gruppe.anzahl,
+        meldungen: gruppe.meldungen.map((meldung) => ({
+          teamName: meldung.teamName,
+          mitglieder: meldung.spieler.map(spielerName),
+        })),
       }));
   });
 
-  /**
-   * Admin: gefiltert nach Disziplin + Suchbegriff (Name), innerhalb der Disziplin nach
-   * Teamnamen gruppiert (Einzeldisziplinen = je eine Ein-Personen-Gruppe).
-   */
+  /** Admin: gefiltert nach Disziplin + Suchbegriff (Team- oder Spielername). */
   readonly sichtbareAdminGruppen = computed<AdminAnzeigeGruppe[]>(() => {
     const aktiv = this.aktiveDisziplin();
     const suche = this.suchbegriff().trim().toLowerCase();
 
     return this.adminGruppen()
-      .filter((g) => aktiv === 'ALLE' || g.disziplin === aktiv)
-      .map((g) => {
-        const gefiltert = g.teilnehmer.filter((t) => this.passtZurSuche(t, suche));
-        return {
-          disziplin: g.disziplin,
-          label: disziplinLabel(g.disziplin),
-          anzahl: g.anzahl,
-          teams: gruppiereAdminNachTeam(gefiltert),
-        };
-      })
-      .filter((g) => g.teams.length > 0);
+      .filter((gruppe) => aktiv === 'ALLE' || gruppe.disziplin === aktiv)
+      .map((gruppe) => ({
+        disziplin: gruppe.disziplin,
+        label: disziplinLabel(gruppe.disziplin),
+        anzahl: gruppe.anzahl,
+        meldungen: gruppe.meldungen.filter((meldung) => meldungPasstZurSuche(meldung, suche)),
+      }))
+      .filter((gruppe) => gruppe.meldungen.length > 0);
   });
 
   ngOnInit(): void {
@@ -235,6 +190,8 @@ export class Teilnehmer implements OnInit {
   setSuche(value: string): void {
     this.suchbegriff.set(value);
   }
+
+  // ── Admin-Aktionen: jeweils pro Meldung (eine Anmeldung-id) ──
 
   abmelden(id: number): void {
     this.http.post(`/api/admin/anmeldung/${id}/abmelden`, {}).subscribe({
@@ -258,40 +215,6 @@ export class Teilnehmer implements OnInit {
         this.ladeAdmin();
       },
     });
-  }
-
-  // ── Team-Aktionen: bestehende per-id-Endpunkte für alle Mitglieder, danach ein Reload ──
-
-  teamAbmelden(ids: number[]): void {
-    this.batch(ids.map((id) => this.http.post(`/api/admin/anmeldung/${id}/abmelden`, {})));
-  }
-
-  teamReaktivieren(ids: number[]): void {
-    this.batch(ids.map((id) => this.http.post(`/api/admin/anmeldung/${id}/reaktivieren`, {})));
-  }
-
-  teamAnwesenheit(ids: number[], anwesend: boolean): void {
-    this.batch(
-      ids.map((id) => this.http.put(`/api/admin/anmeldung/${id}/anwesenheit`, { anwesend })),
-    );
-  }
-
-  private batch(requests: Observable<unknown>[]): void {
-    if (requests.length === 0) {
-      return;
-    }
-    forkJoin(requests).subscribe({
-      next: () => {
-        this.ladeAdmin();
-      },
-    });
-  }
-
-  private passtZurSuche(t: AdminEintrag, suche: string): boolean {
-    if (suche === '') {
-      return true;
-    }
-    return `${t.vorname} ${t.nachname}`.toLowerCase().includes(suche);
   }
 
   private ladeOeffentlich(): void {

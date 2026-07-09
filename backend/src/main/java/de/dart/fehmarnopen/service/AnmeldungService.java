@@ -4,23 +4,17 @@ import de.dart.fehmarnopen.dto.AdminUebersichtResponse;
 import de.dart.fehmarnopen.dto.AnmeldungRequest;
 import de.dart.fehmarnopen.dto.AnmeldungRequest.SpielerRequest;
 import de.dart.fehmarnopen.dto.TeilnehmerUebersichtResponse;
-import de.dart.fehmarnopen.dto.TeilnehmerUebersichtResponse.DisziplinGruppe;
-import de.dart.fehmarnopen.dto.TeilnehmerUebersichtResponse.TeilnehmerEintrag;
 import de.dart.fehmarnopen.entity.Anmeldung;
 import de.dart.fehmarnopen.entity.Disziplin;
 import de.dart.fehmarnopen.entity.Spieler;
 import de.dart.fehmarnopen.exception.DoppelteAnmeldungException;
 import de.dart.fehmarnopen.exception.NichtGefundenException;
+import de.dart.fehmarnopen.mapper.UebersichtMapper;
 import de.dart.fehmarnopen.repository.AnmeldungRepository;
 import java.time.LocalDateTime;
-import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,6 +25,7 @@ public class AnmeldungService {
 
     private final AnmeldungRepository anmeldungRepository;
     private final SpielerValidierungService spielerValidierungService;
+    private final UebersichtMapper uebersichtMapper;
 
     @Transactional
     public List<Anmeldung> anmelden(AnmeldungRequest request) {
@@ -71,42 +66,12 @@ public class AnmeldungService {
 
     @Transactional(readOnly = true)
     public TeilnehmerUebersichtResponse oeffentlicheUebersicht() {
-        List<DisziplinGruppe> gruppen =
-                gruppiereNachDisziplin(anmeldungRepository.findByAbgemeldetFalse()).entrySet().stream()
-                        .map(gruppe -> {
-                            List<TeilnehmerEintrag> teilnehmer = sortierteSpielerMitAnmeldung(gruppe.getValue())
-                                    .map(paar -> new TeilnehmerEintrag(
-                                            paar.spieler().getVorname(),
-                                            paar.spieler().getNachname(),
-                                            paar.anmeldung().getTeamName()))
-                                    .toList();
-                            return new DisziplinGruppe(gruppe.getKey(), teilnehmer.size(), teilnehmer);
-                        })
-                        .toList();
-
-        return new TeilnehmerUebersichtResponse(gruppen);
+        return uebersichtMapper.zuOeffentlicheUebersicht(anmeldungRepository.findByAbgemeldetFalse());
     }
 
     @Transactional(readOnly = true)
     public AdminUebersichtResponse adminUebersicht() {
-        List<AdminUebersichtResponse.DisziplinGruppe> gruppen =
-                gruppiereNachDisziplin(anmeldungRepository.findAllBy()).entrySet().stream()
-                        .map(gruppe -> {
-                            List<AdminUebersichtResponse.AdminEintrag> teilnehmer = sortierteSpielerMitAnmeldung(
-                                            gruppe.getValue())
-                                    .map(paar -> toAdminEintrag(paar.anmeldung(), paar.spieler()))
-                                    .toList();
-                            int aktiveSpieler = gruppe.getValue().stream()
-                                    .filter(anmeldung -> !anmeldung.isAbgemeldet())
-                                    .mapToInt(
-                                            anmeldung -> anmeldung.getSpieler().size())
-                                    .sum();
-                            return new AdminUebersichtResponse.DisziplinGruppe(
-                                    gruppe.getKey(), aktiveSpieler, teilnehmer);
-                        })
-                        .toList();
-
-        return new AdminUebersichtResponse(gruppen);
+        return uebersichtMapper.zuAdminUebersicht(anmeldungRepository.findAllBy());
     }
 
     @Transactional
@@ -136,34 +101,5 @@ public class AnmeldungService {
         return anmeldungRepository
                 .findById(anmeldungId)
                 .orElseThrow(() -> new NichtGefundenException("Anmeldung nicht gefunden: " + anmeldungId));
-    }
-
-    private AdminUebersichtResponse.AdminEintrag toAdminEintrag(Anmeldung anmeldung, Spieler spieler) {
-        return new AdminUebersichtResponse.AdminEintrag(
-                anmeldung.getId(),
-                spieler.getVorname(),
-                spieler.getNachname(),
-                spieler.getRadikalId(),
-                anmeldung.getTeamName(),
-                anmeldung.isAnwesend(),
-                anmeldung.isAbgemeldet());
-    }
-
-    /** Alle (Anmeldung, Spieler)-Paare einer Gruppe, nach Spieler-Nachname (dann Vorname) sortiert. */
-    private Stream<SpielerMitAnmeldung> sortierteSpielerMitAnmeldung(List<Anmeldung> anmeldungen) {
-        return anmeldungen.stream()
-                .flatMap(anmeldung ->
-                        anmeldung.getSpieler().stream().map(spieler -> new SpielerMitAnmeldung(anmeldung, spieler)))
-                .sorted(Comparator.comparing(
-                                (SpielerMitAnmeldung paar) -> paar.spieler().getNachname())
-                        .thenComparing(paar -> paar.spieler().getVorname()));
-    }
-
-    private record SpielerMitAnmeldung(Anmeldung anmeldung, Spieler spieler) {}
-
-    /** Gruppiert Anmeldungen nach Disziplin; TreeMap sortiert die Gruppen in Enum-Reihenfolge. */
-    private Map<Disziplin, List<Anmeldung>> gruppiereNachDisziplin(List<Anmeldung> anmeldungen) {
-        return anmeldungen.stream()
-                .collect(Collectors.groupingBy(Anmeldung::getDisziplin, TreeMap::new, Collectors.toList()));
     }
 }

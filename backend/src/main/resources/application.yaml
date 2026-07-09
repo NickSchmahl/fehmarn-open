@@ -1,3 +1,13 @@
+server:
+  # Hinter dem Reverse Proxy (Caddy, ADR 0010) kommen Scheme/Host über die
+  # X-Forwarded-*-Header. 'framework' lässt Spring diese auswerten, damit
+  # Redirects und absolute URLs korrekt https://<domain> statt http://localhost ergeben.
+  forward-headers-strategy: framework
+  # Standard 0.0.0.0 (unverändertes Verhalten für Dev/CI). Auf dem Server per
+  # SERVER_ADDRESS=127.0.0.1 nur lokal binden – von außen ist ausschließlich Caddy
+  # erreichbar (siehe docs/deployment.md).
+  address: ${SERVER_ADDRESS:0.0.0.0}
+
 spring:
   application:
     name: fehmarnopen

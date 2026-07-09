@@ -15,4 +15,15 @@ describe('App', () => {
     const app = fixture.componentInstance;
     expect(app).toBeTruthy();
   });
+
+  it('verlinkt Impressum und Datenschutz im Footer', () => {
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+    const element = fixture.nativeElement as HTMLElement;
+    const footerHrefs = Array.from(element.querySelectorAll('.app-footer a')).map((link) =>
+      link.getAttribute('href'),
+    );
+    expect(footerHrefs).toContain('/impressum');
+    expect(footerHrefs).toContain('/datenschutz');
+  });
 });

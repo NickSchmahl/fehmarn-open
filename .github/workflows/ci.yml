@@ -139,9 +139,25 @@ jobs:
               /opt/fehmarnopen/$ENV/app.jar
 
             systemctl restart fehmarnopen-$ENV
-            sleep 8
 
-            systemctl is-active fehmarnopen-$ENV
-            echo "Healthcheck auf Port $PORT ..."
-            curl -fsS -o /dev/null -w "HTTP %{http_code}\n" http://localhost:$PORT/api/teilnehmer
+            # Readiness-Polling statt festem Sleep: 'systemctl is-active' meldet "active",
+            # sobald der JVM-Prozess laeuft - Spring Boot bindet den Port aber erst spaeter
+            # (Context + Liquibase-Migrationen). Wir fragen den Endpoint aktiv ab, bis er
+            # antwortet, mit Timeout. Explizit 127.0.0.1 (nicht localhost), weil die App mit
+            # SERVER_ADDRESS=127.0.0.1 nur IPv4 bindet und 'localhost' sonst auf ::1 zeigen kann.
+            echo "Warte auf App ($ENV) auf 127.0.0.1:$PORT ..."
+            for versuch in $(seq 1 30); do
+              if curl -fsS -o /dev/null "http://127.0.0.1:$PORT/api/teilnehmer"; then
+                echo "App erreichbar nach ~$((versuch * 2))s."
+                erreichbar=1
+                break
+              fi
+              sleep 2
+            done
+            if [ "${erreichbar:-0}" != 1 ]; then
+              echo "FEHLER: App ($ENV) nach 60s nicht erreichbar auf 127.0.0.1:$PORT." >&2
+              systemctl --no-pager status fehmarnopen-$ENV >&2 || true
+              journalctl -u fehmarnopen-$ENV -n 50 --no-pager >&2 || true
+              exit 1
+            fi
             echo "Deployment ($ENV) erfolgreich."

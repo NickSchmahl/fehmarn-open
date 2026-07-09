@@ -26,8 +26,10 @@ Anzulegen unter **Repo → Settings → Secrets and variables → Actions → Se
 | `SSH_USER` | `root` (aktuell gewählt, siehe unten) |
 | `SSH_KEY`  | **privater** SSH-Key, komplett inkl. `-----BEGIN/END-----` und abschließender Leerzeile |
 
-Es sind **Repository Secrets** – der Workflow nutzt keinen `environment:`-Scope,
-d.h. dieselben Secrets gelten für `test` und `prod`.
+Die `SSH_*` sind **Repository Secrets** und gelten für `test` und `prod` gleichermaßen.
+Die **App-Secrets** (`JWT_SECRET`, `ADMIN_*_PASSWORD`) liegen dagegen als
+**Environment-Secrets** je Umgebung getrennt – siehe Abschnitt „HTTPS/TLS via Caddy",
+Schritt 4.
 
 ## SSH-Zugang: nur Key, kein Passwort
 
@@ -176,18 +178,26 @@ EnvironmentFile=/opt/fehmarnopen/prod/config.env
 EnvironmentFile=/opt/fehmarnopen/prod/secrets.env
 ```
 
-**GitHub Secrets anlegen** (pro Umgebung getrennt) unter
-`Settings → Secrets and variables → Actions → Secrets` – **6 Stück**:
+**Secrets als GitHub-Environment-Secrets anlegen** (nicht als Repository-Secrets) unter
+`Settings → Environments`. Zwei Environments anlegen: **`test`** und **`prod`** – in
+**jedem** dieselben drei Secrets (gleiche Namen, kein Präfix):
 
-| test | prod |
-|------|------|
-| `TEST_JWT_SECRET` | `PROD_JWT_SECRET` |
-| `TEST_ADMIN_1_PASSWORD` | `PROD_ADMIN_1_PASSWORD` |
-| `TEST_ADMIN_2_PASSWORD` | `PROD_ADMIN_2_PASSWORD` |
+| Environment | Secrets |
+|-------------|---------|
+| `test` | `JWT_SECRET`, `ADMIN_1_PASSWORD`, `ADMIN_2_PASSWORD` |
+| `prod` | `JWT_SECRET`, `ADMIN_1_PASSWORD`, `ADMIN_2_PASSWORD` |
 
-Der Deploy-Job löst je Zielumgebung den richtigen Satz auf und schreibt daraus
-`secrets.env`. `config.env` und `secrets.env` werden bei jedem Deploy neu geschrieben –
-also **keine** manuellen Werte dort pflegen, sondern im Repo bzw. in den GitHub Secrets.
+Der Deploy-Job wählt per `environment:` das Ziel (`test`/`prod`); `secrets.JWT_SECRET`
+usw. lösen dann automatisch die Werte **dieses** Environments auf. Vorteil gegenüber
+Repository-Secrets: Ein test-Deploy sieht die prod-Secrets gar nicht (echte
+Zugriffs-Isolation), und für `prod` lassen sich optional Schutzregeln setzen.
+
+> **`test` ohne Required-Reviewer lassen**, sonst blockiert die Protection-Rule den
+> automatischen Deploy bei jedem Push auf `main`. Für `prod` (nur manueller
+> `workflow_dispatch`) kann ein Reviewer/Branch-Filter sinnvoll sein.
+
+`config.env` und `secrets.env` werden bei jedem Deploy neu geschrieben – also **keine**
+manuellen Werte dort pflegen, sondern im Repo bzw. in den Environment-Secrets.
 
 `forward-headers-strategy: framework` steht bereits in `application.yaml`, damit Spring
 Scheme/Host aus den `X-Forwarded-*`-Headern von Caddy übernimmt (korrekte `https://`-URLs).

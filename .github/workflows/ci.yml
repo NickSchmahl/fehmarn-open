@@ -85,6 +85,11 @@ jobs:
     # Nur automatisch bei Push auf main oder beim manuellen Start. Bei Pull
     # Requests laufen nur die Tests, die Deploy-Stufe wird uebersprungen.
     if: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main') }}
+    # Zielumgebung als GitHub-Environment (test/prod): dadurch sind die App-Secrets
+    # scoped (nur der prod-Deploy sieht die prod-Secrets) und es lassen sich optionale
+    # Schutzregeln setzen. environment wird beim Job-Start ausgewertet, daher aus dem
+    # github-Kontext (nicht dem target-Step): Push -> test, workflow_dispatch -> Auswahl.
+    environment: ${{ github.event.inputs.environment || 'test' }}
     # Verhindert parallele Deployments auf dieselbe Umgebung (Job-Ebene, damit
     # die Test-Jobs davon unberuehrt bleiben).
     concurrency:
@@ -149,12 +154,13 @@ jobs:
 
       - name: Installieren, Service neu starten & Healthcheck
         uses: appleboy/ssh-action@v1.2.5
-        # Secrets pro Umgebung: hier wird der richtige Satz aufgeloest und via envs
-        # an das Remote-Skript uebergeben. GitHub maskiert die Werte im Log.
+        # Secrets kommen aus dem GitHub-Environment (test/prod) des Jobs – gleiche
+        # Namen je Environment, kein Praefix noetig. Via envs ans Remote-Skript;
+        # GitHub maskiert die Werte im Log.
         env:
-          JWT_SECRET: ${{ steps.target.outputs.env == 'prod' && secrets.PROD_JWT_SECRET || secrets.TEST_JWT_SECRET }}
-          ADMIN_1_PASSWORD: ${{ steps.target.outputs.env == 'prod' && secrets.PROD_ADMIN_1_PASSWORD || secrets.TEST_ADMIN_1_PASSWORD }}
-          ADMIN_2_PASSWORD: ${{ steps.target.outputs.env == 'prod' && secrets.PROD_ADMIN_2_PASSWORD || secrets.TEST_ADMIN_2_PASSWORD }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          ADMIN_1_PASSWORD: ${{ secrets.ADMIN_1_PASSWORD }}
+          ADMIN_2_PASSWORD: ${{ secrets.ADMIN_2_PASSWORD }}
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}

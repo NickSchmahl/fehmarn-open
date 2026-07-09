@@ -66,6 +66,19 @@
       <artifactId>hibernate-community-dialects</artifactId>
     </dependency>
     <dependency>
+      <!-- Versioniertes Schema-Management. Liquibase statt Flyway, da Flyway 12 (Boot-BOM)
+           SQLite nicht unterstützt; Liquibase kann SQLite nativ. Siehe ADR 0009. -->
+      <groupId>org.liquibase</groupId>
+      <artifactId>liquibase-core</artifactId>
+    </dependency>
+    <dependency>
+      <!-- Boot 4 modularisiert die Auto-Konfiguration; die Liquibase-AutoConfig liegt in
+           diesem Modul (analog spring-boot-hibernate für JPA). Ohne es läuft Liquibase nicht. -->
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-liquibase</artifactId>
+      <version>${springboot.version}</version>
+    </dependency>
+    <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-data-jpa-test</artifactId>
       <version>${springboot.version}</version>

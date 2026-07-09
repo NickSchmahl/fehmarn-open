@@ -15,12 +15,20 @@ spring:
   jpa:
     database-platform: org.hibernate.community.dialect.SQLiteDialect
     hibernate:
-      ddl-auto: update
+      # Schema wird ausschließlich von Liquibase verwaltet (siehe ADR 0009). 'none' statt 'validate',
+      # weil Hibernate für die Long-@Id BIGINT erwartet, SQLite für autoincrement aber INTEGER-PK
+      # braucht (rowid-Alias) – 'validate' würde an diesem unauflösbaren Typkonflikt scheitern.
+      # Sicherheitsnetz gegen Schema-Drift sind stattdessen die Persistenz-Tests (Round-Trip).
+      ddl-auto: none
     properties:
       hibernate:
         dialect: org.hibernate.community.dialect.SQLiteDialect
         format_sql: true
     show-sql: true
+
+  liquibase:
+    enabled: true
+    change-log: classpath:db/changelog/db.changelog-master.yaml
 
   jackson:
     default-property-inclusion: non_null

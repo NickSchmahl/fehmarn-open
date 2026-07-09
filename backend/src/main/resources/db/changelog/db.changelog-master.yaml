@@ -1,0 +1,6 @@
+# Liquibase-Master-Changelog. Bindet die einzelnen Änderungs-Changelogs in Reihenfolge ein.
+# Neue Schema-Änderung = neue Datei unter changes/ + hier eingebunden (siehe ADR 0009).
+databaseChangeLog:
+  - include:
+      file: changes/001-init.sql
+      relativeToChangelogFile: true

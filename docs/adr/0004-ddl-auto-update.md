@@ -1,6 +1,6 @@
 # ADR 0004 – `ddl-auto: update` statt Migrations-Tooling
 
-**Status:** Akzeptiert (befristet) · **Datum:** aus Code rekonstruiert (#4)
+**Status:** Abgelöst durch [ADR 0009](0009-liquibase-statt-ddl-auto.md) (#117) · **Datum:** aus Code rekonstruiert (#4)
 
 ## Kontext
 Das DB-Schema muss zum JPA-Entity-Modell passen. Das Projekt ist jung, das Schema

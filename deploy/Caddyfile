@@ -15,7 +15,7 @@
 {
 	# E-Mail für Let's-Encrypt-Ablaufbenachrichtigungen.
 	# VOR dem ersten Start auf eine echte, überwachte Adresse setzen.
-	email admin@fehmarn-open.de
+	email info@dartverein-fehmarn.de
 }
 
 # ── Produktion → interner Spring-Boot-Port 8080 ──────────────────────────────

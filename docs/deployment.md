@@ -129,6 +129,18 @@ caddy validate --config /etc/caddy/Caddyfile
 systemctl reload caddy
 ```
 
+> **Stolperstein – Port 80 schon belegt:** Läuft auf dem Server bereits ein anderer
+> Webserver (z. B. ein vorinstalliertes **nginx**), hält der Port 80. Caddy bindet 80
+> und 443 gemeinsam und startet dann gar nicht:
+> `systemctl status caddy` zeigt `failed`, im Log steht
+> `listening on :80: listen tcp :80: bind: address already in use` – und auf 443
+> lauscht nichts (curl → „connection refused"). Prüfen und den Blockierer deaktivieren:
+> ```bash
+> sudo ss -tlnp | grep -E ':80 |:443 '   # zeigt, welcher Dienst Port 80 hält
+> sudo systemctl disable --now nginx      # nginx dauerhaft stoppen (reversibel, deinstalliert nichts)
+> sudo systemctl restart caddy            # jetzt bekommt Caddy 80/443 und holt die Zertifikate
+> ```
+
 ### 4. Spring nur noch lokal binden + Umgebungsvariablen
 
 Spring darf nicht mehr öffentlich lauschen, nur Caddy erreicht es. Im

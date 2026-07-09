@@ -22,10 +22,10 @@
 fehmarn-open.de {
 	reverse_proxy 127.0.0.1:8080
 
-	# HSTS erst aktivieren, wenn HTTPS nachweislich sauber läuft – der Header ist
-	# „klebrig" (Browser erzwingen dann für max-age nur noch HTTPS). Zum Aktivieren
-	# die nächste Zeile einkommentieren:
-	# header Strict-Transport-Security "max-age=31536000; includeSubDomains"
+	# HSTS aktiv (seit 2026-07-09, nachdem HTTPS für beide Domains verifiziert lief).
+	# Der Header ist „klebrig": Browser erzwingen für max-age nur noch HTTPS.
+	# includeSubDomains erstreckt das auch auf test.fehmarn-open.de (TLS dort verifiziert).
+	header Strict-Transport-Security "max-age=31536000; includeSubDomains"
 }
 
 # ── Test → interner Spring-Boot-Port 8081 ────────────────────────────────────

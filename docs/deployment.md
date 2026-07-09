@@ -187,8 +187,8 @@ curl -sS https://test.fehmarn-open.de/api/teilnehmer | head
 ```
 
 Kein Mixed Content, Admin-Login + Anmeldung laufen komplett über HTTPS. Der **interne
-CI-Healthcheck** (`http://localhost:<port>/api/teilnehmer` in `ci.yml`) bleibt unverändert
-korrekt – er läuft am Proxy vorbei direkt auf den lokalen Port.
+CI-Healthcheck** (`http://127.0.0.1:<port>/api/teilnehmer` in `ci.yml`) läuft am Proxy vorbei
+direkt auf den lokalen Port und pollt nach dem Restart, bis die App den Port gebunden hat.
 
 ### 7. HSTS aktivieren (erst nach erfolgreichem Test)
 

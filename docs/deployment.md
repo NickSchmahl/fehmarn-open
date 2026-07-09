@@ -84,6 +84,101 @@ Der Deploy-Schritt setzt voraus, dass auf dem Server existieren:
 > `install -o fehmarnopen ...` bzw. `systemctl restart fehmarnopen-<env>`. Dann ist
 > es ein Server-Setup-Problem, kein CI-Problem. Die systemd-Units sind noch **TODO**.
 
+## HTTPS/TLS via Caddy (Reverse Proxy)
+
+Öffentlich erreichbar ist die App **ausschließlich über HTTPS** (ADR 0010, #119). Ein
+**Caddy** davor terminiert TLS und proxied auf die lokalen Spring-Boot-Ports. Caddy holt
+und erneuert die Let's-Encrypt-Zertifikate selbst und leitet HTTP→HTTPS um.
+
+```
+Internet ──443/80──▶ Caddy ──▶ 127.0.0.1:8080  (prod  = fehmarn-open.de)
+                          └──▶ 127.0.0.1:8081  (test  = test.fehmarn-open.de)
+```
+
+Die versionierte Proxy-Config liegt im Repo unter
+[`deploy/Caddyfile`](../deploy/Caddyfile).
+
+### 1. DNS (Voraussetzung fürs Zertifikat)
+
+A-Records (ggf. AAAA) auf die Server-IP setzen – **beide** müssen auflösen, bevor Caddy
+Zertifikate holen kann:
+
+```
+fehmarn-open.de        A  <SERVER_IP>
+test.fehmarn-open.de   A  <SERVER_IP>
+```
+
+### 2. Caddy installieren
+
+```bash
+apt install -y debian-keyring debian-archive-keyring apt-transport-https curl
+curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' \
+  | gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' \
+  | tee /etc/apt/sources.list.d/caddy-stable.list
+apt update && apt install -y caddy
+```
+
+### 3. Caddyfile ausbringen
+
+Repo-`deploy/Caddyfile` nach `/etc/caddy/Caddyfile` kopieren (die `email`-Zeile vorher auf
+eine echte Adresse setzen), dann laden:
+
+```bash
+caddy validate --config /etc/caddy/Caddyfile
+systemctl reload caddy
+```
+
+### 4. Spring nur noch lokal binden + Umgebungsvariablen
+
+Spring darf nicht mehr öffentlich lauschen, nur Caddy erreicht es. Im
+`EnvironmentFile` **beider** systemd-Units (`/opt/fehmarnopen/<env>/env` o.ä.):
+
+```ini
+SERVER_ADDRESS=127.0.0.1
+# same-origin (Frontend kommt aus dem JAR) – gesetzt als Absicherung:
+CORS_ALLOWED_ORIGINS=https://fehmarn-open.de        # test-Unit: https://test.fehmarn-open.de
+```
+
+`forward-headers-strategy: framework` steht bereits in `application.yaml`, damit Spring
+Scheme/Host aus den `X-Forwarded-*`-Headern von Caddy übernimmt (korrekte `https://`-URLs).
+Danach `systemctl restart fehmarnopen-test fehmarnopen-prod`.
+
+### 5. Firewall
+
+Nur 80/443 nach außen; die App-Ports bleiben lokal (durch `SERVER_ADDRESS` ohnehin nicht
+mehr öffentlich gebunden):
+
+```bash
+ufw allow 80/tcp
+ufw allow 443/tcp
+ufw allow OpenSSH
+ufw enable
+```
+
+### 6. Prüfen
+
+```bash
+curl -I http://fehmarn-open.de            # -> 301/308 Redirect auf https
+curl -sS https://fehmarn-open.de/api/teilnehmer | head   # gültiges Zert, App antwortet
+curl -sS https://test.fehmarn-open.de/api/teilnehmer | head
+```
+
+Kein Mixed Content, Admin-Login + Anmeldung laufen komplett über HTTPS. Der **interne
+CI-Healthcheck** (`http://localhost:<port>/api/teilnehmer` in `ci.yml`) bleibt unverändert
+korrekt – er läuft am Proxy vorbei direkt auf den lokalen Port.
+
+### 7. HSTS aktivieren (erst nach erfolgreichem Test)
+
+Im `Caddyfile` die auskommentierte `Strict-Transport-Security`-Zeile beim
+`fehmarn-open.de`-Block einkommentieren, dann `systemctl reload caddy`. Bewusst zuletzt: der
+Header ist „klebrig" – bei kaputtem HTTPS sperrt er Nutzer für `max-age` aus.
+
+### Zertifikats-Renewal
+
+Automatisch durch Caddy (kein Cronjob nötig). Läuft die Erneuerung, muss Port 80 erreichbar
+bleiben (HTTP-01-Challenge) – deshalb 80 in der Firewall offen lassen.
+
 ## root vs. dedizierter deploy-User
 
 Aktuell **root** – bewusst gewählt für den schnellen ersten grünen Lauf (kein

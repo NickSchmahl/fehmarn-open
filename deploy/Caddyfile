@@ -1,0 +1,34 @@
+# Caddy Reverse Proxy für Fehmarn Open (TLS-Terminierung, siehe ADR 0010, #119)
+#
+# Caddy übernimmt out of the box:
+#   - automatische Let's-Encrypt-Zertifikate (setzt korrekte DNS-A-Records voraus)
+#   - HTTP (80) -> HTTPS (443) Redirect
+#   - automatisches Zertifikats-Renewal
+#
+# Spring Boot bleibt intern und wird NUR an localhost gebunden
+# (SERVER_ADDRESS=127.0.0.1 im systemd-EnvironmentFile). Von außen ist nur Caddy
+# über 80/443 erreichbar (Firewall: 8080/8081 nicht öffnen).
+#
+# Auf dem Server nach /etc/caddy/Caddyfile kopieren, dann `systemctl reload caddy`.
+# Setup-Schritte: docs/deployment.md -> Abschnitt „HTTPS/TLS via Caddy".
+
+{
+	# E-Mail für Let's-Encrypt-Ablaufbenachrichtigungen.
+	# VOR dem ersten Start auf eine echte, überwachte Adresse setzen.
+	email admin@fehmarn-open.de
+}
+
+# ── Produktion → interner Spring-Boot-Port 8080 ──────────────────────────────
+fehmarn-open.de {
+	reverse_proxy 127.0.0.1:8080
+
+	# HSTS erst aktivieren, wenn HTTPS nachweislich sauber läuft – der Header ist
+	# „klebrig" (Browser erzwingen dann für max-age nur noch HTTPS). Zum Aktivieren
+	# die nächste Zeile einkommentieren:
+	# header Strict-Transport-Security "max-age=31536000; includeSubDomains"
+}
+
+# ── Test → interner Spring-Boot-Port 8081 ────────────────────────────────────
+test.fehmarn-open.de {
+	reverse_proxy 127.0.0.1:8081
+}

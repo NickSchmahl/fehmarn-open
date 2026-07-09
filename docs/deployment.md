@@ -121,6 +121,12 @@ apt update && apt install -y caddy
 
 ### 3. Caddyfile ausbringen
 
+> **Nur beim Erst-Setup nötig.** Danach rollt jeder Deploy die `deploy/Caddyfile`
+> automatisch aus (siehe [ci.yml](../.github/workflows/ci.yml), #139): Der Deploy-Job
+> kopiert sie auf den Server, prüft `caddy fmt` + `caddy validate` und lädt Caddy neu.
+> Schlägt Format oder Validierung fehl, bricht der Deploy ab, **bevor** die neue JAR
+> installiert wird.
+
 Repo-`deploy/Caddyfile` nach `/etc/caddy/Caddyfile` kopieren (die `email`-Zeile vorher auf
 eine echte Adresse setzen), dann laden:
 
@@ -128,6 +134,10 @@ eine echte Adresse setzen), dann laden:
 caddy validate --config /etc/caddy/Caddyfile
 systemctl reload caddy
 ```
+
+> **Vor jedem Commit an `deploy/Caddyfile`:** einmal `caddy fmt --overwrite deploy/Caddyfile`
+> laufen lassen. Sonst schlägt der automatische Format-Check im Deploy fehl (`caddy validate`
+> warnt sonst „Caddyfile input is not formatted").
 
 > **Stolperstein – Port 80 schon belegt:** Läuft auf dem Server bereits ein anderer
 > Webserver (z. B. ein vorinstalliertes **nginx**), hält der Port 80. Caddy bindet 80

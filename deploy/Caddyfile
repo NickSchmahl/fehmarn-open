@@ -11,7 +11,6 @@
 #
 # Auf dem Server nach /etc/caddy/Caddyfile kopieren, dann `systemctl reload caddy`.
 # Setup-Schritte: docs/deployment.md -> Abschnitt „HTTPS/TLS via Caddy".
-
 {
 	# E-Mail für Let's-Encrypt-Ablaufbenachrichtigungen.
 	# VOR dem ersten Start auf eine echte, überwachte Adresse setzen.

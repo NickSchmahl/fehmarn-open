@@ -12,3 +12,23 @@ body {
   padding: 0;
   background: #0d0f12; /* var(--bg) – verhindert hellen Rand am Body/Overscroll */
 }
+
+/* ── Hinweis-Box ─────────────────────────────────────────────
+   Wiederverwendbarer Kasten für dezente Hinweise (role="note"):
+   Akzent-Hintergrund, Akzentrahmen, gedämpfte Schrift.
+   Die Farb-Tokens (--accent-dim usw.) erbt die Box vom umgebenden
+   Komponenten-:host. Seiten kombinieren .hinweis mit einer eigenen
+   Modifier-Klasse für ihre Besonderheiten. */
+.hinweis {
+  margin: 0;
+  padding: 0.75rem 0.875rem;
+  line-height: 1.55;
+  color: var(--text-muted);
+  background: var(--accent-dim);
+  border: 1px solid rgba(232, 197, 71, 0.25);
+  border-radius: var(--radius);
+
+  .hint-icon {
+    color: var(--accent);
+  }
+}

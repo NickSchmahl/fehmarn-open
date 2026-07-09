@@ -123,6 +123,19 @@ jobs:
           target: /tmp/
           strip_components: 2
 
+      - name: Caddyfile auf den Server kopieren
+        uses: appleboy/scp-action@v1.0.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          # eigener Schritt mit strip_components=1: deploy/Caddyfile hat nur zwei
+          # Pfad-Komponenten, mit dem strip_components=2 der JAR wuerde die Datei
+          # weggestrippt. So landet sie als /tmp/Caddyfile.
+          source: deploy/Caddyfile
+          target: /tmp/
+          strip_components: 1
+
       - name: Installieren, Service neu starten & Healthcheck
         uses: appleboy/ssh-action@v1.2.5
         with:
@@ -133,6 +146,22 @@ jobs:
             set -e
             ENV=${{ steps.target.outputs.env }}
             if [ "$ENV" = "prod" ]; then PORT=8080; else PORT=8081; fi
+
+            # Caddy-Reverse-Proxy-Config ausbringen. Bewusst VOR dem App-Restart:
+            # eine kaputte/unformatierte Caddyfile bricht den Deploy ab, bevor die
+            # neue JAR installiert wird (fail fast, kein halber Rollout).
+            if ! command -v caddy >/dev/null; then
+              echo "FEHLER: Caddy ist auf dem Server nicht installiert (Bootstrap fehlt, siehe docs/deployment.md)." >&2
+              exit 1
+            fi
+            if ! caddy fmt /tmp/Caddyfile | diff -q - /tmp/Caddyfile >/dev/null; then
+              echo "FEHLER: deploy/Caddyfile ist nicht formatiert. Lokal 'caddy fmt --overwrite deploy/Caddyfile' laufen lassen und committen." >&2
+              exit 1
+            fi
+            caddy validate --adapter caddyfile --config /tmp/Caddyfile
+            install -m 644 /tmp/Caddyfile /etc/caddy/Caddyfile
+            systemctl reload caddy
+            echo "Caddy-Config validiert und neu geladen."
 
             install -o fehmarnopen -g fehmarnopen \
               /tmp/fehmarnopen-0.0.1-SNAPSHOT.jar \

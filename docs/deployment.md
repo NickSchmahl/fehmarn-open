@@ -160,7 +160,7 @@ in **zwei Dateien pro Umgebung** getrennt (#143), die beide systemd-Units laden:
 
 | Datei | Herkunft | Inhalt | Deploy |
 |-------|----------|--------|--------|
-| `config.env` | Repo: [`deploy/env/test.env`](../deploy/env/test.env) / [`prod.env`](../deploy/env/prod.env) | `SERVER_ADDRESS`, `CORS_ALLOWED_ORIGINS` | automatisch ausgerollt |
+| `config.env` | Repo: [`deploy/env/test.env`](../deploy/env/test.env) / [`prod.env`](../deploy/env/prod.env) | `SERVER_ADDRESS`, `SERVER_PORT`, `CORS_ALLOWED_ORIGINS`, `ADMIN_*_USERNAME` | automatisch ausgerollt |
 | `secrets.env` | GitHub Secrets (pro Umgebung) | `JWT_SECRET`, `ADMIN_1_PASSWORD`, `ADMIN_2_PASSWORD` | beim Deploy geschrieben, `chmod 600` |
 
 **Beide `EnvironmentFile` in jede Unit** eintragen – einmalig beim Setup. Die Pfade je Unit

@@ -136,16 +136,43 @@ jobs:
           target: /tmp/
           strip_components: 1
 
-      - name: Installieren, Service neu starten & Healthcheck
-        uses: appleboy/ssh-action@v1.2.5
+      - name: Env-Config auf den Server kopieren
+        uses: appleboy/scp-action@v1.0.0
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
+          # nur die config.env der Zielumgebung; strip_components=2 -> /tmp/<env>.env
+          source: deploy/env/${{ steps.target.outputs.env }}.env
+          target: /tmp/
+          strip_components: 2
+
+      - name: Installieren, Service neu starten & Healthcheck
+        uses: appleboy/ssh-action@v1.2.5
+        # Secrets pro Umgebung: hier wird der richtige Satz aufgeloest und via envs
+        # an das Remote-Skript uebergeben. GitHub maskiert die Werte im Log.
+        env:
+          JWT_SECRET: ${{ steps.target.outputs.env == 'prod' && secrets.PROD_JWT_SECRET || secrets.TEST_JWT_SECRET }}
+          ADMIN_1_PASSWORD: ${{ steps.target.outputs.env == 'prod' && secrets.PROD_ADMIN_1_PASSWORD || secrets.TEST_ADMIN_1_PASSWORD }}
+          ADMIN_2_PASSWORD: ${{ steps.target.outputs.env == 'prod' && secrets.PROD_ADMIN_2_PASSWORD || secrets.TEST_ADMIN_2_PASSWORD }}
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          envs: JWT_SECRET,ADMIN_1_PASSWORD,ADMIN_2_PASSWORD
           script: |
             set -e
             ENV=${{ steps.target.outputs.env }}
             if [ "$ENV" = "prod" ]; then PORT=8080; else PORT=8081; fi
+
+            # Fail fast: fehlende Secrets abfangen, BEVOR irgendetwas ausgerollt wird
+            # (ein leeres JWT_SECRET/Passwort wuerde die App beim Start killen).
+            for secret in "$JWT_SECRET" "$ADMIN_1_PASSWORD" "$ADMIN_2_PASSWORD"; do
+              if [ -z "$secret" ]; then
+                echo "FEHLER: Ein GitHub Secret fuer $ENV fehlt/ist leer (JWT_SECRET / ADMIN_1_PASSWORD / ADMIN_2_PASSWORD)." >&2
+                exit 1
+              fi
+            done
 
             # Caddy-Reverse-Proxy-Config ausbringen. Bewusst VOR dem App-Restart:
             # eine kaputte/unformatierte Caddyfile bricht den Deploy ab, bevor die
@@ -166,6 +193,22 @@ jobs:
             install -o fehmarnopen -g fehmarnopen \
               /tmp/fehmarnopen-0.0.1-SNAPSHOT.jar \
               /opt/fehmarnopen/$ENV/app.jar
+
+            # Nicht-geheime Laufzeit-Config ausrollen (versioniert unter deploy/env/).
+            install -o fehmarnopen -g fehmarnopen -m 640 \
+              /tmp/$ENV.env \
+              /opt/fehmarnopen/$ENV/config.env
+
+            # Secrets nach secrets.env schreiben (oben schon auf Vollstaendigkeit geprueft).
+            # printf schreibt die Werte literal (robust bei Sonderzeichen), nie via echo ins Log.
+            umask 077
+            {
+              printf 'JWT_SECRET=%s\n' "$JWT_SECRET"
+              printf 'ADMIN_1_PASSWORD=%s\n' "$ADMIN_1_PASSWORD"
+              printf 'ADMIN_2_PASSWORD=%s\n' "$ADMIN_2_PASSWORD"
+            } > /opt/fehmarnopen/$ENV/secrets.env
+            chown fehmarnopen:fehmarnopen /opt/fehmarnopen/$ENV/secrets.env
+            chmod 600 /opt/fehmarnopen/$ENV/secrets.env
 
             systemctl restart fehmarnopen-$ENV
             sleep 8

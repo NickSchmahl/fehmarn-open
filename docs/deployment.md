@@ -151,20 +151,48 @@ systemctl reload caddy
 > sudo systemctl restart caddy            # jetzt bekommt Caddy 80/443 und holt die Zertifikate
 > ```
 
-### 4. Spring nur noch lokal binden + Umgebungsvariablen
+### 4. Umgebungsvariablen: config.env (versioniert) + secrets.env (injiziert)
 
-Spring darf nicht mehr öffentlich lauschen, nur Caddy erreicht es. Im
-`EnvironmentFile` **beider** systemd-Units (`/opt/fehmarnopen/<env>/env` o.ä.):
+Spring darf nicht mehr öffentlich lauschen, nur Caddy erreicht es. Die Laufzeit-Config ist
+in **zwei Dateien pro Umgebung** getrennt (#143), die beide systemd-Units laden:
+
+| Datei | Herkunft | Inhalt | Deploy |
+|-------|----------|--------|--------|
+| `config.env` | Repo: [`deploy/env/test.env`](../deploy/env/test.env) / [`prod.env`](../deploy/env/prod.env) | `SERVER_ADDRESS`, `CORS_ALLOWED_ORIGINS` | automatisch ausgerollt |
+| `secrets.env` | GitHub Secrets (pro Umgebung) | `JWT_SECRET`, `ADMIN_1_PASSWORD`, `ADMIN_2_PASSWORD` | beim Deploy geschrieben, `chmod 600` |
+
+**Beide `EnvironmentFile` in jede Unit** eintragen – einmalig beim Setup. Die Pfade je Unit
+ausschreiben (das Verzeichnis ist `test` bzw. `prod`, passend zum Deploy-Ziel):
 
 ```ini
-SERVER_ADDRESS=127.0.0.1
-# same-origin (Frontend kommt aus dem JAR) – gesetzt als Absicherung:
-CORS_ALLOWED_ORIGINS=https://fehmarn-open.de        # test-Unit: https://test.fehmarn-open.de
+# in fehmarnopen-test.service
+[Service]
+EnvironmentFile=/opt/fehmarnopen/test/config.env
+EnvironmentFile=/opt/fehmarnopen/test/secrets.env
+
+# in fehmarnopen-prod.service
+[Service]
+EnvironmentFile=/opt/fehmarnopen/prod/config.env
+EnvironmentFile=/opt/fehmarnopen/prod/secrets.env
 ```
+
+**GitHub Secrets anlegen** (pro Umgebung getrennt) unter
+`Settings → Secrets and variables → Actions → Secrets` – **6 Stück**:
+
+| test | prod |
+|------|------|
+| `TEST_JWT_SECRET` | `PROD_JWT_SECRET` |
+| `TEST_ADMIN_1_PASSWORD` | `PROD_ADMIN_1_PASSWORD` |
+| `TEST_ADMIN_2_PASSWORD` | `PROD_ADMIN_2_PASSWORD` |
+
+Der Deploy-Job löst je Zielumgebung den richtigen Satz auf und schreibt daraus
+`secrets.env`. `config.env` und `secrets.env` werden bei jedem Deploy neu geschrieben –
+also **keine** manuellen Werte dort pflegen, sondern im Repo bzw. in den GitHub Secrets.
 
 `forward-headers-strategy: framework` steht bereits in `application.yaml`, damit Spring
 Scheme/Host aus den `X-Forwarded-*`-Headern von Caddy übernimmt (korrekte `https://`-URLs).
-Danach `systemctl restart fehmarnopen-test fehmarnopen-prod`.
+Nach dem Eintragen der `EnvironmentFile`-Zeilen einmal
+`systemctl daemon-reload && systemctl restart fehmarnopen-test fehmarnopen-prod`.
 
 ### 5. Firewall
 

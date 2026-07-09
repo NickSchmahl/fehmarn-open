@@ -7,6 +7,7 @@
   --border-focus: #e8c547;
 
   --text: #eceef4;
+  --text-soft: #a7adc8;
   --text-muted: #6b7394;
   --text-dim: #3a4060;
 
@@ -284,7 +285,8 @@
   color: var(--text-dim);
 }
 
-/* Basis-Kasten + dezente Schrift kommen aus der globalen .hinweis-Klasse. */
+/* Basis-Kasten kommt aus der globalen .hinweis-Klasse; hier der hellere
+   Schriftton (wie die Betonung im Radikal-ID-Hinweis) statt der dezenten Basis. */
 .payment-hint {
   display: flex;
   align-items: center;
@@ -293,6 +295,7 @@
   padding: 0.75rem 1rem;
   font-size: 0.9375rem;
   font-weight: 600;
+  color: var(--text-soft);
   text-align: center;
 
   .hint-icon {
@@ -523,8 +526,8 @@
   font-size: 0.8125rem;
 
   strong {
-    /* Betonung dezent: heller als der Fliesstext, aber weit weg vom harten Weiss (--text). */
-    color: #a7adc8;
+    /* Betonung dezent: heller als der Fliesstext, aber weit weg vom harten Weiss. */
+    color: var(--text-soft);
     font-weight: 600;
   }
 

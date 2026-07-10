@@ -37,6 +37,12 @@ describe('AdminLoginComponent', () => {
     fixture.detectChanges();
   });
 
+  it('zeigt die Fehmarn-Bildmarke im Login-Header', () => {
+    const element = fixture.nativeElement as HTMLElement;
+    expect(element.querySelector('.login-header app-brand-icon')).not.toBeNull();
+    expect(element.querySelector('.bullseye')).toBeNull();
+  });
+
   describe('Form validation', () => {
     it('should be invalid when empty', () => {
       expect(component.form.invalid).toBe(true);

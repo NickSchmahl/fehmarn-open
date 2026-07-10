@@ -9,18 +9,25 @@ import de.dart.fehmarnopen.entity.Anmeldung;
 import de.dart.fehmarnopen.entity.Disziplin;
 import de.dart.fehmarnopen.exception.DoppelterTeamnameException;
 import de.dart.fehmarnopen.exception.UngueltigeAnmeldungException;
+import de.dart.fehmarnopen.repository.AnmeldungRepository;
 import java.util.List;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+/**
+ * Fachliche Tests je öffentlicher Methode in eigener {@link Nested}-Klasse (Konvention siehe
+ * ADR 0012): die Klasse heißt nach der Methode ({@code NormalisiereTest}), die Testmethoden bleiben
+ * kurz und beschreiben nur noch das Verhalten.
+ */
 @ExtendWith(MockitoExtension.class)
 class TeamnameValidierungServiceTest {
 
     @Mock
-    private de.dart.fehmarnopen.repository.AnmeldungRepository anmeldungRepository;
+    private AnmeldungRepository anmeldungRepository;
 
     @InjectMocks
     private TeamnameValidierungService teamnameValidierungService;
@@ -33,110 +40,117 @@ class TeamnameValidierungServiceTest {
         return anmeldung;
     }
 
-    // ── Normalisierung ─────────────────────────────────────────────────────────
+    @Nested
+    class NormalisiereTest {
 
-    @Test
-    void normalisiere_entferntRandLeerzeichen() {
-        assertThat(teamnameValidierungService.normalisiere("  Team  ")).isEqualTo("Team");
+        @Test
+        void entferntRandLeerzeichen() {
+            assertThat(teamnameValidierungService.normalisiere("  Team  ")).isEqualTo("Team");
+        }
+
+        @Test
+        void fasstInterneWhitespacesZusammen() {
+            assertThat(teamnameValidierungService.normalisiere("a   b\tc")).isEqualTo("a b c");
+        }
+
+        @Test
+        void leerErgibtNull() {
+            assertThat(teamnameValidierungService.normalisiere("   ")).isNull();
+        }
+
+        @Test
+        void nullErgibtNull() {
+            assertThat(teamnameValidierungService.normalisiere(null)).isNull();
+        }
     }
 
-    @Test
-    void normalisiere_fasstInterneWhitespacesZusammen() {
-        assertThat(teamnameValidierungService.normalisiere("a   b\tc")).isEqualTo("a b c");
-    }
+    @Nested
+    class NormalisiereUndPruefeTest {
 
-    @Test
-    void normalisiere_leerOderNull_ergibtNull() {
-        assertThat(teamnameValidierungService.normalisiere("   ")).isNull();
-        assertThat(teamnameValidierungService.normalisiere(null)).isNull();
-    }
+        @Test
+        void genau20ZeichenIstGueltig() {
+            when(anmeldungRepository.findByDisziplinAndAbgemeldetFalse(Disziplin.HERRENDOPPEL))
+                    .thenReturn(List.of());
+            String zwanzig = "12345678901234567890";
 
-    // ── Länge ──────────────────────────────────────────────────────────────────
+            assertThat(teamnameValidierungService.normalisiereUndPruefe(Disziplin.HERRENDOPPEL, zwanzig, null))
+                    .isEqualTo(zwanzig);
+        }
 
-    @Test
-    void pruefe_genau20Zeichen_istGueltig() {
-        when(anmeldungRepository.findByDisziplinAndAbgemeldetFalse(Disziplin.HERRENDOPPEL))
-                .thenReturn(List.of());
-        String zwanzig = "12345678901234567890";
+        @Test
+        void ueber20ZeichenWirdAbgelehnt() {
+            assertThatThrownBy(() -> teamnameValidierungService.normalisiereUndPruefe(
+                            Disziplin.HERRENDOPPEL, "123456789012345678901", null))
+                    .isInstanceOf(UngueltigeAnmeldungException.class);
+        }
 
-        String ergebnis = teamnameValidierungService.normalisiereUndPruefe(Disziplin.HERRENDOPPEL, zwanzig, null);
+        @Test
+        void laengeGiltNachNormalisierung() {
+            when(anmeldungRepository.findByDisziplinAndAbgemeldetFalse(Disziplin.HERRENDOPPEL))
+                    .thenReturn(List.of());
+            // Roh 25 Zeichen (> 20), nach Zusammenfassen der Leerzeichen aber nur "aaaaa aaaaa aaaaa" = 17.
+            String rohZuLang = "aaaaa     aaaaa     aaaaa";
 
-        assertThat(ergebnis).isEqualTo(zwanzig);
-    }
+            assertThatCode(() ->
+                            teamnameValidierungService.normalisiereUndPruefe(Disziplin.HERRENDOPPEL, rohZuLang, null))
+                    .doesNotThrowAnyException();
+        }
 
-    @Test
-    void pruefe_21Zeichen_wirdAbgelehnt() {
-        assertThatThrownBy(() -> teamnameValidierungService.normalisiereUndPruefe(
-                        Disziplin.HERRENDOPPEL, "123456789012345678901", null))
-                .isInstanceOf(UngueltigeAnmeldungException.class);
-    }
+        @Test
+        void gleicherNameGleicheDisziplinWirft() {
+            when(anmeldungRepository.findByDisziplinAndAbgemeldetFalse(Disziplin.HERRENDOPPEL))
+                    .thenReturn(List.of(anmeldungMitTeamname(1L, "Die Bullseye Boys")));
 
-    @Test
-    void pruefe_laengeGiltNachNormalisierung() {
-        when(anmeldungRepository.findByDisziplinAndAbgemeldetFalse(Disziplin.HERRENDOPPEL))
-                .thenReturn(List.of());
-        // Roh 25 Zeichen (> 20), aber nach Zusammenfassen der Leerzeichen nur "aaaaa aaaaa aaaaa" = 17.
-        String rohZuLang = "aaaaa     aaaaa     aaaaa";
+            assertThatThrownBy(() -> teamnameValidierungService.normalisiereUndPruefe(
+                            Disziplin.HERRENDOPPEL, "Die Bullseye Boys", null))
+                    .isInstanceOf(DoppelterTeamnameException.class);
+        }
 
-        assertThatCode(() -> teamnameValidierungService.normalisiereUndPruefe(Disziplin.HERRENDOPPEL, rohZuLang, null))
-                .doesNotThrowAnyException();
-    }
+        @Test
+        void gleicherNameCaseInsensitivInklUmlautWirft() {
+            when(anmeldungRepository.findByDisziplinAndAbgemeldetFalse(Disziplin.HERRENDOPPEL))
+                    .thenReturn(List.of(anmeldungMitTeamname(1L, "Bär")));
 
-    // ── Eindeutigkeit ───────────────────────────────────────────────────────────
+            assertThatThrownBy(
+                            () -> teamnameValidierungService.normalisiereUndPruefe(Disziplin.HERRENDOPPEL, "BÄR", null))
+                    .isInstanceOf(DoppelterTeamnameException.class);
+        }
 
-    @Test
-    void pruefe_gleicherNameInDerselbenDisziplin_wirftDoppelterTeamname() {
-        when(anmeldungRepository.findByDisziplinAndAbgemeldetFalse(Disziplin.HERRENDOPPEL))
-                .thenReturn(List.of(anmeldungMitTeamname(1L, "Die Bullseye Boys")));
+        @Test
+        void gleicherNameNachNormalisierungWirft() {
+            when(anmeldungRepository.findByDisziplinAndAbgemeldetFalse(Disziplin.HERRENDOPPEL))
+                    .thenReturn(List.of(anmeldungMitTeamname(1L, "Team Eins")));
 
-        assertThatThrownBy(() -> teamnameValidierungService.normalisiereUndPruefe(
-                        Disziplin.HERRENDOPPEL, "Die Bullseye Boys", null))
-                .isInstanceOf(DoppelterTeamnameException.class);
-    }
+            assertThatThrownBy(() -> teamnameValidierungService.normalisiereUndPruefe(
+                            Disziplin.HERRENDOPPEL, "  team   eins ", null))
+                    .isInstanceOf(DoppelterTeamnameException.class);
+        }
 
-    @Test
-    void pruefe_gleicherNameCaseInsensitiv_inklUmlaut_wirft() {
-        when(anmeldungRepository.findByDisziplinAndAbgemeldetFalse(Disziplin.HERRENDOPPEL))
-                .thenReturn(List.of(anmeldungMitTeamname(1L, "Bär")));
+        @Test
+        void gleicherNameAndereDisziplinIstErlaubt() {
+            // Es wird nur die eigene Disziplin abgefragt – dort kein Treffer.
+            when(anmeldungRepository.findByDisziplinAndAbgemeldetFalse(Disziplin.DAMENDOPPEL))
+                    .thenReturn(List.of());
 
-        assertThatThrownBy(() -> teamnameValidierungService.normalisiereUndPruefe(Disziplin.HERRENDOPPEL, "BÄR", null))
-                .isInstanceOf(DoppelterTeamnameException.class);
-    }
+            assertThatCode(() -> teamnameValidierungService.normalisiereUndPruefe(
+                            Disziplin.DAMENDOPPEL, "Die Bullseye Boys", null))
+                    .doesNotThrowAnyException();
+        }
 
-    @Test
-    void pruefe_gleicherNameNachNormalisierung_wirft() {
-        when(anmeldungRepository.findByDisziplinAndAbgemeldetFalse(Disziplin.HERRENDOPPEL))
-                .thenReturn(List.of(anmeldungMitTeamname(1L, "Team Eins")));
+        @Test
+        void ausschlussIdIgnoriertEigeneAnmeldung() {
+            // Nur die eigene (id=1) trägt den Namen – mit ausschlussId=1 keine Kollision (Reaktivierung).
+            when(anmeldungRepository.findByDisziplinAndAbgemeldetFalse(Disziplin.HERRENDOPPEL))
+                    .thenReturn(List.of(anmeldungMitTeamname(1L, "Team")));
 
-        assertThatThrownBy(() -> teamnameValidierungService.normalisiereUndPruefe(
-                        Disziplin.HERRENDOPPEL, "  team   eins ", null))
-                .isInstanceOf(DoppelterTeamnameException.class);
-    }
+            assertThatCode(() -> teamnameValidierungService.normalisiereUndPruefe(Disziplin.HERRENDOPPEL, "Team", 1L))
+                    .doesNotThrowAnyException();
+        }
 
-    @Test
-    void pruefe_gleicherNameAndereDisziplin_istGueltig() {
-        // Es wird nur die eigene Disziplin abgefragt – dort kein Treffer.
-        when(anmeldungRepository.findByDisziplinAndAbgemeldetFalse(Disziplin.DAMENDOPPEL))
-                .thenReturn(List.of());
-
-        assertThatCode(() -> teamnameValidierungService.normalisiereUndPruefe(
-                        Disziplin.DAMENDOPPEL, "Die Bullseye Boys", null))
-                .doesNotThrowAnyException();
-    }
-
-    @Test
-    void pruefe_ausschlussId_ignoriertEigeneAnmeldung() {
-        // Nur die eigene (id=1) trägt den Namen – mit ausschlussId=1 keine Kollision (Reaktivierung).
-        when(anmeldungRepository.findByDisziplinAndAbgemeldetFalse(Disziplin.HERRENDOPPEL))
-                .thenReturn(List.of(anmeldungMitTeamname(1L, "Team")));
-
-        assertThatCode(() -> teamnameValidierungService.normalisiereUndPruefe(Disziplin.HERRENDOPPEL, "Team", 1L))
-                .doesNotThrowAnyException();
-    }
-
-    @Test
-    void pruefe_ohneTeamname_ergibtNullUndFragtNichtAb() {
-        assertThat(teamnameValidierungService.normalisiereUndPruefe(Disziplin.HERRENEINZEL, null, null))
-                .isNull();
+        @Test
+        void ohneTeamnameErgibtNullOhneAbfrage() {
+            assertThat(teamnameValidierungService.normalisiereUndPruefe(Disziplin.HERRENEINZEL, null, null))
+                    .isNull();
+        }
     }
 }

@@ -29,6 +29,9 @@ Schwerpunkt auf **Unit + Integration**. E2E bewusst sparsam (teuer, langsam, br�
 
 **Konventionen Backend**
 - Testklasse `XyzTest` neben der Produktivklasse im selben Package.
+- **Fachliche Tests** (Service-Kernlogik): je Methode-unter-Test eine `@Nested`-Klasse, benannt
+  nach der Methode (`NormalisiereTest`), mit kurzen Verhaltens-Testnamen darin – siehe
+  [ADR 0012](../adr/0012-nested-tests-fachlogik.md), Referenz `TeamnameValidierungServiceTest`.
 - **Arrange–Act–Assert**, ein logischer Assert-Block pro Testfall.
 - Deterministisch: Zeit über `Clock`-Bean injizierbar machen, kein `LocalDateTime.now()`
   hart im Code (Roadmap-Punkt, falls noch vorhanden).

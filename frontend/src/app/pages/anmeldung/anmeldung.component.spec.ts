@@ -384,6 +384,60 @@ describe('AnmeldungComponent', () => {
     expect(component.successMsg()).toContain('Anmeldung erfolgreich');
   });
 
+  it('normalisiert den Teamnamen im Payload (Trim + interne Whitespaces)', () => {
+    waehleDisziplin(HERRENDOPPEL);
+    component.disziplinGroup(HERRENDOPPEL).get('teamName')?.setValue('  Die   Bullseye  Boys  ');
+    setzeMitRadikalId(HERRENDOPPEL, 0, 'Max', 'Mustermann');
+    setzeMitRadikalId(HERRENDOPPEL, 1, 'Tom', 'Test');
+
+    component.onSubmit();
+
+    const req = httpMock.expectOne('/api/anmeldung');
+    const body = req.request.body as AnmeldungPayload;
+    expect(body.disziplinen[0].teamName).toBe('Die Bullseye Boys');
+    req.flush({});
+  });
+
+  it('lehnt einen Teamnamen über 20 Zeichen ab (Feld-Fehler, kein Request)', () => {
+    waehleDisziplin(HERRENDOPPEL);
+    component.disziplinGroup(HERRENDOPPEL).get('teamName')?.setValue('123456789012345678901'); // 21 Zeichen
+    setzeMitRadikalId(HERRENDOPPEL, 0, 'Max', 'Mustermann');
+    setzeMitRadikalId(HERRENDOPPEL, 1, 'Tom', 'Test');
+
+    component.onSubmit();
+
+    expect(component.form.invalid).toBe(true);
+    expect(component.teamNameLaengeFehler(HERRENDOPPEL)).toBe(true);
+    httpMock.expectNone('/api/anmeldung');
+  });
+
+  it('zeigt eine Teamname-Dublette (409) am richtigen Feld statt als Banner', () => {
+    waehleDisziplin(HERRENDOPPEL);
+    component.disziplinGroup(HERRENDOPPEL).get('teamName')?.setValue('Die Bullseye Boys');
+    setzeMitRadikalId(HERRENDOPPEL, 0, 'Max', 'Mustermann');
+    setzeMitRadikalId(HERRENDOPPEL, 1, 'Tom', 'Test');
+
+    component.onSubmit();
+
+    const req = httpMock.expectOne('/api/anmeldung');
+    req.flush(
+      {
+        status: 409,
+        message: 'Teamname ist in dieser Disziplin bereits vergeben: Die Bullseye Boys',
+        errors: [
+          {
+            field: 'HERRENDOPPEL',
+            message: 'Teamname ist in dieser Disziplin bereits vergeben: Die Bullseye Boys',
+          },
+        ],
+      },
+      { status: 409, statusText: 'Conflict' },
+    );
+
+    expect(component.teamNameDuplikatText(HERRENDOPPEL)).toContain('bereits vergeben');
+    expect(component.errorMessage()).toBeNull();
+  });
+
   // ── Preisberechnung (10 € pro Spieler) ────────────────────────────────────
 
   function preisTexte(): string[] {

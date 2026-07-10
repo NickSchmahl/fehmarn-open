@@ -46,6 +46,14 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(ErrorResponse.of(409, ex.getMessage()));
     }
 
+    @ExceptionHandler(DoppelterTeamnameException.class)
+    public ResponseEntity<ErrorResponse> handleDoppelterTeamname(DoppelterTeamnameException ex) {
+        // Disziplin als Feldkennung mitgeben, damit das Frontend den Fehler dem richtigen
+        // Teamname-Feld zuordnen kann (siehe ADR 0011).
+        FieldError feld = new FieldError(ex.getDisziplin().name(), ex.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(ErrorResponse.of(409, ex.getMessage(), List.of(feld)));
+    }
+
     @ExceptionHandler(NichtGefundenException.class)
     public ResponseEntity<ErrorResponse> handleNichtGefunden(NichtGefundenException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ErrorResponse.of(404, ex.getMessage()));

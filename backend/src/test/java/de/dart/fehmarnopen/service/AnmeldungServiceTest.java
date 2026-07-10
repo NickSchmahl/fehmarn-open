@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.*;
 
 import de.dart.fehmarnopen.dto.AdminUebersichtResponse;
@@ -16,6 +17,7 @@ import de.dart.fehmarnopen.entity.Anmeldung;
 import de.dart.fehmarnopen.entity.Disziplin;
 import de.dart.fehmarnopen.entity.Spieler;
 import de.dart.fehmarnopen.exception.DoppelteAnmeldungException;
+import de.dart.fehmarnopen.exception.DoppelterTeamnameException;
 import de.dart.fehmarnopen.exception.NichtGefundenException;
 import de.dart.fehmarnopen.exception.UngueltigeAnmeldungException;
 import de.dart.fehmarnopen.mapper.UebersichtMapper;
@@ -38,6 +40,10 @@ class AnmeldungServiceTest {
     // Blackbox: die Validierungsregeln selbst sind in SpielerValidierungServiceTest abgedeckt.
     @Mock
     private SpielerValidierungService spielerValidierungService;
+
+    // Blackbox: die Teamname-Regeln selbst sind in TeamnameValidierungServiceTest abgedeckt.
+    @Mock
+    private TeamnameValidierungService teamnameValidierungService;
 
     // Blackbox: die Gruppier-/Sortierlogik ist in UebersichtMapperTest abgedeckt.
     @Mock
@@ -81,15 +87,45 @@ class AnmeldungServiceTest {
     }
 
     @Test
-    void anmelden_mitTeamDisziplin_setztTeamNameUndAlleSpieler() {
+    void anmelden_mitTeamDisziplin_setztNormalisiertenTeamNameUndAlleSpieler() {
         when(anmeldungRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        // Der Validierungsservice liefert den normalisierten Namen zurück, der gespeichert wird.
+        when(teamnameValidierungService.normalisiereUndPruefe(
+                        eq(Disziplin.HERRENDOPPEL), eq(" Die  Bullseye Boys "), isNull()))
+                .thenReturn("Die Bullseye Boys");
         AnmeldungRequest request = new AnmeldungRequest(List.of(new DisziplinAnmeldung(
-                Disziplin.HERRENDOPPEL, "Die Bullseye Boys", List.of(spieler("Max", "M"), spieler("Tim", "T")))));
+                Disziplin.HERRENDOPPEL, " Die  Bullseye Boys ", List.of(spieler("Max", "M"), spieler("Tim", "T")))));
 
         List<Anmeldung> result = anmeldungService.anmelden(request);
 
         assertThat(result.get(0).getTeamName()).isEqualTo("Die Bullseye Boys");
         assertThat(result.get(0).getSpieler()).hasSize(2);
+    }
+
+    @Test
+    void anmelden_beiTeamnameDublette_speichertNichts() {
+        when(teamnameValidierungService.normalisiereUndPruefe(eq(Disziplin.HERRENDOPPEL), any(), isNull()))
+                .thenThrow(new DoppelterTeamnameException(Disziplin.HERRENDOPPEL, "Team"));
+        AnmeldungRequest request = new AnmeldungRequest(List.of(new DisziplinAnmeldung(
+                Disziplin.HERRENDOPPEL, "Team", List.of(spieler("Max", "M"), spieler("Tim", "T")))));
+
+        assertThatThrownBy(() -> anmeldungService.anmelden(request)).isInstanceOf(DoppelterTeamnameException.class);
+
+        verify(anmeldungRepository, never()).save(any());
+    }
+
+    @Test
+    void reaktivieren_beiTeamnameKonflikt_wirftUndSpeichertNicht() {
+        Anmeldung anmeldung = anmeldung(Disziplin.HERRENDOPPEL, "Team", spielerEntity("Max", "M"));
+        anmeldung.setAbgemeldet(true);
+        when(anmeldungRepository.findById(7L)).thenReturn(Optional.of(anmeldung));
+        when(teamnameValidierungService.normalisiereUndPruefe(eq(Disziplin.HERRENDOPPEL), eq("Team"), eq(7L)))
+                .thenThrow(new DoppelterTeamnameException(Disziplin.HERRENDOPPEL, "Team"));
+
+        assertThatThrownBy(() -> anmeldungService.reaktivieren(7L)).isInstanceOf(DoppelterTeamnameException.class);
+
+        assertThat(anmeldung.isAbgemeldet()).isTrue();
+        verify(anmeldungRepository, never()).save(any());
     }
 
     @Test

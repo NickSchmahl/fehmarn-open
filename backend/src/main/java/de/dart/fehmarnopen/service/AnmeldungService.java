@@ -25,6 +25,7 @@ public class AnmeldungService {
 
     private final AnmeldungRepository anmeldungRepository;
     private final SpielerValidierungService spielerValidierungService;
+    private final TeamnameValidierungService teamnameValidierungService;
     private final UebersichtMapper uebersichtMapper;
 
     @Transactional
@@ -36,10 +37,12 @@ public class AnmeldungService {
     private Anmeldung anmeldenFuerDisziplin(AnmeldungRequest.DisziplinAnmeldung eingabe) {
         List<Spieler> spieler = eingabe.spieler().stream().map(this::zuSpieler).toList();
         spielerValidierungService.validiere(eingabe.disziplin(), spieler);
+        String teamName =
+                teamnameValidierungService.normalisiereUndPruefe(eingabe.disziplin(), eingabe.teamName(), null);
 
         Anmeldung anmeldung = new Anmeldung();
         anmeldung.setDisziplin(eingabe.disziplin());
-        anmeldung.setTeamName(eingabe.teamName());
+        anmeldung.setTeamName(teamName);
         anmeldung.setSpieler(spieler);
 
         return anmeldungRepository.save(anmeldung);
@@ -85,6 +88,10 @@ public class AnmeldungService {
     @Transactional
     public void reaktivieren(Long anmeldungId) {
         Anmeldung anmeldung = findeOderWirf(anmeldungId);
+        // Beim Reaktivieren erneut auf Teamname-Dubletten prüfen: der Name könnte inzwischen von einer
+        // anderen aktiven Anmeldung der Disziplin belegt sein (eigene ID ausgeschlossen).
+        teamnameValidierungService.normalisiereUndPruefe(
+                anmeldung.getDisziplin(), anmeldung.getTeamName(), anmeldungId);
         anmeldung.setAbgemeldet(false);
         anmeldung.setAbgemeldetAm(null);
         anmeldungRepository.save(anmeldung);

@@ -277,6 +277,23 @@ describe('Teilnehmer (admin)', () => {
     httpTesting.expectOne('/api/admin/teilnehmer').flush(adminResponse);
   });
 
+  it('zeigt bei Reaktivierungs-Konflikt (409) die Server-Meldung an', () => {
+    fixture.detectChanges();
+    httpTesting.expectOne('/api/admin/teilnehmer').flush(adminResponse);
+
+    component.reaktivieren(5);
+
+    const action = httpTesting.expectOne('/api/admin/anmeldung/5/reaktivieren');
+    action.flush(
+      { status: 409, message: 'Teamname ist in dieser Disziplin bereits vergeben: Team A' },
+      { status: 409, statusText: 'Conflict' },
+    );
+
+    expect(component.aktionsFehler()).toContain('bereits vergeben');
+    // Kein Reload nach Fehler.
+    httpTesting.expectNone('/api/admin/teilnehmer');
+  });
+
   it('filtert nach Suchbegriff über Spielernamen', () => {
     fixture.detectChanges();
     httpTesting.expectOne('/api/admin/teilnehmer').flush(adminResponse);

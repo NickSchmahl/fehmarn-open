@@ -4,3 +4,6 @@ databaseChangeLog:
   - include:
       file: changes/001-init.sql
       relativeToChangelogFile: true
+  - include:
+      file: changes/002-add-u18-disziplin.sql
+      relativeToChangelogFile: true

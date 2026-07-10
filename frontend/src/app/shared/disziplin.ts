@@ -1,7 +1,13 @@
 // Gemeinsames Disziplin-Modell, genutzt von Anmeldung und Teilnehmerübersicht.
 
 export type Disziplin =
-  'HERRENEINZEL' | 'DAMENEINZEL' | 'HERRENDOPPEL' | 'DAMENDOPPEL' | 'TRIPLE_MIX' | 'TEAMWETTBEWERB';
+  | 'TEAMWETTBEWERB'
+  | 'HERRENEINZEL'
+  | 'DAMENEINZEL'
+  | 'U18'
+  | 'TRIPLE_MIX'
+  | 'HERRENDOPPEL'
+  | 'DAMENDOPPEL';
 
 export interface DisziplinMeta {
   value: Disziplin;
@@ -10,9 +16,21 @@ export interface DisziplinMeta {
   teamName: boolean; // benötigt Teamname-Feld
   minSpieler: number; // Untergrenze Spielerzahl (deckt sich mit Backend-SpielerValidierungService)
   maxSpieler: number; // Obergrenze Spielerzahl
+  preisProSpieler: number; // Startgeld je Spieler in Euro (U18 ist kostenlos = 0)
 }
 
+// Reihenfolge chronologisch nach Turnierzeitpunkt (Flyer 2027) – schlägt überall durch,
+// wo Disziplinen gelistet werden.
 export const DISZIPLINEN: DisziplinMeta[] = [
+  {
+    value: 'TEAMWETTBEWERB',
+    label: 'Teamwettbewerb',
+    subtitle: 'Mindestens 4 Spieler',
+    teamName: true,
+    minSpieler: 4,
+    maxSpieler: 6,
+    preisProSpieler: 10,
+  },
   {
     value: 'HERRENEINZEL',
     label: 'Herreneinzel',
@@ -20,6 +38,7 @@ export const DISZIPLINEN: DisziplinMeta[] = [
     teamName: false,
     minSpieler: 1,
     maxSpieler: 1,
+    preisProSpieler: 10,
   },
   {
     value: 'DAMENEINZEL',
@@ -28,22 +47,16 @@ export const DISZIPLINEN: DisziplinMeta[] = [
     teamName: false,
     minSpieler: 1,
     maxSpieler: 1,
+    preisProSpieler: 10,
   },
   {
-    value: 'HERRENDOPPEL',
-    label: 'Herrendoppel',
+    value: 'U18',
+    label: 'U18-Turnier',
     subtitle: '',
-    teamName: true,
-    minSpieler: 2,
-    maxSpieler: 2,
-  },
-  {
-    value: 'DAMENDOPPEL',
-    label: 'Damendoppel',
-    subtitle: '',
-    teamName: true,
-    minSpieler: 2,
-    maxSpieler: 2,
+    teamName: false,
+    minSpieler: 1,
+    maxSpieler: 1,
+    preisProSpieler: 0,
   },
   {
     value: 'TRIPLE_MIX',
@@ -52,14 +65,25 @@ export const DISZIPLINEN: DisziplinMeta[] = [
     teamName: true,
     minSpieler: 3,
     maxSpieler: 4,
+    preisProSpieler: 10,
   },
   {
-    value: 'TEAMWETTBEWERB',
-    label: 'Teamwettbewerb',
-    subtitle: 'Mindestens 4 Spieler',
+    value: 'HERRENDOPPEL',
+    label: 'Herrendoppel',
+    subtitle: '',
     teamName: true,
-    minSpieler: 4,
-    maxSpieler: 6,
+    minSpieler: 2,
+    maxSpieler: 2,
+    preisProSpieler: 10,
+  },
+  {
+    value: 'DAMENDOPPEL',
+    label: 'Damendoppel',
+    subtitle: '',
+    teamName: true,
+    minSpieler: 2,
+    maxSpieler: 2,
+    preisProSpieler: 10,
   },
 ];
 

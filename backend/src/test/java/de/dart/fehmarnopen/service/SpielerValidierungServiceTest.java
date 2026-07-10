@@ -40,6 +40,17 @@ class SpielerValidierungServiceTest {
     }
 
     @Test
+    void u18_mitGenauEinemSpieler_istGueltig() {
+        assertThatCode(() -> validierung.validiere(Disziplin.U18, spieler(1))).doesNotThrowAnyException();
+    }
+
+    @Test
+    void u18_mitZweiSpielern_istUngueltig() {
+        assertThatThrownBy(() -> validierung.validiere(Disziplin.U18, spieler(2)))
+                .isInstanceOf(UngueltigeAnmeldungException.class);
+    }
+
+    @Test
     void herrendoppel_mitGenauZweiSpielern_istGueltig() {
         assertThatCode(() -> validierung.validiere(Disziplin.HERRENDOPPEL, spieler(2)))
                 .doesNotThrowAnyException();

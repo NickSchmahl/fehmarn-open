@@ -60,6 +60,28 @@ class SchemaMigrationTest {
     }
 
     @Test
+    void u18Anmeldung_istNachChangeset002GueltigUndPersistierbar() {
+        // Belegt, dass Changeset 002 die CHECK-Constraint der Spalte disziplin um U18 erweitert hat:
+        // ohne die Migration würde SQLite den INSERT mit SQLITE_CONSTRAINT_CHECK abweisen.
+        Spieler spieler = new Spieler();
+        spieler.setVorname("Nina");
+        spieler.setNachname("Nachwuchs");
+        spieler.setRadikalId("NN-1");
+
+        Anmeldung anmeldung = new Anmeldung();
+        anmeldung.setDisziplin(Disziplin.U18);
+        anmeldung.setSpieler(List.of(spieler));
+
+        Long id = entityManager.persistAndGetId(anmeldung, Long.class);
+        entityManager.flush();
+        entityManager.clear();
+
+        Anmeldung geladen = entityManager.find(Anmeldung.class, id);
+        assertThat(geladen.getDisziplin()).isEqualTo(Disziplin.U18);
+        assertThat(geladen.getSpieler()).hasSize(1);
+    }
+
+    @Test
     void turnierConfig_persistiertUndLiestAlleFelderZurueck() {
         TurnierConfig config = new TurnierConfig();
         config.setAnmeldungGesperrt(true);

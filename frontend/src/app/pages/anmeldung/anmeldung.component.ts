@@ -13,12 +13,11 @@ import { DISZIPLINEN } from '../../shared/disziplin';
 
 // ── Typen ────────────────────────────────────────────────────────────────────
 
-const PREIS_PRO_SPIELER = 10;
-
 /** Eine Zeile der Preisaufschlüsselung: eine gewählte Disziplin mit Spielerzahl und Betrag. */
 interface PreisPosten {
   label: string;
   spielerAnzahl: number;
+  preisProSpieler: number; // Startgeld je Spieler dieser Disziplin (0 = kostenlos, z. B. U18)
   betrag: number;
 }
 
@@ -113,7 +112,6 @@ export class AnmeldungComponent {
 
   // Öffentliche Metadaten für das Template
   readonly disziplinen = DISZIPLINEN;
-  readonly preisProSpieler = PREIS_PRO_SPIELER;
 
   // State
   loading = signal(false);
@@ -167,8 +165,9 @@ export class AnmeldungComponent {
   });
 
   /**
-   * Aufschlüsselung je gewählter Disziplin: jede erfasste Person kostet
-   * {@link PREIS_PRO_SPIELER} €, der Betrag richtet sich also nach der Spielerzahl.
+   * Aufschlüsselung je gewählter Disziplin: jede erfasste Person kostet das disziplin-abhängige
+   * Startgeld (`meta.preisProSpieler`), der Betrag richtet sich also nach der Spielerzahl.
+   * Kostenlose Disziplinen (z. B. U18) tragen 0 € bei.
    */
   preisPosten = computed<PreisPosten[]>(() => {
     const disziplinen = this._formValue().disziplinen as {
@@ -180,7 +179,12 @@ export class AnmeldungComponent {
       .filter(({ disziplin }) => disziplin.selected === true)
       .map(({ disziplin, meta }) => {
         const spielerAnzahl = disziplin.spieler.length;
-        return { label: meta.label, spielerAnzahl, betrag: spielerAnzahl * PREIS_PRO_SPIELER };
+        return {
+          label: meta.label,
+          spielerAnzahl,
+          preisProSpieler: meta.preisProSpieler,
+          betrag: spielerAnzahl * meta.preisProSpieler,
+        };
       });
   });
 

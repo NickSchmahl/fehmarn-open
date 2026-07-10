@@ -10,6 +10,7 @@ Qualitäts-/Vertrauensstrategie. Einstiegspunkt für Menschen **und** KI-Assiste
 | [`../AGENTS.md`](../AGENTS.md) | Haupt-Einstieg: Architektur, Stack, Konventionen (Kurzform) |
 | [`workflow.md`](workflow.md) | Zusammenarbeit Nick ↔ Assistent (Branches, PRs, Tickets, DoD) |
 | [`setup-github.md`](setup-github.md) | GitHub-Zugang für den Assistenten |
+| [`datenbank-schema-aendern.md`](datenbank-schema-aendern.md) | **DB-Schema ändern (Liquibase-Changeset, kein Reset) – Schritt für Schritt** |
 | [`deployment.md`](deployment.md) | Server, Deploy-Secrets & Hetzner-Console-Zugang |
 | [`requirements.md`](requirements.md) | Anforderungen + Ist/Soll-Abgleich |
 | [`backlog.md`](backlog.md) | Kurzfristige, priorisierte Aufgabenliste |
@@ -25,6 +26,7 @@ Qualitäts-/Vertrauensstrategie. Einstiegspunkt für Menschen **und** KI-Assiste
 | Ich will … | … dann hierhin |
 |------------|----------------|
 | eine neue Aufgabe festhalten | [`backlog.md`](backlog.md) bzw. [`tickets/quality-roadmap.md`](tickets/quality-roadmap.md) |
+| das **DB-Schema ändern** (Spalte, Constraint, Enum-Wert) | [`datenbank-schema-aendern.md`](datenbank-schema-aendern.md) – neuer Liquibase-Changeset, **kein Reset** |
 | eine Architektur-/Technikentscheidung dokumentieren | neuer ADR in [`adr/`](adr/) |
 | ein Feature beschreiben/ändern | passendes Dokument in [`features/`](features/) |
 | eine Qualitätsregel/Testkonvention festlegen | passendes Dokument in [`quality/`](quality/) |

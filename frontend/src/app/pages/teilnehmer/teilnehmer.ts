@@ -1,5 +1,5 @@
 import { Component, computed, inject, signal, OnInit } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Disziplin, disziplinLabel } from '../../shared/disziplin';
 import { AuthService } from '../../auth/service/auth.service';
 
@@ -120,6 +120,8 @@ export class Teilnehmer implements OnInit {
 
   readonly loading = signal(false);
   readonly error = signal(false);
+  // Fehler einer Admin-Aktion (z. B. 409 beim Reaktivieren wegen Teamname-Dublette).
+  readonly aktionsFehler = signal<string | null>(null);
   readonly aktiveDisziplin = signal<Filter>('ALLE');
 
   // Öffentlicher Modus
@@ -202,11 +204,24 @@ export class Teilnehmer implements OnInit {
   }
 
   reaktivieren(id: number): void {
+    this.aktionsFehler.set(null);
     this.http.post(`/api/admin/anmeldung/${id}/reaktivieren`, {}).subscribe({
       next: () => {
         this.ladeAdmin();
       },
+      // Reaktivieren kann an einer Teamname-Dublette scheitern (409) – Meldung anzeigen.
+      error: (err: unknown) => {
+        this.aktionsFehler.set(this.fehlerMeldung(err));
+      },
     });
+  }
+
+  private fehlerMeldung(err: unknown): string {
+    if (err instanceof HttpErrorResponse) {
+      const message = (err.error as { message?: unknown } | null)?.message;
+      if (typeof message === 'string') return message;
+    }
+    return 'Aktion fehlgeschlagen. Bitte später erneut versuchen.';
   }
 
   toggleAnwesenheit(id: number, anwesend: boolean): void {
@@ -235,6 +250,7 @@ export class Teilnehmer implements OnInit {
   private ladeAdmin(): void {
     this.loading.set(true);
     this.error.set(false);
+    this.aktionsFehler.set(null);
     this.http.get<AdminUebersicht>('/api/admin/teilnehmer').subscribe({
       next: (data) => {
         this.adminGruppen.set(data.disziplinen);

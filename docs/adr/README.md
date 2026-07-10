@@ -19,5 +19,7 @@ Entscheidungen bekommen ein neues ADR mit Status „ersetzt durch …".
 | [0008](0008-scope-reduktion-testabnahme.md) | Scope-Reduktion vor der ersten Testabnahme | Akzeptiert |
 | [0009](0009-liquibase-statt-ddl-auto.md) | Liquibase-Migrationen statt `ddl-auto` | Akzeptiert |
 | [0010](0010-tls-reverse-proxy.md) | HTTPS/TLS über Reverse Proxy (Caddy) | Akzeptiert |
+| [0011](0011-validierung-fachlich-im-service.md) | Fachliche Konflikt-Validierung im Service (409) statt Bean-Validation-Constraint | Akzeptiert |
+| [0012](0012-nested-tests-fachlogik.md) | `@Nested`-Testklassen je Methode für fachliche Tests | Akzeptiert |
 
 > Neuen ADR anlegen: nächste freie Nummer, Dateiname `NNNN-kurz-titel.md`, Zeile hier ergänzen.

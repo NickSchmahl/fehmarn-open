@@ -98,8 +98,16 @@
                     [class.field-input--error]="teamNameInvalid(i)"
                     placeholder="z. B. Die Bullseye Boys"
                   />
-                  @if (teamNameInvalid(i)) {
+                  @if (teamNameRequiredFehler(i)) {
                     <span class="field-error">Teamname ist erforderlich.</span>
+                  }
+                  @if (teamNameLaengeFehler(i)) {
+                    <span class="field-error"
+                      >Teamname darf höchstens {{ teamnameMaxLaenge }} Zeichen haben.</span
+                    >
+                  }
+                  @if (teamNameDuplikatText(i); as duplikatMeldung) {
+                    <span class="field-error">{{ duplikatMeldung }}</span>
                   }
                 </div>
               }

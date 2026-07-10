@@ -9,6 +9,10 @@ public record ErrorResponse(int status, String message, List<FieldError> errors,
         return new ErrorResponse(status, message, null, Instant.now());
     }
 
+    public static ErrorResponse of(int status, String message, List<FieldError> errors) {
+        return new ErrorResponse(status, message, errors, Instant.now());
+    }
+
     public static ErrorResponse ofValidation(List<FieldError> errors) {
         return new ErrorResponse(400, "Validierungsfehler", errors, Instant.now());
     }

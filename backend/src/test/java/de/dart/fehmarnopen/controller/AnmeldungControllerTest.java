@@ -14,6 +14,7 @@ import de.dart.fehmarnopen.entity.Anmeldung;
 import de.dart.fehmarnopen.entity.Disziplin;
 import de.dart.fehmarnopen.entity.Spieler;
 import de.dart.fehmarnopen.exception.DoppelteAnmeldungException;
+import de.dart.fehmarnopen.exception.DoppelterTeamnameException;
 import de.dart.fehmarnopen.exception.GlobalExceptionHandler;
 import de.dart.fehmarnopen.service.AnmeldungService;
 import java.time.LocalDate;
@@ -142,6 +143,23 @@ class AnmeldungControllerTest {
                         .content(jsonMapper.writeValueAsString(request)))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.message").value("Bereits für Disziplin angemeldet: HERRENEINZEL"));
+    }
+
+    @Test
+    void postAnmeldung_beiDoppeltemTeamname_sollConflictMitDisziplinFeldZurueckgeben() throws Exception {
+        AnmeldungRequest request = new AnmeldungRequest(List.of(new DisziplinAnmeldung(
+                Disziplin.HERRENDOPPEL, "Die Bullseye Boys", List.of(spielerRequest("Max"), spielerRequest("Tim")))));
+
+        when(anmeldungService.anmelden(any()))
+                .thenThrow(new DoppelterTeamnameException(Disziplin.HERRENDOPPEL, "Die Bullseye Boys"));
+
+        mockMvc.perform(post("/api/anmeldung")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonMapper.writeValueAsString(request)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.errors[0].field").value("HERRENDOPPEL"))
+                .andExpect(jsonPath("$.errors[0].message")
+                        .value("Teamname ist in dieser Disziplin bereits vergeben: Die Bullseye Boys"));
     }
 
     @Test

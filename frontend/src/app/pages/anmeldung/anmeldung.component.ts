@@ -8,7 +8,7 @@ import {
   ValidationErrors,
   Validators,
 } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { DISZIPLINEN } from '../../shared/disziplin';
 
 // ── Typen ────────────────────────────────────────────────────────────────────
@@ -46,6 +46,27 @@ function stringWert(group: AbstractControl, feld: string): string {
 /** Leere bzw. nur aus Leerzeichen bestehende Eingaben werden zu null (fürs Backend-DTO). */
 function leerZuNull(value: string): string | null {
   return value.trim() !== '' ? value : null;
+}
+
+/** Maximale Teamname-Länge (Radikal-Software-Limit), gemessen nach Normalisierung. */
+const TEAMNAME_MAX_LAENGE = 20;
+
+/**
+ * Teamname-Normalisierung wie im Backend (siehe TeamnameValidierungService): führende/abschließende
+ * Leerzeichen entfernen und interne Mehrfach-Whitespaces zu einem einzelnen zusammenfassen. Leere
+ * bzw. reine Whitespace-Eingaben ergeben null.
+ */
+function normalisiereTeamname(value: string): string | null {
+  const normalisiert = value.trim().replace(/\s+/g, ' ');
+  return normalisiert === '' ? null : normalisiert;
+}
+
+/** Feld-Validator: Teamname darf nach Normalisierung höchstens {@link TEAMNAME_MAX_LAENGE} Zeichen haben. */
+function teamnameMaxLaengeValidator(control: AbstractControl): ValidationErrors | null {
+  const value = typeof control.value === 'string' ? control.value : '';
+  const normalisiert = normalisiereTeamname(value);
+  if (normalisiert === null) return null;
+  return normalisiert.length > TEAMNAME_MAX_LAENGE ? { maxlaenge: TEAMNAME_MAX_LAENGE } : null;
 }
 
 /** Radikal ID: zwei Buchstaben (Initialen) + achtstelliges Geburtsdatum TTMMJJJJ (z. B. MM01011990). */
@@ -228,7 +249,7 @@ export class AnmeldungComponent {
 
     if (selected) {
       if (meta.teamName) {
-        teamNameCtrl?.setValidators([Validators.required]);
+        teamNameCtrl?.setValidators([Validators.required, teamnameMaxLaengeValidator]);
       }
       // Auf die Pflichtanzahl auffüllen (idempotent, falls bereits Zeilen vorhanden sind).
       while (spieler.length < meta.minSpieler) {
@@ -281,6 +302,24 @@ export class AnmeldungComponent {
     return ctrl !== null && ctrl.invalid && ctrl.touched;
   }
 
+  readonly teamnameMaxLaenge = TEAMNAME_MAX_LAENGE;
+
+  teamNameRequiredFehler(i: number): boolean {
+    const ctrl = this.disziplinGroup(i).get('teamName');
+    return ctrl !== null && ctrl.hasError('required') && ctrl.touched;
+  }
+
+  teamNameLaengeFehler(i: number): boolean {
+    const ctrl = this.disziplinGroup(i).get('teamName');
+    return ctrl !== null && ctrl.hasError('maxlaenge') && ctrl.touched;
+  }
+
+  /** Fachliche Dubletten-Meldung vom Server (per {@link zeigeTeamnameDuplikatAmFeld} gesetzt) oder null. */
+  teamNameDuplikatText(i: number): string | null {
+    const fehler: unknown = this.disziplinGroup(i).get('teamName')?.errors?.['duplikat'];
+    return typeof fehler === 'string' ? fehler : null;
+  }
+
   canAddSpieler(i: number): boolean {
     return this.spielerArray(i).length < DISZIPLINEN[i].maxSpieler;
   }
@@ -328,6 +367,9 @@ export class AnmeldungComponent {
   // ── Submit ───────────────────────────────────────────────────────────────
 
   onSubmit(): void {
+    // Alte Teamname-Dubletten-Fehler (vom Server gesetzt) zurücksetzen, damit sie das erneute
+    // Absenden nicht blockieren.
+    this.clearTeamnameDuplikatFehler();
     this.form.markAllAsTouched();
     if (this.form.invalid) return;
 
@@ -336,7 +378,7 @@ export class AnmeldungComponent {
       .filter(({ ctrl }) => ctrl.get('selected')?.value === true)
       .map(({ ctrl, meta }) => ({
         disziplin: meta.value,
-        teamName: leerZuNull(stringWert(ctrl, 'teamName')),
+        teamName: normalisiereTeamname(stringWert(ctrl, 'teamName')),
         spieler: (ctrl.get('spieler') as FormArray).controls.map((s) => this.toSpielerPayload(s)),
       }));
 
@@ -355,9 +397,43 @@ export class AnmeldungComponent {
       },
       error: (err: unknown) => {
         this.loading.set(false);
+        // Teamname-Dublette (409 mit Disziplin-Feldkennung) direkt am Feld anzeigen; sonst Banner.
+        if (this.zeigeTeamnameDuplikatAmFeld(err)) return;
         this.errorMessage.set(`Fehler bei der Anmeldung: ${extractFehlermeldung(err)}`);
       },
     });
+  }
+
+  /** Entfernt an allen Teamname-Feldern den serverseitig gesetzten `duplikat`-Fehler. */
+  private clearTeamnameDuplikatFehler(): void {
+    for (const gruppe of this.disziplinenArray.controls) {
+      const ctrl = gruppe.get('teamName');
+      if (ctrl?.hasError('duplikat')) {
+        ctrl.setErrors(null);
+        ctrl.updateValueAndValidity();
+      }
+    }
+  }
+
+  /**
+   * Wertet einen 409 mit Disziplin-Feldkennung aus (siehe ADR 0011) und setzt den Fehler am
+   * passenden Teamname-Control. Gibt true zurück, wenn der Fehler feldgenau behandelt wurde.
+   */
+  private zeigeTeamnameDuplikatAmFeld(err: unknown): boolean {
+    if (!(err instanceof HttpErrorResponse) || err.status !== 409) return false;
+    const errors = (err.error as { errors?: { field?: string; message?: string }[] } | null)
+      ?.errors;
+    const feld = errors?.[0];
+    if (!feld?.field) return false;
+    const index = DISZIPLINEN.findIndex((d) => d.value === feld.field);
+    if (index < 0) return false;
+    const ctrl = this.disziplinGroup(index).get('teamName');
+    if (!ctrl) return false;
+    ctrl.setErrors({
+      duplikat: feld.message ?? 'Teamname ist in dieser Disziplin bereits vergeben.',
+    });
+    ctrl.markAsTouched();
+    return true;
   }
 
   /** Baut das Spieler-DTO; je nach Umschalter wird Radikal ID oder Initialen+Geburtsdatum gesendet. */

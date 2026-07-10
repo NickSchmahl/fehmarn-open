@@ -22,6 +22,9 @@
       </div>
     } @else if (isAdmin()) {
       <!-- ══ Admin-Modus ═════════════════════════════════════════════════ -->
+      @if (aktionsFehler(); as meldung) {
+        <div class="alert-error" role="alert">{{ meldung }}</div>
+      }
       @if (adminGruppen().length === 0) {
         <div class="empty-state"><p>Noch keine Anmeldungen.</p></div>
       } @else {

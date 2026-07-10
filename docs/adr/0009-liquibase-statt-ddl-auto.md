@@ -31,6 +31,8 @@ Versionierte Migrationen mit **Liquibase**; Hibernate verwaltet das Schema nicht
 
 ## Konsequenzen
 
+> **Praktische Schritt-für-Schritt-Anleitung:** [`../datenbank-schema-aendern.md`](../datenbank-schema-aendern.md).
+
 - **Kontrolliertes, versioniertes Schema** — auch auf Prod-Daten anwendbar; kein Reset nach Go-Live.
 - **Workflow:** Jede Schema-Änderung = neues Changelog unter `db/changelog/changes/`, im
   `db.changelog-master.yaml` eingebunden. Entity-Änderung ohne Migration ist unvollständig.

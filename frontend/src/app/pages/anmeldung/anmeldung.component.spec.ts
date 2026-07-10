@@ -210,6 +210,50 @@ describe('AnmeldungComponent', () => {
     req.flush({});
   });
 
+  // ── Umschalter „keine Radikal ID": Werte erhalten ────────────────────────
+
+  it('behält den Radikal-ID-Wert beim Hin- und Herschalten des „keine ID"-Umschalters', () => {
+    waehleDisziplin(HERRENDOPPEL);
+    const g = component.spielerGroup(HERRENDOPPEL, 0);
+    g.get('radikalId')?.setValue('MM01011990');
+
+    g.get('hatKeineRadikalId')?.setValue(true);
+    component.toggleRadikalId(HERRENDOPPEL, 0);
+    g.get('hatKeineRadikalId')?.setValue(false);
+    component.toggleRadikalId(HERRENDOPPEL, 0);
+
+    expect(g.get('radikalId')?.value).toBe('MM01011990');
+  });
+
+  it('ist im „keine ID"-Modus ungültig, wenn nur eine alte Radikal ID, aber keine Initialen/Geburtsdatum vorliegen', () => {
+    waehleDisziplin(HERRENDOPPEL);
+    const g = component.spielerGroup(HERRENDOPPEL, 0);
+    g.get('vorname')?.setValue('Max');
+    g.get('nachname')?.setValue('Mustermann');
+    g.get('radikalId')?.setValue('MM01011990');
+    g.get('hatKeineRadikalId')?.setValue(true);
+    component.toggleRadikalId(HERRENDOPPEL, 0);
+
+    expect(g.hasError('radikalIdAngabeFehlt')).toBe(true);
+  });
+
+  it('blockiert nicht wegen unfertiger Radikal ID, wenn auf „keine ID" gewechselt und Initialen+Geburtsdatum ausgefüllt sind', () => {
+    waehleDisziplin(HERRENDOPPEL);
+    component.disziplinGroup(HERRENDOPPEL).get('teamName')?.setValue('Team X');
+    const g = component.spielerGroup(HERRENDOPPEL, 0);
+    g.get('vorname')?.setValue('Max');
+    g.get('nachname')?.setValue('Mustermann');
+    g.get('radikalId')?.setValue('MM01'); // unfertig/ungültig
+    g.get('hatKeineRadikalId')?.setValue(true);
+    component.toggleRadikalId(HERRENDOPPEL, 0);
+    g.get('initialen')?.setValue('MM');
+    g.get('geburtsdatum')?.setValue('1990-01-01');
+    setzeMitRadikalId(HERRENDOPPEL, 1, 'Tom', 'Test');
+
+    expect(g.valid).toBe(true);
+    expect(component.form.valid).toBe(true);
+  });
+
   // ── Format-Validierung Radikal ID / Geburtsdatum ──────────────────────────
 
   it('lehnt eine Radikal ID im falschen Format ab (Feldfehler, kein Request)', () => {

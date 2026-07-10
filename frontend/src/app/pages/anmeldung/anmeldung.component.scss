@@ -80,15 +80,15 @@
 /* ── Header ─────────────────────────────────────────────── */
 .anmeldung-header {
   text-align: center;
-  margin-bottom: 2.5rem;
+  margin-bottom: 1.5rem;
 }
 
 /* Bullseye (identisch zur Login-Page) */
 .bullseye {
   position: relative;
-  width: 56px;
-  height: 56px;
-  margin: 0 auto 1.25rem;
+  width: 40px;
+  height: 40px;
+  margin: 0 auto 0.75rem;
 }
 
 .ring {
@@ -105,19 +105,19 @@
 }
 .r2 {
   border-color: var(--text-dim);
-  inset: 8px;
+  inset: 6px;
   animation-delay: 0.2s;
 }
 .r3 {
   border-color: var(--accent);
-  inset: 17px;
+  inset: 12px;
   animation-delay: 0.4s;
 }
 
 .center-dot {
   position: absolute;
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
   background: var(--accent);
   border-radius: 50%;
   top: 50%;
@@ -139,19 +139,12 @@
 }
 
 .anmeldung-title {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--text);
-  margin: 0 0 0.25rem;
-}
-
-.anmeldung-subtitle {
-  font-size: 0.8125rem;
-  color: var(--text-muted);
   margin: 0;
-  letter-spacing: 0.04em;
 }
 
 /* ── Form ───────────────────────────────────────────────── */

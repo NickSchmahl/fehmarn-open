@@ -79,6 +79,17 @@ describe('Teilnehmer (öffentlich)', () => {
     expect(component).toBeTruthy();
   });
 
+  it('zeigt die Überschrift "Teilnehmer" ohne Untertitel', () => {
+    fixture.detectChanges();
+    httpTesting.expectOne('/api/teilnehmer').flush({ disziplinen: [] });
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.querySelector('.teilnehmer-title')?.textContent).toContain('Teilnehmer');
+    expect(host.querySelector('.teilnehmer-subtitle')).toBeNull();
+    expect(host.querySelector('.teilnehmer-header')?.textContent).not.toContain(
+      'Wer ist schon dabei',
+    );
+  });
+
   it('lädt die öffentliche Übersicht von GET /api/teilnehmer', () => {
     fixture.detectChanges();
 

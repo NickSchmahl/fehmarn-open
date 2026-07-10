@@ -22,6 +22,10 @@
     <exclude name="ConstructorCallsOverridableMethod"/>
     <!-- Zu rauschig: verbietet jede Zahl/String in if-Bedingungen. -->
     <exclude name="AvoidLiteralsInIfCondition"/>
+    <!-- Siehe Fail-Safe-Boundaries (Auth-Filter/Mailversand): broad catch intendiert.
+         Seit PMD 7.22 hier beheimatet (design.xml enthält nur noch einen
+         deprecated Alias, der von diesem Exclude nicht mehr getroffen wird). -->
+    <exclude name="AvoidCatchingGenericException"/>
   </rule>
 
   <!-- Gute-Praxis: ungenutzte Variablen/Parameter/Imports, System.out, etc. -->
@@ -29,8 +33,8 @@
     <!-- Guarded logging ist bei SLF4J-Parametrisierung ({}) unnötig. -->
     <exclude name="GuardLogStatement"/>
     <!-- JUnit-spezifisch, hier via Testkonventionen/andere Gates abgedeckt. -->
-    <exclude name="JUnitTestsShouldIncludeAssert"/>
-    <exclude name="JUnitTestContainsTooManyAsserts"/>
+    <exclude name="UnitTestShouldIncludeAssert"/>
+    <exclude name="UnitTestContainsTooManyAsserts"/>
   </rule>
 
   <!-- Design/Komplexität: zyklomatische Komplexität, zu lange Methoden, God-Class. -->
@@ -38,16 +42,15 @@
     <!-- Extrem opinioniert / bekannt rauschig. -->
     <exclude name="LawOfDemeter"/>
     <exclude name="LoosePackageCoupling"/>
-    <!-- Ein Return-Punkt-Dogma passt nicht zu Guard-Clauses (Fail-Fast). -->
-    <exclude name="OnlyOneReturn"/>
+    <!-- OnlyOneReturn (Ein-Return-Punkt-Dogma passt nicht zu Guard-Clauses/Fail-Fast)
+         liegt seit PMD 7 in category/java/codestyle.xml, das dieses Ruleset gar
+         nicht einbindet - die Regel ist daher ohnehin inaktiv, kein Exclude nötig. -->
     <!-- Import-/Kopplungsgrenzen erzwingt ArchUnit projektnäher. -->
     <exclude name="ExcessiveImports"/>
     <exclude name="TooManyMethods"/>
     <!-- Spring-Boot-Main-Klasse (@SpringBootApplication) hat zwingend main() +
          nicht-privaten Konstruktor (ist zugleich @Configuration) - kein Utility-Class. -->
     <exclude name="UseUtilityClass"/>
-    <!-- Siehe Fail-Safe-Boundaries (Auth-Filter/Mailversand): broad catch intendiert. -->
-    <exclude name="AvoidCatchingGenericException"/>
   </rule>
 
   <!-- Performance: String-Konkatenation in Schleifen, ineffiziente Muster. -->

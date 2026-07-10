@@ -26,4 +26,13 @@ describe('App', () => {
     expect(footerHrefs).toContain('/impressum');
     expect(footerHrefs).toContain('/datenschutz');
   });
+
+  it('zeigt die Fehmarn-Bildmarke im Header-Link', () => {
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+    const element = fixture.nativeElement as HTMLElement;
+    const mark = element.querySelector('.brand app-brand-icon');
+    expect(mark).not.toBeNull();
+    expect(element.querySelector('.brand-mark span')).toBeNull();
+  });
 });

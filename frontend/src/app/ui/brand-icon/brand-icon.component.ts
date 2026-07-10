@@ -14,7 +14,7 @@ import { Component } from '@angular/core';
     >
       <path
         class="brand-icon__island"
-        d="M8 34C6 26 14 20 22 19C30 18 34 12 42 13C52 14 58 22 56 30C55 37 48 41 44 45C39 50 34 52 26 51C17 50 10 43 8 34Z"
+        d="M8 32C8 20 20 10 34 10C46 10 58 18 58 28C58 36 52 42 44 40C40 39 38 44 34 48C24 52 12 46 8 36Z"
         fill="currentColor"
       />
       <circle

@@ -38,10 +38,11 @@
 
         <p class="hinweis radikal-hinweis" role="note">
           Die Radikal ID ist von <strong>jeder teilnehmenden Person</strong> anzugeben. Sie besteht
-          aus <strong>Initialen&nbsp;+&nbsp;Nummer</strong> (z.&nbsp;B. <code>MM-1234</code> für Max
-          Mustermann) und leitet sich aus <strong>Name und Geburtsdatum</strong> ab. Wer
-          <strong>noch keine Radikal ID</strong> hat, gibt stattdessen Initialen und Geburtsdatum an
-          – daraus wird eine erstellt.
+          aus <strong>Initialen&nbsp;+&nbsp;Geburtsdatum</strong> (z.&nbsp;B.
+          <code>MM01011990</code>
+          für Max Mustermann, geboren am 01.01.1990) und leitet sich aus
+          <strong>Name und Geburtsdatum</strong> ab. Wer <strong>noch keine Radikal ID</strong> hat,
+          gibt stattdessen Initialen und Geburtsdatum an – daraus wird eine erstellt.
         </p>
 
         @if (form.errors?.['noDisziplin'] && form.touched) {
@@ -176,12 +177,12 @@
                               radikalAngabeInvalid(i, j) ||
                               spielerFeldHatFehler(i, j, 'radikalId', 'pattern')
                             "
-                            placeholder="MM-1234"
+                            placeholder="MM01011990"
                           />
                           @if (spielerFeldHatFehler(i, j, 'radikalId', 'pattern')) {
                             <span class="field-error">
-                              Format: zwei Buchstaben, Bindestrich, vier Ziffern (z.&nbsp;B.
-                              MM-1234).
+                              Format: zwei Buchstaben und achtstelliges Geburtsdatum (z.&nbsp;B.
+                              MM01011990).
                             </span>
                           }
                         </div>

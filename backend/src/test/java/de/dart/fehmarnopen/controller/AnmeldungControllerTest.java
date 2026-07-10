@@ -43,7 +43,7 @@ class AnmeldungControllerTest {
     private AnmeldungService anmeldungService;
 
     private SpielerRequest spielerRequest(String vorname) {
-        return new SpielerRequest(vorname, "Mustermann", "MM-1234", null, null);
+        return new SpielerRequest(vorname, "Mustermann", "MM01011990", null, null);
     }
 
     private Anmeldung buildAnmeldung(Disziplin disziplin, String teamName, String... vornamen) {
@@ -119,7 +119,9 @@ class AnmeldungControllerTest {
     @Test
     void postAnmeldung_mitSpielerOhneVorname_sollBadRequestZurueckgeben() throws Exception {
         AnmeldungRequest request = new AnmeldungRequest(List.of(new DisziplinAnmeldung(
-                Disziplin.HERRENEINZEL, null, List.of(new SpielerRequest("", "Mustermann", "MM-1234", null, null)))));
+                Disziplin.HERRENEINZEL,
+                null,
+                List.of(new SpielerRequest("", "Mustermann", "MM01011990", null, null)))));
 
         mockMvc.perform(post("/api/anmeldung")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -150,10 +152,13 @@ class AnmeldungControllerTest {
 
     @Test
     void postAnmeldung_mitUngueltigerRadikalId_sollBadRequestMitFeldfehler() throws Exception {
-        // Radikal ID muss zwei Buchstaben, Bindestrich, vier Ziffern sein – "AB-12" ist zu kurz.
+        // Radikal ID muss zwei Buchstaben + achtstelliges Geburtsdatum sein – "MM-1234" (altes
+        // Format mit Bindestrich) ist jetzt ungültig.
         when(anmeldungService.anmelden(any())).thenReturn(List.of());
         AnmeldungRequest request = new AnmeldungRequest(List.of(new DisziplinAnmeldung(
-                Disziplin.HERRENEINZEL, null, List.of(new SpielerRequest("Max", "Mustermann", "AB-12", null, null)))));
+                Disziplin.HERRENEINZEL,
+                null,
+                List.of(new SpielerRequest("Max", "Mustermann", "MM-1234", null, null)))));
 
         mockMvc.perform(post("/api/anmeldung")
                         .contentType(MediaType.APPLICATION_JSON)

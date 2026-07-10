@@ -53,11 +53,26 @@ function leerZuNull(value: string): string | null {
 const RADIKAL_ID_MUSTER = /^[A-Za-z]{2}\d{8}$/;
 
 /**
+ * Feld-Validator für die Radikal ID. Im „keine ID"-Modus ist das Feld ausgeblendet – ein
+ * (ggf. unfertiger) Wert bleibt zwar erhalten, wird dann aber nicht gegen das Muster geprüft.
+ */
+function radikalIdPatternValidator(control: AbstractControl): ValidationErrors | null {
+  const parent = control.parent;
+  if (parent && parent.get('hatKeineRadikalId')?.value === true) return null;
+  const value = typeof control.value === 'string' ? control.value : '';
+  if (value === '') return null;
+  return RADIKAL_ID_MUSTER.test(value) ? null : { pattern: true };
+}
+
+/**
  * Feld-Validator fürs Geburtsdatum: erlaubt nur ein reales Datum mit vierstelligem Jahr
- * (`YYYY-MM-DD`) und kein Datum in der Zukunft. Leer ist ok – die Pflicht-Logik steckt im
- * Gruppen-Validator {@link radikalIdAngabeValidator}.
+ * (`YYYY-MM-DD`) und kein Datum in der Zukunft. Nur im „keine ID"-Modus relevant; sonst ist
+ * das Feld ausgeblendet und ein Restwert wird nicht geprüft. Leer ist ok – die Pflicht-Logik
+ * steckt im Gruppen-Validator {@link radikalIdAngabeValidator}.
  */
 function geburtsdatumValidator(control: AbstractControl): ValidationErrors | null {
+  const parent = control.parent;
+  if (!parent || parent.get('hatKeineRadikalId')?.value !== true) return null;
   const value: unknown = control.value;
   if (typeof value !== 'string' || value === '') return null;
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return { geburtsdatumUngueltig: true };
@@ -74,12 +89,13 @@ function geburtsdatumValidator(control: AbstractControl): ValidationErrors | nul
  * Initialen + Geburtsdatum, damit eine Radikal ID erstellt werden kann.
  */
 function radikalIdAngabeValidator(group: AbstractControl): ValidationErrors | null {
-  const radikalId = stringWert(group, 'radikalId').trim();
-  const initialen = stringWert(group, 'initialen').trim();
-  const geburtsdatum = stringWert(group, 'geburtsdatum');
-  if (radikalId !== '') return null;
-  if (initialen !== '' && geburtsdatum !== '') return null;
-  return { radikalIdAngabeFehlt: true };
+  const hatKeine = group.get('hatKeineRadikalId')?.value === true;
+  if (hatKeine) {
+    const initialen = stringWert(group, 'initialen').trim();
+    const geburtsdatum = stringWert(group, 'geburtsdatum');
+    return initialen !== '' && geburtsdatum !== '' ? null : { radikalIdAngabeFehlt: true };
+  }
+  return stringWert(group, 'radikalId').trim() !== '' ? null : { radikalIdAngabeFehlt: true };
 }
 
 // ── Component ────────────────────────────────────────────────────────────────
@@ -193,7 +209,7 @@ export class AnmeldungComponent {
         vorname: ['', [Validators.required]],
         nachname: ['', [Validators.required]],
         hatKeineRadikalId: [false],
-        radikalId: ['', [Validators.pattern(RADIKAL_ID_MUSTER)]],
+        radikalId: ['', [radikalIdPatternValidator]],
         initialen: [''],
         geburtsdatum: ['', [geburtsdatumValidator]],
       },
@@ -235,17 +251,15 @@ export class AnmeldungComponent {
   }
 
   /**
-   * Umschalter „Ich habe noch keine Radikal ID": leert die jeweils ausgeblendeten Felder,
-   * damit kein veralteter Wert ans Backend gesendet wird.
+   * Umschalter „Ich habe noch keine Radikal ID": Die Eingaben bleiben erhalten, damit man den
+   * Umschalter ausprobieren kann, ohne bereits Getipptes zu verlieren. Nicht relevante Felder
+   * werden erst beim Absenden ausgeblendet ({@link toSpielerPayload}); hier werden nur die nun
+   * ein-/ausgeblendeten Felder neu bewertet, damit veraltete Feldfehler verschwinden.
    */
   toggleRadikalId(i: number, j: number): void {
     const group = this.spielerGroup(i, j);
-    if (this.hatKeineRadikalId(i, j)) {
-      group.get('radikalId')?.setValue('');
-    } else {
-      group.get('initialen')?.setValue('');
-      group.get('geburtsdatum')?.setValue('');
-    }
+    group.get('radikalId')?.updateValueAndValidity();
+    group.get('geburtsdatum')?.updateValueAndValidity();
   }
 
   // ── Hilfsmethoden fürs Template ────────────────────────────────────────────

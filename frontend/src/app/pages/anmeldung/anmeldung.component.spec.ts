@@ -76,7 +76,7 @@ describe('AnmeldungComponent', () => {
     const group = component.spielerGroup(i, j);
     group.get('vorname')?.setValue(vorname);
     group.get('nachname')?.setValue(nachname);
-    group.get('radikalId')?.setValue(`${vorname[0]}${nachname[0]}-1234`);
+    group.get('radikalId')?.setValue(`${vorname[0]}${nachname[0]}01011990`);
   }
 
   function setzeOhneRadikalId(
@@ -118,10 +118,13 @@ describe('AnmeldungComponent', () => {
       .querySelector('.radikal-hinweis')
       ?.textContent.replace(/\u00a0/g, ' ');
     expect(text).toContain('jeder teilnehmenden Person');
-    expect(text).toContain('Initialen + Nummer');
-    expect(text).toContain('MM-1234');
+    expect(text).toContain('Initialen + Geburtsdatum');
+    expect(text).toContain('MM01011990');
+    expect(text).toContain('geboren am 01.01.1990');
     expect(text).toContain('Name und Geburtsdatum');
     expect(text).toContain('noch keine Radikal ID');
+    expect(text).not.toContain('Initialen + Nummer');
+    expect(text).not.toContain('MM-1234');
   });
 
   it('schreibt den Markennamen als „Radikal" (mit K), nicht „Radical"', () => {
@@ -221,7 +224,7 @@ describe('AnmeldungComponent', () => {
     const g = component.spielerGroup(HERRENDOPPEL, 1);
     g.get('vorname')?.setValue('Tom');
     g.get('nachname')?.setValue('Test');
-    g.get('radikalId')?.setValue('AB-12'); // zu wenige Ziffern
+    g.get('radikalId')?.setValue('MM-1234'); // altes Format mit Bindestrich, jetzt ungültig
 
     component.onSubmit();
 
@@ -237,16 +240,16 @@ describe('AnmeldungComponent', () => {
     const g = component.spielerGroup(HERRENDOPPEL, 1);
     g.get('vorname')?.setValue('Tom');
     g.get('nachname')?.setValue('Test');
-    g.get('radikalId')?.setValue('AB-12');
+    g.get('radikalId')?.setValue('MM-1234');
 
     component.onSubmit();
     fixture.detectChanges();
 
     const fehler = Array.from(host().querySelectorAll('.field-error')).map((e) => e.textContent);
-    expect(fehler.some((t) => t.includes('zwei Buchstaben, Bindestrich, vier Ziffern'))).toBe(true);
+    expect(fehler.some((t) => t.includes('achtstelliges Geburtsdatum'))).toBe(true);
   });
 
-  it('akzeptiert eine korrekt formatierte Radikal ID (zwei Buchstaben, Bindestrich, vier Ziffern)', () => {
+  it('akzeptiert eine korrekt formatierte Radikal ID (zwei Buchstaben + achtstelliges Geburtsdatum)', () => {
     waehleDisziplin(HERRENDOPPEL);
     component.disziplinGroup(HERRENDOPPEL).get('teamName')?.setValue('Team X');
     setzeMitRadikalId(HERRENDOPPEL, 0, 'Max', 'Mustermann');
@@ -311,7 +314,7 @@ describe('AnmeldungComponent', () => {
     expect(body.disziplinen[0].disziplin).toBe('HERRENDOPPEL');
     expect(body.disziplinen[0].teamName).toBe('Die Bullseye Boys');
     expect(body.disziplinen[0].spieler.length).toBe(2);
-    expect(body.disziplinen[0].spieler[0].radikalId).toBe('MM-1234');
+    expect(body.disziplinen[0].spieler[0].radikalId).toBe('MM01011990');
     req.flush({});
     expect(component.successMsg()).toContain('Anmeldung erfolgreich');
   });

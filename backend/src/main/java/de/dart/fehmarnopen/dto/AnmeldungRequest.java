@@ -28,9 +28,9 @@ public record AnmeldungRequest(
             @NotBlank(message = "Vorname ist Pflichtfeld") String vorname,
             @NotBlank(message = "Nachname ist Pflichtfeld") String nachname,
             @Pattern(
-                            regexp = "^[A-Za-z]{2}-\\d{4}$",
+                            regexp = "^[A-Za-z]{2}\\d{8}$",
                             message =
-                                    "Radikal ID muss zwei Buchstaben, Bindestrich und vier Ziffern sein (z. B. MM-1234)")
+                                    "Radikal ID muss zwei Buchstaben und ein achtstelliges Geburtsdatum sein (z. B. MM01011990)")
                     String radikalId,
             String initialen,
             @Past(message = "Geburtsdatum muss in der Vergangenheit liegen") LocalDate geburtsdatum) {}

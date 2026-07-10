@@ -49,8 +49,8 @@ function leerZuNull(value: string): string | null {
   return value.trim() !== '' ? value : null;
 }
 
-/** Radikal ID: zwei Buchstaben, Bindestrich, vier Ziffern (z. B. MM-1234). */
-const RADIKAL_ID_MUSTER = /^[A-Za-z]{2}-\d{4}$/;
+/** Radikal ID: zwei Buchstaben (Initialen) + achtstelliges Geburtsdatum TTMMJJJJ (z. B. MM01011990). */
+const RADIKAL_ID_MUSTER = /^[A-Za-z]{2}\d{8}$/;
 
 /**
  * Feld-Validator fürs Geburtsdatum: erlaubt nur ein reales Datum mit vierstelligem Jahr

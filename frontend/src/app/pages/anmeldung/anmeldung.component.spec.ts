@@ -102,11 +102,13 @@ describe('AnmeldungComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('zeigt im Untertitel den Zusatz "pro Person"', () => {
+  it('zeigt die Überschrift "Turnieranmeldung" ohne redundanten Untertitel', () => {
     fixture.detectChanges();
     const host = fixture.nativeElement as HTMLElement;
-    expect(host.querySelector('.anmeldung-subtitle')?.textContent).toContain(
-      'je Disziplin pro Person',
+    expect(host.querySelector('.anmeldung-title')?.textContent).toContain('Turnieranmeldung');
+    expect(host.querySelector('.anmeldung-subtitle')).toBeNull();
+    expect(host.querySelector('.anmeldung-header')?.textContent).not.toContain(
+      'Darts Turnierverwaltung',
     );
   });
 

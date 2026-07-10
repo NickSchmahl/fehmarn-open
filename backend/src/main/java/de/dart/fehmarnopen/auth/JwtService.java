@@ -5,6 +5,7 @@ import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.Date;
 import javax.crypto.SecretKey;
 import org.slf4j.Logger;
@@ -35,13 +36,13 @@ public final class JwtService {
     }
 
     public String generateToken(String username) {
-        var now = new Date();
-        var expiration = new Date(now.getTime() + expirationMs);
+        var now = Instant.now();
+        var expiration = now.plusMillis(expirationMs);
 
         return Jwts.builder()
                 .subject(username)
-                .issuedAt(now)
-                .expiration(expiration)
+                .issuedAt(Date.from(now))
+                .expiration(Date.from(expiration))
                 .signWith(secretKey)
                 .compact();
     }

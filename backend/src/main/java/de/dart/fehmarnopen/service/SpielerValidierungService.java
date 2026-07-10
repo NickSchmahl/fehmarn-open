@@ -17,7 +17,7 @@ public class SpielerValidierungService {
     public void validiere(Disziplin disziplin, List<Spieler> spieler) {
         int anzahlSpieler = spieler.size();
         switch (disziplin) {
-            case HERRENEINZEL, DAMENEINZEL -> pruefeSpielerzahl(disziplin, anzahlSpieler, 1, 1);
+            case HERRENEINZEL, DAMENEINZEL, U18 -> pruefeSpielerzahl(disziplin, anzahlSpieler, 1, 1);
             case HERRENDOPPEL, DAMENDOPPEL -> pruefeSpielerzahl(disziplin, anzahlSpieler, 2, 2);
             case TRIPLE_MIX -> pruefeSpielerzahl(disziplin, anzahlSpieler, 3, 4);
             case TEAMWETTBEWERB -> pruefeSpielerzahl(disziplin, anzahlSpieler, 4, 6);

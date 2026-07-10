@@ -1,12 +1,13 @@
 package de.dart.fehmarnopen.entity;
 
 public enum Disziplin {
+    TEAMWETTBEWERB("Teamwettbewerb"),
     HERRENEINZEL("Herreneinzel"),
     DAMENEINZEL("Dameneinzel"),
-    HERRENDOPPEL("Herrendoppel"),
-    DAMENDOPPEL("Damendoppel"),
+    U18("U18-Turnier"),
     TRIPLE_MIX("Triple Mix"),
-    TEAMWETTBEWERB("Teamwettbewerb");
+    HERRENDOPPEL("Herrendoppel"),
+    DAMENDOPPEL("Damendoppel");
 
     private final String label;
 

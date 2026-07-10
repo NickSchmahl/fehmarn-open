@@ -12,6 +12,7 @@ const HERRENEINZEL = DISZIPLINEN.findIndex((d) => d.value === 'HERRENEINZEL');
 const HERRENDOPPEL = DISZIPLINEN.findIndex((d) => d.value === 'HERRENDOPPEL');
 const TRIPLE_MIX = DISZIPLINEN.findIndex((d) => d.value === 'TRIPLE_MIX');
 const TEAMWETTBEWERB = DISZIPLINEN.findIndex((d) => d.value === 'TEAMWETTBEWERB');
+const U18 = DISZIPLINEN.findIndex((d) => d.value === 'U18');
 
 interface SpielerPayload {
   vorname: string;
@@ -141,6 +142,26 @@ describe('AnmeldungComponent', () => {
   });
 
   // ── Spielerzeilen je Disziplin ────────────────────────────────────────────
+
+  it('listet die 7 Disziplinen in Flyer-Reihenfolge mit U18 an vierter Stelle', () => {
+    expect(DISZIPLINEN.map((d) => d.value)).toEqual([
+      'TEAMWETTBEWERB',
+      'HERRENEINZEL',
+      'DAMENEINZEL',
+      'U18',
+      'TRIPLE_MIX',
+      'HERRENDOPPEL',
+      'DAMENDOPPEL',
+    ]);
+  });
+
+  it('zeigt bei U18 genau eine Spielerzeile und kein Teamname-Feld', () => {
+    waehleDisziplin(U18);
+    const host = fixture.nativeElement as HTMLElement;
+    expect(component.spielerArray(U18).length).toBe(1);
+    expect(host.querySelectorAll('.spieler-row').length).toBe(1);
+    expect(component.needsTeamName(U18)).toBe(false);
+  });
 
   it('zeigt bei Herrendoppel 2 Spielerzeilen und ein Teamname-Feld', () => {
     waehleDisziplin(HERRENDOPPEL);
@@ -394,6 +415,26 @@ describe('AnmeldungComponent', () => {
 
     klickeSpielerHinzufuegen(); // 3 → 4 Spieler
     expect(component.gesamtpreis()).toBe(40);
+  });
+
+  it('U18 ist kostenlos: Beitrag 0 € und Position „kostenlos"', () => {
+    waehleDisziplin(U18);
+    fixture.detectChanges();
+
+    expect(component.spielerArray(U18).length).toBe(1);
+    expect(component.needsTeamName(U18)).toBe(false);
+    expect(component.preisPosten()[0].betrag).toBe(0);
+    expect(component.gesamtpreis()).toBe(0);
+    expect(preisTexte().some((t) => t.includes('U18-Turnier') && t.includes('kostenlos'))).toBe(
+      true,
+    );
+  });
+
+  it('U18 (0 €) + Herreneinzel (10 €) ergeben Gesamt 10 €', () => {
+    waehleDisziplin(U18);
+    waehleDisziplin(HERRENEINZEL);
+
+    expect(component.gesamtpreis()).toBe(10);
   });
 
   it('zeigt die Aufschlüsselung je Disziplin und die Gesamtsumme an', () => {

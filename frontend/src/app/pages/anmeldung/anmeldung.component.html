@@ -73,7 +73,13 @@
                     </svg>
                   </span>
                   <span class="disziplin-name">{{ disziplin.label }}</span>
-                  <span class="disziplin-price">{{ preisProSpieler }}&nbsp;€ / Spieler</span>
+                  @if (disziplin.preisProSpieler > 0) {
+                    <span class="disziplin-price"
+                      >{{ disziplin.preisProSpieler }}&nbsp;€ / Spieler</span
+                    >
+                  } @else {
+                    <span class="disziplin-price">kostenlos</span>
+                  }
                 </div>
                 <span class="disziplin-subtitle">{{ disziplin.subtitle }}</span>
               </label>
@@ -272,11 +278,18 @@
         <div class="price-summary">
           @for (posten of preisPosten(); track posten.label) {
             <div class="price-row price-line">
-              <span class="price-label">
-                {{ posten.label }} · {{ posten.spielerAnzahl }} Spieler ×
-                {{ preisProSpieler }}&nbsp;€
-              </span>
-              <span class="price-amount">{{ posten.betrag }}&nbsp;€</span>
+              @if (posten.preisProSpieler > 0) {
+                <span class="price-label">
+                  {{ posten.label }} · {{ posten.spielerAnzahl }} Spieler ×
+                  {{ posten.preisProSpieler }}&nbsp;€
+                </span>
+                <span class="price-amount">{{ posten.betrag }}&nbsp;€</span>
+              } @else {
+                <span class="price-label"
+                  >{{ posten.label }} · {{ posten.spielerAnzahl }} Spieler</span
+                >
+                <span class="price-amount">kostenlos</span>
+              }
             </div>
           }
           <div class="price-row price-summary-total">

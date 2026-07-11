@@ -59,7 +59,8 @@ im kommenden Jahr statt.
   → Anwesenheitskontrolle. Das ist implementiert.
 - **Scope-Stand 2026-07-04** (siehe `docs/adr/0008-scope-reduktion-testabnahme.md`):
   - **Flyer-Upload** → umsetzen (vor Testabnahme), **QR-Code** → gewünscht.
-  - **Excel-Export** → verschoben. **Anmeldeschluss/`TurnierConfig`** → soll raus (toter Code).
+  - **Excel-Export** → verschoben. **Anmeldeschluss** → als Server-Config umgesetzt (#153, ADR 0013);
+    die tote `TurnierConfig`-Tabelle wurde entfernt.
   - **Selbst-Abmeldung** → gestrichen (Teil-Code bleibt liegen). **E-Mail/Mailversand** →
     per #113 vollständig entfernt (kein Mail-Layer, kein `email`-Feld mehr).
   Verifizierter Feature-Stand: `docs/features/`. Offene Punkte: `docs/tickets/quality-roadmap.md`.

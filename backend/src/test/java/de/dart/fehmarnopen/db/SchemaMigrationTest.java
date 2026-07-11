@@ -5,8 +5,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import de.dart.fehmarnopen.entity.Anmeldung;
 import de.dart.fehmarnopen.entity.Disziplin;
 import de.dart.fehmarnopen.entity.Spieler;
-import de.dart.fehmarnopen.entity.TurnierConfig;
-import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -79,21 +77,5 @@ class SchemaMigrationTest {
         Anmeldung geladen = entityManager.find(Anmeldung.class, id);
         assertThat(geladen.getDisziplin()).isEqualTo(Disziplin.U18);
         assertThat(geladen.getSpieler()).hasSize(1);
-    }
-
-    @Test
-    void turnierConfig_persistiertUndLiestAlleFelderZurueck() {
-        TurnierConfig config = new TurnierConfig();
-        config.setAnmeldungGesperrt(true);
-        config.setAnmeldeschlussDatum(LocalDateTime.of(2026, 8, 1, 18, 0));
-
-        Long id = entityManager.persistAndGetId(config, Long.class);
-        entityManager.flush();
-        entityManager.clear();
-
-        TurnierConfig geladen = entityManager.find(TurnierConfig.class, id);
-        assertThat(geladen.getId()).isNotNull();
-        assertThat(geladen.isAnmeldungGesperrt()).isTrue();
-        assertThat(geladen.getAnmeldeschlussDatum()).isEqualTo(LocalDateTime.of(2026, 8, 1, 18, 0));
     }
 }

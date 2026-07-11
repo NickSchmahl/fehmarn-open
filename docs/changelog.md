@@ -5,6 +5,18 @@ die feingranulare Git-Historie um **Kontext und Begründung** über einzelne PRs
 hinweg. Architekturentscheidungen liegen als [ADR](adr/), Ticket-Status in
 [tickets/quality-roadmap.md](tickets/quality-roadmap.md).
 
+## 2026-07-11 — Anmeldeschluss 28.02.2027 (#153)
+
+Nach dem Anmeldeschluss sind keine Online-Anmeldungen mehr möglich, damit Finn planen kann.
+
+- **Deadline als Server-Config:** `fehmarnopen.anmeldung.anmeldeschluss` (Default `2027-02-28`,
+  ENV `ANMELDESCHLUSS`), ausgewertet im `AnmeldeschlussService` (Zeitzone Europe/Berlin, inklusive
+  bis Tagesende). Begründung Config-statt-DB in [ADR 0013](adr/0013-anmeldeschluss-config-statt-db.md).
+- **Backend-Sperre:** `POST /api/anmeldung` nach Ablauf → `AnmeldungGesperrtException` → **403**.
+- **Frontend:** `GET /api/anmeldung/status` steuert die Anmeldeseite – nach Ablauf erscheint eine
+  Infoseite statt des Formulars.
+- **Aufräumen:** die ungenutzte Tabelle `turnier_config` + Entity entfernt (Changeset `003`).
+
 ## 2026-07-06 — Status-Abgleich Quality-Gate: Issues geradegezogen
 
 Kontrolle, ob wirklich alles zum Quality-Gate auf `main` liegt, und Aufräumen der

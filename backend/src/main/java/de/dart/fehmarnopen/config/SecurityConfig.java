@@ -39,6 +39,8 @@ public class SecurityConfig {
                                 .permitAll()
                                 .requestMatchers(HttpMethod.POST, "/api/anmeldung")
                                 .permitAll()
+                                .requestMatchers(HttpMethod.GET, "/api/anmeldung/status")
+                                .permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/teilnehmer")
                                 .permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/flyer")

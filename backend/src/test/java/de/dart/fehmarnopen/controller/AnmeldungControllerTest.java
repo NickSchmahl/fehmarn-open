@@ -2,6 +2,7 @@ package de.dart.fehmarnopen.controller;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -16,6 +17,7 @@ import de.dart.fehmarnopen.entity.Spieler;
 import de.dart.fehmarnopen.exception.DoppelteAnmeldungException;
 import de.dart.fehmarnopen.exception.DoppelterTeamnameException;
 import de.dart.fehmarnopen.exception.GlobalExceptionHandler;
+import de.dart.fehmarnopen.service.AnmeldeschlussService;
 import de.dart.fehmarnopen.service.AnmeldungService;
 import java.time.LocalDate;
 import java.util.List;
@@ -42,6 +44,9 @@ class AnmeldungControllerTest {
 
     @MockitoBean
     private AnmeldungService anmeldungService;
+
+    @MockitoBean
+    private AnmeldeschlussService anmeldeschlussService;
 
     private SpielerRequest spielerRequest(String vorname) {
         return new SpielerRequest(vorname, "Mustermann", "MM01011990", null, null);
@@ -201,5 +206,26 @@ class AnmeldungControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("Validierungsfehler"))
                 .andExpect(jsonPath("$.errors[?(@.field =~ /.*geburtsdatum/)]").exists());
+    }
+
+    @Test
+    void getStatus_wennOffen_sollOffenUndDatumZurueckgeben() throws Exception {
+        when(anmeldeschlussService.anmeldungOffen()).thenReturn(true);
+        when(anmeldeschlussService.anmeldeschluss()).thenReturn(LocalDate.of(2027, 2, 28));
+
+        mockMvc.perform(get("/api/anmeldung/status"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.anmeldungOffen").value(true))
+                .andExpect(jsonPath("$.anmeldeschluss").value("2027-02-28"));
+    }
+
+    @Test
+    void getStatus_wennGeschlossen_sollAnmeldungOffenFalseZurueckgeben() throws Exception {
+        when(anmeldeschlussService.anmeldungOffen()).thenReturn(false);
+        when(anmeldeschlussService.anmeldeschluss()).thenReturn(LocalDate.of(2027, 2, 28));
+
+        mockMvc.perform(get("/api/anmeldung/status"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.anmeldungOffen").value(false));
     }
 }

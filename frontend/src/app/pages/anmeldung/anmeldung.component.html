@@ -28,315 +28,330 @@
       </div>
     }
 
-    <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate class="anmeldung-form">
-      <!-- ── Disziplinen + Spieler ──────────────────────────────────────── -->
-      <section class="form-section" formArrayName="disziplinen">
-        <h2 class="section-title">Disziplinen &amp; Spieler</h2>
+    @if (anmeldungOffen()) {
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate class="anmeldung-form">
+        <!-- ── Disziplinen + Spieler ──────────────────────────────────────── -->
+        <section class="form-section" formArrayName="disziplinen">
+          <h2 class="section-title">Disziplinen &amp; Spieler</h2>
 
-        <p class="hinweis radikal-hinweis" role="note">
-          Die Radikal ID ist von <strong>jeder teilnehmenden Person</strong> anzugeben. Sie besteht
-          aus <strong>Initialen&nbsp;+&nbsp;Geburtsdatum</strong> (z.&nbsp;B.
-          <code>MM01011990</code>
-          für Max Mustermann, geboren am 01.01.1990) und leitet sich aus
-          <strong>Name und Geburtsdatum</strong> ab. Wer <strong>noch keine Radikal ID</strong> hat,
-          gibt stattdessen Initialen und Geburtsdatum an – daraus wird eine erstellt.
-        </p>
+          <p class="hinweis radikal-hinweis" role="note">
+            Die Radikal ID ist von <strong>jeder teilnehmenden Person</strong> anzugeben. Sie
+            besteht aus <strong>Initialen&nbsp;+&nbsp;Geburtsdatum</strong> (z.&nbsp;B.
+            <code>MM01011990</code>
+            für Max Mustermann, geboren am 01.01.1990) und leitet sich aus
+            <strong>Name und Geburtsdatum</strong> ab. Wer
+            <strong>noch keine Radikal ID</strong> hat, gibt stattdessen Initialen und Geburtsdatum
+            an – daraus wird eine erstellt.
+          </p>
 
-        @if (form.errors?.['noDisziplin'] && form.touched) {
-          <div class="alert-error" role="alert">Bitte wähle mindestens eine Disziplin aus.</div>
-        }
+          @if (form.errors?.['noDisziplin'] && form.touched) {
+            <div class="alert-error" role="alert">Bitte wähle mindestens eine Disziplin aus.</div>
+          }
 
-        <div class="disziplin-grid">
-          @for (disziplin of disziplinen; track disziplin.value; let i = $index) {
-            <div
-              class="disziplin-card"
-              [class.disziplin-card--selected]="isDisziplinSelected(i)"
-              [formGroupName]="i"
-            >
-              <label class="disziplin-label">
-                <div class="disziplin-check-row">
-                  <input
-                    type="checkbox"
-                    formControlName="selected"
-                    class="disziplin-checkbox"
-                    [id]="'disziplin-' + disziplin.value"
-                  />
-                  <span class="disziplin-custom-check" aria-hidden="true">
-                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                      <path
-                        d="M2 5l2.5 2.5L8 3"
-                        stroke="currentColor"
-                        stroke-width="1.5"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      />
-                    </svg>
-                  </span>
-                  <span class="disziplin-name">{{ disziplin.label }}</span>
-                  @if (disziplin.preisProSpieler > 0) {
-                    <span class="disziplin-price"
-                      >{{ disziplin.preisProSpieler }}&nbsp;€ / Spieler</span
-                    >
-                  } @else {
-                    <span class="disziplin-price">kostenlos</span>
-                  }
-                </div>
-                <span class="disziplin-subtitle">{{ disziplin.subtitle }}</span>
-              </label>
+          <div class="disziplin-grid">
+            @for (disziplin of disziplinen; track disziplin.value; let i = $index) {
+              <div
+                class="disziplin-card"
+                [class.disziplin-card--selected]="isDisziplinSelected(i)"
+                [formGroupName]="i"
+              >
+                <label class="disziplin-label">
+                  <div class="disziplin-check-row">
+                    <input
+                      type="checkbox"
+                      formControlName="selected"
+                      class="disziplin-checkbox"
+                      [id]="'disziplin-' + disziplin.value"
+                    />
+                    <span class="disziplin-custom-check" aria-hidden="true">
+                      <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                        <path
+                          d="M2 5l2.5 2.5L8 3"
+                          stroke="currentColor"
+                          stroke-width="1.5"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        />
+                      </svg>
+                    </span>
+                    <span class="disziplin-name">{{ disziplin.label }}</span>
+                    @if (disziplin.preisProSpieler > 0) {
+                      <span class="disziplin-price"
+                        >{{ disziplin.preisProSpieler }}&nbsp;€ / Spieler</span
+                      >
+                    } @else {
+                      <span class="disziplin-price">kostenlos</span>
+                    }
+                  </div>
+                  <span class="disziplin-subtitle">{{ disziplin.subtitle }}</span>
+                </label>
 
-              <!-- Teamname – nur bei Doppel/Triple/Team -->
-              @if (needsTeamName(i)) {
-                <div class="teamname-field">
-                  <label [for]="'teamname-' + i" class="field-label">
-                    Teamname <span class="required">*</span>
-                  </label>
-                  <input
-                    [id]="'teamname-' + i"
-                    type="text"
-                    formControlName="teamName"
-                    class="field-input field-input--sm"
-                    [class.field-input--error]="teamNameInvalid(i)"
-                    placeholder="z. B. Die Bullseye Boys"
-                  />
-                  @if (teamNameRequiredFehler(i)) {
-                    <span class="field-error">Teamname ist erforderlich.</span>
-                  }
-                  @if (teamNameLaengeFehler(i)) {
-                    <span class="field-error"
-                      >Teamname darf höchstens {{ teamnameMaxLaenge }} Zeichen haben.</span
-                    >
-                  }
-                  @if (teamNameDuplikatText(i); as duplikatMeldung) {
-                    <span class="field-error">{{ duplikatMeldung }}</span>
-                  }
-                </div>
-              }
+                <!-- Teamname – nur bei Doppel/Triple/Team -->
+                @if (needsTeamName(i)) {
+                  <div class="teamname-field">
+                    <label [for]="'teamname-' + i" class="field-label">
+                      Teamname <span class="required">*</span>
+                    </label>
+                    <input
+                      [id]="'teamname-' + i"
+                      type="text"
+                      formControlName="teamName"
+                      class="field-input field-input--sm"
+                      [class.field-input--error]="teamNameInvalid(i)"
+                      placeholder="z. B. Die Bullseye Boys"
+                    />
+                    @if (teamNameRequiredFehler(i)) {
+                      <span class="field-error">Teamname ist erforderlich.</span>
+                    }
+                    @if (teamNameLaengeFehler(i)) {
+                      <span class="field-error"
+                        >Teamname darf höchstens {{ teamnameMaxLaenge }} Zeichen haben.</span
+                      >
+                    }
+                    @if (teamNameDuplikatText(i); as duplikatMeldung) {
+                      <span class="field-error">{{ duplikatMeldung }}</span>
+                    }
+                  </div>
+                }
 
-              <!-- Spielerzeilen – nur wenn Disziplin gewählt -->
-              @if (isDisziplinSelected(i)) {
-                <div class="spieler-block" formArrayName="spieler">
-                  @for (
-                    spielerCtrl of spielerArray(i).controls;
-                    track spielerCtrl;
-                    let j = $index
-                  ) {
-                    <div class="spieler-row" [formGroupName]="j">
-                      <div class="spieler-row-head">
-                        <span class="spieler-nr">Spieler {{ j + 1 }}</span>
-                        @if (canRemoveSpieler(i)) {
-                          <button
-                            type="button"
-                            class="spieler-remove"
-                            (click)="removeSpieler(i, j)"
-                            [attr.aria-label]="'Spieler ' + (j + 1) + ' entfernen'"
-                          >
-                            Entfernen
-                          </button>
-                        }
-                      </div>
-
-                      <div class="field-row">
-                        <div class="field-group">
-                          <label [for]="'vorname-' + i + '-' + j" class="field-label">
-                            Vorname <span class="required">*</span>
-                          </label>
-                          <input
-                            [id]="'vorname-' + i + '-' + j"
-                            type="text"
-                            formControlName="vorname"
-                            class="field-input field-input--sm"
-                            [class.field-input--error]="spielerFeldInvalid(i, j, 'vorname')"
-                            autocomplete="given-name"
-                            placeholder="Max"
-                          />
-                          @if (spielerFeldInvalid(i, j, 'vorname')) {
-                            <span class="field-error">Vorname ist erforderlich.</span>
+                <!-- Spielerzeilen – nur wenn Disziplin gewählt -->
+                @if (isDisziplinSelected(i)) {
+                  <div class="spieler-block" formArrayName="spieler">
+                    @for (
+                      spielerCtrl of spielerArray(i).controls;
+                      track spielerCtrl;
+                      let j = $index
+                    ) {
+                      <div class="spieler-row" [formGroupName]="j">
+                        <div class="spieler-row-head">
+                          <span class="spieler-nr">Spieler {{ j + 1 }}</span>
+                          @if (canRemoveSpieler(i)) {
+                            <button
+                              type="button"
+                              class="spieler-remove"
+                              (click)="removeSpieler(i, j)"
+                              [attr.aria-label]="'Spieler ' + (j + 1) + ' entfernen'"
+                            >
+                              Entfernen
+                            </button>
                           }
                         </div>
 
-                        <div class="field-group">
-                          <label [for]="'nachname-' + i + '-' + j" class="field-label">
-                            Nachname <span class="required">*</span>
-                          </label>
-                          <input
-                            [id]="'nachname-' + i + '-' + j"
-                            type="text"
-                            formControlName="nachname"
-                            class="field-input field-input--sm"
-                            [class.field-input--error]="spielerFeldInvalid(i, j, 'nachname')"
-                            autocomplete="family-name"
-                            placeholder="Mustermann"
-                          />
-                          @if (spielerFeldInvalid(i, j, 'nachname')) {
-                            <span class="field-error">Nachname ist erforderlich.</span>
-                          }
-                        </div>
-                      </div>
-
-                      <!-- Radikal-ID-Angabe: entweder Radikal ID oder Initialen + Geburtsdatum -->
-                      @if (!hatKeineRadikalId(i, j)) {
-                        <div class="field-group">
-                          <label [for]="'radikalId-' + i + '-' + j" class="field-label">
-                            Radikal ID <span class="required">*</span>
-                          </label>
-                          <input
-                            [id]="'radikalId-' + i + '-' + j"
-                            type="text"
-                            formControlName="radikalId"
-                            class="field-input field-input--sm"
-                            [class.field-input--error]="
-                              radikalAngabeInvalid(i, j) ||
-                              spielerFeldHatFehler(i, j, 'radikalId', 'pattern')
-                            "
-                            placeholder="MM01011990"
-                          />
-                          @if (spielerFeldHatFehler(i, j, 'radikalId', 'pattern')) {
-                            <span class="field-error">
-                              Format: zwei Buchstaben und achtstelliges Geburtsdatum (z.&nbsp;B.
-                              MM01011990).
-                            </span>
-                          }
-                        </div>
-                      } @else {
                         <div class="field-row">
                           <div class="field-group">
-                            <label [for]="'initialen-' + i + '-' + j" class="field-label">
-                              Initialen <span class="required">*</span>
+                            <label [for]="'vorname-' + i + '-' + j" class="field-label">
+                              Vorname <span class="required">*</span>
                             </label>
                             <input
-                              [id]="'initialen-' + i + '-' + j"
+                              [id]="'vorname-' + i + '-' + j"
                               type="text"
-                              formControlName="initialen"
+                              formControlName="vorname"
                               class="field-input field-input--sm"
-                              [class.field-input--error]="radikalAngabeInvalid(i, j)"
-                              placeholder="MM"
+                              [class.field-input--error]="spielerFeldInvalid(i, j, 'vorname')"
+                              autocomplete="given-name"
+                              placeholder="Max"
                             />
+                            @if (spielerFeldInvalid(i, j, 'vorname')) {
+                              <span class="field-error">Vorname ist erforderlich.</span>
+                            }
                           </div>
+
                           <div class="field-group">
-                            <label [for]="'geburtsdatum-' + i + '-' + j" class="field-label">
-                              Geburtsdatum <span class="required">*</span>
+                            <label [for]="'nachname-' + i + '-' + j" class="field-label">
+                              Nachname <span class="required">*</span>
                             </label>
                             <input
-                              [id]="'geburtsdatum-' + i + '-' + j"
-                              type="date"
-                              formControlName="geburtsdatum"
+                              [id]="'nachname-' + i + '-' + j"
+                              type="text"
+                              formControlName="nachname"
                               class="field-input field-input--sm"
-                              [max]="heuteIso"
-                              [class.field-input--error]="
-                                radikalAngabeInvalid(i, j) ||
-                                spielerFeldInvalid(i, j, 'geburtsdatum')
-                              "
+                              [class.field-input--error]="spielerFeldInvalid(i, j, 'nachname')"
+                              autocomplete="family-name"
+                              placeholder="Mustermann"
                             />
-                            @if (
-                              spielerFeldHatFehler(i, j, 'geburtsdatum', 'geburtsdatumUngueltig')
-                            ) {
-                              <span class="field-error">
-                                Bitte ein gültiges Datum mit vierstelligem Jahr eingeben.
-                              </span>
-                            }
-                            @if (
-                              spielerFeldHatFehler(i, j, 'geburtsdatum', 'geburtsdatumInZukunft')
-                            ) {
-                              <span class="field-error">
-                                Das Geburtsdatum darf nicht in der Zukunft liegen.
-                              </span>
+                            @if (spielerFeldInvalid(i, j, 'nachname')) {
+                              <span class="field-error">Nachname ist erforderlich.</span>
                             }
                           </div>
                         </div>
-                      }
 
-                      <label class="radikal-toggle">
-                        <input
-                          type="checkbox"
-                          formControlName="hatKeineRadikalId"
-                          (change)="toggleRadikalId(i, j)"
-                        />
-                        Ich habe noch keine Radikal ID
-                      </label>
+                        <!-- Radikal-ID-Angabe: entweder Radikal ID oder Initialen + Geburtsdatum -->
+                        @if (!hatKeineRadikalId(i, j)) {
+                          <div class="field-group">
+                            <label [for]="'radikalId-' + i + '-' + j" class="field-label">
+                              Radikal ID <span class="required">*</span>
+                            </label>
+                            <input
+                              [id]="'radikalId-' + i + '-' + j"
+                              type="text"
+                              formControlName="radikalId"
+                              class="field-input field-input--sm"
+                              [class.field-input--error]="
+                                radikalAngabeInvalid(i, j) ||
+                                spielerFeldHatFehler(i, j, 'radikalId', 'pattern')
+                              "
+                              placeholder="MM01011990"
+                            />
+                            @if (spielerFeldHatFehler(i, j, 'radikalId', 'pattern')) {
+                              <span class="field-error">
+                                Format: zwei Buchstaben und achtstelliges Geburtsdatum (z.&nbsp;B.
+                                MM01011990).
+                              </span>
+                            }
+                          </div>
+                        } @else {
+                          <div class="field-row">
+                            <div class="field-group">
+                              <label [for]="'initialen-' + i + '-' + j" class="field-label">
+                                Initialen <span class="required">*</span>
+                              </label>
+                              <input
+                                [id]="'initialen-' + i + '-' + j"
+                                type="text"
+                                formControlName="initialen"
+                                class="field-input field-input--sm"
+                                [class.field-input--error]="radikalAngabeInvalid(i, j)"
+                                placeholder="MM"
+                              />
+                            </div>
+                            <div class="field-group">
+                              <label [for]="'geburtsdatum-' + i + '-' + j" class="field-label">
+                                Geburtsdatum <span class="required">*</span>
+                              </label>
+                              <input
+                                [id]="'geburtsdatum-' + i + '-' + j"
+                                type="date"
+                                formControlName="geburtsdatum"
+                                class="field-input field-input--sm"
+                                [max]="heuteIso"
+                                [class.field-input--error]="
+                                  radikalAngabeInvalid(i, j) ||
+                                  spielerFeldInvalid(i, j, 'geburtsdatum')
+                                "
+                              />
+                              @if (
+                                spielerFeldHatFehler(i, j, 'geburtsdatum', 'geburtsdatumUngueltig')
+                              ) {
+                                <span class="field-error">
+                                  Bitte ein gültiges Datum mit vierstelligem Jahr eingeben.
+                                </span>
+                              }
+                              @if (
+                                spielerFeldHatFehler(i, j, 'geburtsdatum', 'geburtsdatumInZukunft')
+                              ) {
+                                <span class="field-error">
+                                  Das Geburtsdatum darf nicht in der Zukunft liegen.
+                                </span>
+                              }
+                            </div>
+                          </div>
+                        }
 
-                      @if (radikalAngabeInvalid(i, j)) {
-                        <span class="field-error">
-                          Bitte Radikal ID angeben – oder Initialen und Geburtsdatum, damit eine
-                          erstellt werden kann.
-                        </span>
-                      }
+                        <label class="radikal-toggle">
+                          <input
+                            type="checkbox"
+                            formControlName="hatKeineRadikalId"
+                            (change)="toggleRadikalId(i, j)"
+                          />
+                          Ich habe noch keine Radikal ID
+                        </label>
 
-                      @if (zeigtErsatzHinweis(i, j)) {
-                        <p class="ersatz-hinweis">
-                          Die vierte Person kann als Ersatz eingetragen werden.
-                        </p>
-                      }
-                    </div>
-                  }
+                        @if (radikalAngabeInvalid(i, j)) {
+                          <span class="field-error">
+                            Bitte Radikal ID angeben – oder Initialen und Geburtsdatum, damit eine
+                            erstellt werden kann.
+                          </span>
+                        }
 
-                  @if (canAddSpieler(i)) {
-                    <button type="button" class="spieler-add" (click)="addSpieler(i)">
-                      + Spieler hinzufügen
-                    </button>
-                  }
-                </div>
-              }
-            </div>
-          }
-        </div>
-      </section>
+                        @if (zeigtErsatzHinweis(i, j)) {
+                          <p class="ersatz-hinweis">
+                            Die vierte Person kann als Ersatz eingetragen werden.
+                          </p>
+                        }
+                      </div>
+                    }
 
-      <!-- ── Preisübersicht ─────────────────────────────────────────────── -->
-      @if (preisPosten().length > 0) {
-        <div class="price-summary">
-          @for (posten of preisPosten(); track posten.label) {
-            <div class="price-row price-line">
-              @if (posten.preisProSpieler > 0) {
-                <span class="price-label">
-                  {{ posten.label }} · {{ posten.spielerAnzahl }} Spieler ×
-                  {{ posten.preisProSpieler }}&nbsp;€
-                </span>
-                <span class="price-amount">{{ posten.betrag }}&nbsp;€</span>
-              } @else {
-                <span class="price-label"
-                  >{{ posten.label }} · {{ posten.spielerAnzahl }} Spieler</span
-                >
-                <span class="price-amount">kostenlos</span>
-              }
-            </div>
-          }
-          <div class="price-row price-summary-total">
-            <span class="price-label">Gesamt</span>
-            <span class="price-total">{{ gesamtpreis() }}&nbsp;€</span>
+                    @if (canAddSpieler(i)) {
+                      <button type="button" class="spieler-add" (click)="addSpieler(i)">
+                        + Spieler hinzufügen
+                      </button>
+                    }
+                  </div>
+                }
+              </div>
+            }
           </div>
-        </div>
-      }
+        </section>
 
-      <!-- ── Bezahl-Hinweis ─────────────────────────────────────────────── -->
-      <p class="hinweis payment-hint" role="note">
-        <svg
-          width="13"
-          height="13"
-          viewBox="0 0 16 16"
-          fill="none"
-          aria-hidden="true"
-          class="hint-icon"
-        >
-          <circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.5" />
-          <path d="M8 7v5M8 5v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
-        </svg>
-        Die Bezahlung erfolgt ausschließlich vor Ort.
-      </p>
-
-      <!-- ── Fehler-Banner ──────────────────────────────────────────────── -->
-      @if (errorMessage()) {
-        <div class="alert-error" role="alert">{{ errorMessage() }}</div>
-      }
-
-      <!-- ── Submit ─────────────────────────────────────────────────────── -->
-      <button type="submit" class="submit-btn" [disabled]="loading()">
-        @if (loading()) {
-          <span class="spinner" aria-hidden="true"></span>
-          Wird angemeldet…
-        } @else {
-          Jetzt anmelden
+        <!-- ── Preisübersicht ─────────────────────────────────────────────── -->
+        @if (preisPosten().length > 0) {
+          <div class="price-summary">
+            @for (posten of preisPosten(); track posten.label) {
+              <div class="price-row price-line">
+                @if (posten.preisProSpieler > 0) {
+                  <span class="price-label">
+                    {{ posten.label }} · {{ posten.spielerAnzahl }} Spieler ×
+                    {{ posten.preisProSpieler }}&nbsp;€
+                  </span>
+                  <span class="price-amount">{{ posten.betrag }}&nbsp;€</span>
+                } @else {
+                  <span class="price-label"
+                    >{{ posten.label }} · {{ posten.spielerAnzahl }} Spieler</span
+                  >
+                  <span class="price-amount">kostenlos</span>
+                }
+              </div>
+            }
+            <div class="price-row price-summary-total">
+              <span class="price-label">Gesamt</span>
+              <span class="price-total">{{ gesamtpreis() }}&nbsp;€</span>
+            </div>
+          </div>
         }
-      </button>
-    </form>
+
+        <!-- ── Bezahl-Hinweis ─────────────────────────────────────────────── -->
+        <p class="hinweis payment-hint" role="note">
+          <svg
+            width="13"
+            height="13"
+            viewBox="0 0 16 16"
+            fill="none"
+            aria-hidden="true"
+            class="hint-icon"
+          >
+            <circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.5" />
+            <path
+              d="M8 7v5M8 5v.5"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+            />
+          </svg>
+          Die Bezahlung erfolgt ausschließlich vor Ort.
+        </p>
+
+        <!-- ── Fehler-Banner ──────────────────────────────────────────────── -->
+        @if (errorMessage()) {
+          <div class="alert-error" role="alert">{{ errorMessage() }}</div>
+        }
+
+        <!-- ── Submit ─────────────────────────────────────────────────────── -->
+        <button type="submit" class="submit-btn" [disabled]="loading()">
+          @if (loading()) {
+            <span class="spinner" aria-hidden="true"></span>
+            Wird angemeldet…
+          } @else {
+            Jetzt anmelden
+          }
+        </button>
+      </form>
+    } @else {
+      <div class="anmeldung-geschlossen" role="status">
+        <p>
+          Der Anmeldeschluss war am {{ anmeldeschlussAnzeige() }} – eine Anmeldung ist nicht mehr
+          möglich.
+        </p>
+      </div>
+    }
   </div>
 </div>

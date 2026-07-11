@@ -27,9 +27,11 @@ public class AnmeldungService {
     private final SpielerValidierungService spielerValidierungService;
     private final TeamnameValidierungService teamnameValidierungService;
     private final UebersichtMapper uebersichtMapper;
+    private final AnmeldeschlussService anmeldeschlussService;
 
     @Transactional
     public List<Anmeldung> anmelden(AnmeldungRequest request) {
+        anmeldeschlussService.pruefeAnmeldungOffen();
         pruefeKeineDoppeltenDisziplinen(request);
         return request.disziplinen().stream().map(this::anmeldenFuerDisziplin).toList();
     }

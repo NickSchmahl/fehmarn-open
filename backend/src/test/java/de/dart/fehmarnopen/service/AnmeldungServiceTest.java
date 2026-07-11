@@ -16,6 +16,7 @@ import de.dart.fehmarnopen.dto.TeilnehmerUebersichtResponse;
 import de.dart.fehmarnopen.entity.Anmeldung;
 import de.dart.fehmarnopen.entity.Disziplin;
 import de.dart.fehmarnopen.entity.Spieler;
+import de.dart.fehmarnopen.exception.AnmeldungGesperrtException;
 import de.dart.fehmarnopen.exception.DoppelteAnmeldungException;
 import de.dart.fehmarnopen.exception.DoppelterTeamnameException;
 import de.dart.fehmarnopen.exception.NichtGefundenException;
@@ -48,6 +49,10 @@ class AnmeldungServiceTest {
     // Blackbox: die Gruppier-/Sortierlogik ist in UebersichtMapperTest abgedeckt.
     @Mock
     private UebersichtMapper uebersichtMapper;
+
+    // Blackbox: die Stichtags-Logik selbst ist in AnmeldeschlussServiceTest abgedeckt.
+    @Mock
+    private AnmeldeschlussService anmeldeschlussService;
 
     @InjectMocks
     private AnmeldungService anmeldungService;
@@ -245,5 +250,30 @@ class AnmeldungServiceTest {
 
         assertThatThrownBy(() -> anmeldungService.setAnwesenheit(99L, true)).isInstanceOf(NichtGefundenException.class);
         verify(anmeldungRepository, never()).save(any());
+    }
+
+    @Test
+    void anmelden_wennAnmeldungGesperrt_wirftUndSpeichertNichts() {
+        doThrow(new AnmeldungGesperrtException("28.02.2027"))
+                .when(anmeldeschlussService)
+                .pruefeAnmeldungOffen();
+        AnmeldungRequest request = new AnmeldungRequest(
+                List.of(new DisziplinAnmeldung(Disziplin.HERRENEINZEL, null, List.of(spieler("Max", "M")))));
+
+        assertThatThrownBy(() -> anmeldungService.anmelden(request)).isInstanceOf(AnmeldungGesperrtException.class);
+
+        verify(anmeldungRepository, never()).save(any());
+    }
+
+    @Test
+    void anmelden_wennAnmeldungOffen_speichertNormal() {
+        when(anmeldungRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        AnmeldungRequest request = new AnmeldungRequest(
+                List.of(new DisziplinAnmeldung(Disziplin.HERRENEINZEL, null, List.of(spieler("Max", "M")))));
+
+        List<Anmeldung> result = anmeldungService.anmelden(request);
+
+        assertThat(result).hasSize(1);
+        verify(anmeldeschlussService).pruefeAnmeldungOffen();
     }
 }

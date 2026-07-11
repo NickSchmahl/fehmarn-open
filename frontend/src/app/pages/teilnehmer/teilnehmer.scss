@@ -85,36 +85,11 @@
   margin-bottom: 1.25rem;
 }
 
-.bullseye {
-  position: relative;
+.brand-logo {
+  display: block;
   width: 40px;
   height: 40px;
-  display: grid;
-  place-items: center;
-}
-
-.bullseye .ring {
-  position: absolute;
-  border-radius: 50%;
-  border: 1px solid var(--border);
-}
-.bullseye .r1 {
-  inset: 0;
-}
-.bullseye .r2 {
-  inset: 6px;
-  border-color: var(--text-dim);
-}
-.bullseye .r3 {
-  inset: 13px;
-  border-color: rgba(232, 197, 71, 0.4);
-}
-.bullseye .center-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--accent);
-  box-shadow: 0 0 12px rgba(232, 197, 71, 0.6);
+  color: var(--text);
 }
 
 .teilnehmer-title {

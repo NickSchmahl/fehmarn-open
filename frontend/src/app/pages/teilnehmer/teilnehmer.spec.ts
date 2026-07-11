@@ -92,6 +92,14 @@ describe('Teilnehmer (öffentlich)', () => {
     );
   });
 
+  it('zeigt die Fehmarn-Bildmarke im Header', () => {
+    fixture.detectChanges();
+    httpTesting.expectOne('/api/teilnehmer').flush({ disziplinen: [] });
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.querySelector('.teilnehmer-header app-brand-icon')).not.toBeNull();
+    expect(host.querySelector('.bullseye')).toBeNull();
+  });
+
   it('lädt die öffentliche Übersicht von GET /api/teilnehmer', () => {
     fixture.detectChanges();
 

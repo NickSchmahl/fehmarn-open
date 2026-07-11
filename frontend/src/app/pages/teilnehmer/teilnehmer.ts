@@ -3,6 +3,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Disziplin, disziplinLabel } from '../../shared/disziplin';
 import { formatiereIsoDatum } from '../../shared/datum';
 import { AuthService } from '../../auth/service/auth.service';
+import { BrandIconComponent } from '../../ui/brand-icon/brand-icon.component';
 
 // ── Typen: öffentliche Übersicht (TeilnehmerUebersichtResponse) ───────────────
 
@@ -111,7 +112,7 @@ export function meldungPasstZurSuche(meldung: AdminMeldungEintrag, suche: string
 @Component({
   selector: 'app-teilnehmer',
   standalone: true,
-  imports: [],
+  imports: [BrandIconComponent],
   templateUrl: './teilnehmer.html',
   styleUrl: './teilnehmer.scss',
 })

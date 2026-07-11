@@ -11,7 +11,9 @@ function adminMeldung(over: Partial<AdminMeldungEintrag>): AdminMeldungEintrag {
     teamName: null,
     anwesend: false,
     abgemeldet: false,
-    spieler: [{ vorname: 'V', nachname: 'N', radikalId: null }],
+    spieler: [
+      { vorname: 'V', nachname: 'N', radikalId: null, initialen: null, geburtsdatum: null },
+    ],
     ...over,
   };
 }
@@ -169,6 +171,25 @@ describe('Teilnehmer (öffentlich)', () => {
     component.setFilter('ALLE');
     expect(component.sichtbareGruppen()).toHaveLength(2);
   });
+
+  it('zeigt in der öffentlichen Sicht weder Badge noch Geburtsdatum', () => {
+    fixture.detectChanges();
+    httpTesting.expectOne('/api/teilnehmer').flush({
+      disziplinen: [
+        {
+          disziplin: 'HERRENEINZEL',
+          anzahl: 1,
+          meldungen: [{ teamName: null, spieler: [{ vorname: 'Anna', nachname: 'Schmidt' }] }],
+        },
+      ],
+    });
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.querySelector('.neu-anlegen-badge')).toBeNull();
+    expect(root.querySelector('.admin-radikal-id')).toBeNull();
+    expect(root.textContent).not.toContain('1990');
+  });
 });
 
 describe('Teilnehmer (admin)', () => {
@@ -188,8 +209,20 @@ describe('Teilnehmer (admin)', () => {
             anwesend: false,
             abgemeldet: false,
             spieler: [
-              { vorname: 'Anna', nachname: 'Schmidt', radikalId: 'AS-1' },
-              { vorname: 'Bert', nachname: 'Adam', radikalId: 'BA-2' },
+              {
+                vorname: 'Anna',
+                nachname: 'Schmidt',
+                radikalId: 'AS-1',
+                initialen: null,
+                geburtsdatum: null,
+              },
+              {
+                vorname: 'Bert',
+                nachname: 'Adam',
+                radikalId: 'BA-2',
+                initialen: null,
+                geburtsdatum: null,
+              },
             ],
           },
         ],
@@ -228,6 +261,57 @@ describe('Teilnehmer (admin)', () => {
       el.textContent.trim(),
     );
     expect(ids).toEqual(['AS-1', 'BA-2']);
+  });
+
+  it('zeigt für Spieler ohne Radikal ID Initialen + Geburtsdatum und ein "neu anlegen"-Badge', () => {
+    fixture.detectChanges();
+    httpTesting.expectOne('/api/admin/teilnehmer').flush({
+      disziplinen: [
+        {
+          disziplin: 'HERRENDOPPEL',
+          anzahl: 1,
+          meldungen: [
+            {
+              id: 5,
+              teamName: 'Team A',
+              anwesend: false,
+              abgemeldet: false,
+              spieler: [
+                {
+                  vorname: 'Bert',
+                  nachname: 'Adam',
+                  radikalId: null,
+                  initialen: 'BA',
+                  geburtsdatum: '1990-03-14',
+                },
+                {
+                  vorname: 'Anna',
+                  nachname: 'Schmidt',
+                  radikalId: 'AS-1',
+                  initialen: null,
+                  geburtsdatum: null,
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const zeilen = Array.from(root.querySelectorAll('.admin-row'));
+
+    // Spieler ohne ID: Initialen + Geburtsdatum + Badge sichtbar.
+    const ohneId = zeilen.find((z) => z.textContent.includes('Bert Adam')) as HTMLElement;
+    expect(ohneId.querySelector('.neu-anlegen-badge')).not.toBeNull();
+    expect(ohneId.querySelector('.admin-radikal-id')?.textContent).toContain('BA');
+    expect(ohneId.querySelector('.admin-radikal-id')?.textContent).toContain('14.03.1990');
+
+    // Spieler mit ID: ID sichtbar, kein Badge.
+    const mitId = zeilen.find((z) => z.textContent.includes('Anna Schmidt')) as HTMLElement;
+    expect(mitId.querySelector('.neu-anlegen-badge')).toBeNull();
+    expect(mitId.querySelector('.admin-radikal-id')?.textContent).toContain('AS-1');
   });
 
   it('Anwesend-Schalter feuert genau einen Request pro Meldung (Team-Klick)', () => {

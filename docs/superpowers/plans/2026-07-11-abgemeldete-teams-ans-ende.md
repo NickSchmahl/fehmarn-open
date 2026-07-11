@@ -6,13 +6,15 @@
 
 **Architecture:** Eine reine, exportierte Helper-Funktion `sortiereAbgemeldeteAnsEnde` sortiert eine Meldungsliste stabil nach dem `abgemeldet`-Flag. Sie wird in der bestehenden `sichtbareAdminGruppen`-Computed **nach** dem Such-Filter angewandt. Da es eine `computed` ist, greift die Sortierung automatisch live: `abmelden`/`reaktivieren` rufen `ladeAdmin()`, setzen das Signal neu und die Computed re-sortiert. Keine Backend- oder DB-Änderung.
 
+Als Guardrail gegen versehentliche In-place-Mutation werden die betroffenen Signal-Payloads und der Helper-Parameter als `readonly`-Arrays typisiert. Damit ist `signal().sort()`/`.push()`/… ein **Compile-Fehler** (`tsc`/`ng build`, läuft in der CI) — der Spread `[...meldungen]` in der Helper-Funktion bleibt erlaubt und erzwingt genau die Kopie. Die Konvention wird in **ADR 0014** festgehalten (Task 3), damit spätere Tickets sie übernehmen.
+
 **Tech Stack:** Angular (Standalone Component, Signals/`computed`), TypeScript, Jest.
 
 ## Global Constraints
 
-- Nur Frontend; Datei `frontend/src/app/pages/teilnehmer/teilnehmer.ts` und deren Spec.
+- Frontend (`frontend/src/app/pages/teilnehmer/teilnehmer.ts` + Spec) und ein neues ADR-Dokument.
 - Öffentliche Sicht (`sichtbareGruppen`) bleibt unverändert.
-- Signal-Arrays niemals in-place mutieren — immer Kopie sortieren (`[...meldungen]`).
+- Signal-Arrays niemals in-place mutieren — immer Kopie sortieren (`[...meldungen]`). Erzwungen über `readonly`-Typisierung der Signal-Payloads und des Helper-Parameters (Compile-Fehler statt Laufzeitbug).
 - Stabile Sortierung: `Array.prototype.sort` ist ab ES2019 garantiert stabil; als einziges Kriterium das `abgemeldet`-Flag verwenden, damit die bisherige Backend-Reihenfolge aktiver Teams erhalten bleibt.
 - Echte Umlaute (ä/ö/ü/ß) auch in Kommentaren.
 - Volle CI-Gate lokal vor dem Commit: `npm run lint` + `npm test` + `npm run format:check` (alle im Ordner `frontend/`).
@@ -28,7 +30,7 @@
 
 **Interfaces:**
 - Consumes: bestehender Typ `AdminMeldungEintrag` (Feld `abgemeldet: boolean`, `id: number`) aus `teilnehmer.ts`.
-- Produces: `export function sortiereAbgemeldeteAnsEnde(meldungen: AdminMeldungEintrag[]): AdminMeldungEintrag[]` — gibt eine **neue** Liste zurück, abgemeldete Meldungen ans Ende, aktive und abgemeldete jeweils untereinander in Eingabereihenfolge; mutiert die Eingabe nicht.
+- Produces: `export function sortiereAbgemeldeteAnsEnde(meldungen: readonly AdminMeldungEintrag[]): AdminMeldungEintrag[]` — nimmt eine `readonly`-Liste (kann nicht in-place sortiert werden), gibt eine **neue** Liste zurück, abgemeldete Meldungen ans Ende, aktive und abgemeldete jeweils untereinander in Eingabereihenfolge; mutiert die Eingabe nicht.
 
 - [ ] **Step 1: Failing Tests schreiben**
 
@@ -102,10 +104,11 @@ In `frontend/src/app/pages/teilnehmer/teilnehmer.ts` direkt nach der Funktion `m
 ```ts
 /**
  * Sortiert abgemeldete Meldungen stabil ans Ende; aktive behalten ihre bisherige Reihenfolge.
- * Arbeitet auf einer Kopie, damit Signal-Arrays nicht in-place verändert werden.
+ * Nimmt eine `readonly`-Liste und arbeitet auf einer Kopie, damit Signal-Arrays nie in-place
+ * verändert werden (siehe ADR 0014).
  */
 export function sortiereAbgemeldeteAnsEnde(
-  meldungen: AdminMeldungEintrag[],
+  meldungen: readonly AdminMeldungEintrag[],
 ): AdminMeldungEintrag[] {
   return [...meldungen].sort((a, b) => Number(a.abgemeldet) - Number(b.abgemeldet));
 }
@@ -265,12 +268,121 @@ Der umgebende Block sieht danach so aus:
 Run: `cd frontend && npx jest teilnehmer.spec`
 Expected: PASS — alle drei neuen Admin-Tests grün, bestehende Admin-/Öffentlich-Tests weiterhin grün.
 
-- [ ] **Step 5: Volle CI-Gate lokal + Commit**
+- [ ] **Step 5: Signal-Payloads `readonly` typisieren (Guardrail)**
+
+In `frontend/src/app/pages/teilnehmer/teilnehmer.ts` die beiden Signal-Deklarationen (Zeile 131 und 134) auf `readonly`-Element-Typen umstellen:
+
+```ts
+  // Öffentlicher Modus
+  readonly gruppen = signal<readonly DisziplinGruppe[]>([]);
+
+  // Admin-Modus
+  readonly adminGruppen = signal<readonly AdminGruppe[]>([]);
+```
+
+Die vorhandenen Zuweisungen `this.gruppen.set(data.disziplinen)` / `this.adminGruppen.set(data.disziplinen)` bleiben gültig (mutable ist auf `readonly` zuweisbar). Die Computeds `chips`, `sichtbareGruppen`, `sichtbareAdminGruppen` nutzen nur `reduce`/`filter`/`map` — alle auf `ReadonlyArray` vorhanden, daher keine weiteren Anpassungen.
+
+- [ ] **Step 6: Guardrail beweisen (Rot-Check, dann zurücknehmen)**
+
+Temporär eine In-place-Mutation ins Produktivfile schreiben, um zu belegen, dass der Typ-Check sie fängt. In `sichtbareAdminGruppen` testweise `this.adminGruppen().sort();` als erste Zeile des Computed-Callbacks einfügen und den App-Typecheck laufen lassen:
+
+Run: `cd frontend && npx tsc -p tsconfig.app.json --noEmit`
+Expected: FAIL — `Property 'sort' does not exist on type 'readonly AdminGruppe[]'`.
+
+Danach die Zeile wieder entfernen und erneut prüfen:
+
+Run: `cd frontend && npx tsc -p tsconfig.app.json --noEmit`
+Expected: PASS (keine Ausgabe).
+
+- [ ] **Step 7: Volle CI-Gate lokal + Commit**
 
 ```bash
 cd frontend && npm run lint && npm test && npm run format:check
 git add frontend/src/app/pages/teilnehmer/teilnehmer.ts frontend/src/app/pages/teilnehmer/teilnehmer.spec.ts
-git commit -m "#175 Admin-Übersicht sortiert abgemeldete Teams je Disziplin ans Ende"
+git commit -m "#175 Admin-Übersicht sortiert abgemeldete Teams je Disziplin ans Ende (readonly-Guardrail)"
+```
+
+---
+
+### Task 3: ADR 0014 – Signals halten unveränderliche Daten
+
+**Files:**
+- Create: `docs/adr/0014-signals-immutable-daten.md`
+- Modify: `docs/adr/README.md` (Tabellenzeile ergänzen)
+
+**Interfaces:**
+- Consumes: das in Task 1/2 umgesetzte `readonly`-Muster als Referenzimplementierung.
+- Produces: keine Code-Artefakte; dokumentierte Konvention für künftige Tickets.
+
+- [ ] **Step 1: ADR-Datei anlegen**
+
+`docs/adr/0014-signals-immutable-daten.md` mit exakt diesem Inhalt (Format wie ADR 0012: Kontext → Entscheidung → Konsequenzen → Alternativen):
+
+```markdown
+# ADR 0014 – Signals halten unveränderliche Daten (kein In-place-Mutieren)
+
+**Status:** Akzeptiert · **Datum:** 2026-07-11
+
+## Kontext
+
+Der State im Frontend liegt in Angular-Signals (`signal<T[]>`), abgeleitete Sichten in
+`computed`. Signals erkennen Änderungen über Referenzgleichheit: Wird der Inhalt eines
+Signal-Arrays in-place mutiert (`.sort()`, `.push()`, `.splice()`, `.reverse()`), ändert sich
+die Referenz nicht — Change Detection und `computed` können die Änderung verpassen oder
+inkonsistent rendern. Das ist eine leise, schwer zu findende Fehlerklasse. Aufgefallen bei der
+Sortierung abgemeldeter Teams (Issue #175), wo eine Liste je Disziplin sortiert werden musste.
+
+## Entscheidung
+
+Signal-gehaltene Daten werden als **unveränderlich** behandelt: nie in-place mutieren, sondern
+immer eine **neue** Struktur ableiten und per `set`/`update` setzen.
+
+- Sortieren/Umordnen über eine Kopie: `[...liste].sort(...)` statt `liste.sort(...)`.
+- Reine Transformationsfunktionen bekommen ihre Eingabe als `readonly`-Array und geben eine
+  neue Liste zurück.
+- Signal-Payloads mit Listen werden mit `readonly`-Element-Typ deklariert:
+  `signal<readonly Foo[]>([])`. Dadurch sind mutierende Array-Methoden ein **Compile-Fehler**
+  (`Property 'sort' does not exist on type 'readonly Foo[]'`), der im bestehenden
+  `tsc`/`ng build`-Gate der CI greift — kein zusätzliches ESLint-Plugin nötig.
+
+Referenzimplementierung: `sortiereAbgemeldeteAnsEnde` + `gruppen`/`adminGruppen` in
+`frontend/src/app/pages/teilnehmer/teilnehmer.ts` (Issue #175).
+
+**Geltungsbereich:** verbindlich für neue/umgebaute Signal-basierte Zustände. Bestehende
+Signale werden **nicht** pauschal umgestellt — nur wenn eine Komponente ohnehin angefasst wird.
+
+## Konsequenzen
+
+- In-place-Mutation von Signal-Listen wird zur Compile-Zeit verhindert statt erst im Betrieb
+  aufzufallen.
+- Klarere Datenflüsse: Computeds leiten sichtbar aus Quell-Signalen ab, statt sie zu verändern.
+- Minimaler Zusatzaufwand: eine `readonly`-Annotation je Signal-Payload; Kopie beim Sortieren.
+- Kein neues Tooling/keine neue Dependency.
+
+## Alternativen
+
+- **ESLint-Regel** (`eslint-plugin-functional`, `immutable-data`): fängt mutierende Methoden
+  ebenfalls, aber heuristisch, mit false positives, neuer Dependency und Konfig-Pflege.
+  Verworfen zugunsten der präziseren Typ-Lösung.
+- **Nur Doku/Konvention ohne Typen:** verlässt sich auf Disziplin, kein Guardrail. Verworfen.
+- **Tief-`readonly` aller verschachtelten Typen:** stärkere Garantie, aber invasiv und über den
+  Anlass hinaus. Vorerst nur Signal-Payload + reine Helfer.
+```
+
+- [ ] **Step 2: README-Tabelle ergänzen**
+
+In `docs/adr/README.md` endet die Tabelle aktuell bei `0012` — die Zeile für das bereits existierende ADR `0013` fehlt. Beide Zeilen nach der `0012`-Zeile (Zeile 23) ergänzen, damit die Tabelle den Dateibestand widerspiegelt:
+
+```markdown
+| [0013](0013-anmeldeschluss-config-statt-db.md) | Anmeldeschluss als Server-Config statt DB | Akzeptiert |
+| [0014](0014-signals-immutable-daten.md) | Signals halten unveränderliche Daten (kein In-place-Mutieren) | Akzeptiert |
+```
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add docs/adr/0014-signals-immutable-daten.md docs/adr/README.md
+git commit -m "#175 ADR 0014: Signals halten unveränderliche Daten (readonly, kein In-place-Mutieren)"
 ```
 
 ---
@@ -283,7 +395,8 @@ git commit -m "#175 Admin-Übersicht sortiert abgemeldete Teams je Disziplin ans
 - Live bei Abmelden/Reaktivieren → Task 2, Tests „rutscht … nach dem Abmelden ans Ende" und „… nach der Reaktivierung zurück".
 - Nur Admin-Ansicht, öffentliche Sicht unverändert → nur `sichtbareAdminGruppen` geändert; `sichtbareGruppen` unangetastet; bestehende öffentliche Regressionstests bleiben grün.
 - Testfall „Gruppe ganz ohne Abgemeldete unverändert" → Task 1, entsprechender Helper-Test.
+- Guardrail „Signal-Arrays nie in-place mutieren" → Task 1 (`readonly`-Helper-Param) + Task 2 Step 5/6 (`readonly`-Signale, Rot-Check via `tsc`) + Task 3 (ADR 0014 als Konvention).
 
 **Platzhalter-Scan:** Keine TODO/TBD; jeder Code-Step enthält vollständigen Code und exakte Kommandos.
 
-**Typ-Konsistenz:** `sortiereAbgemeldeteAnsEnde(meldungen: AdminMeldungEintrag[]): AdminMeldungEintrag[]` in Task 1 definiert und in Task 2 identisch aufgerufen. `abmelden`/`reaktivieren`/`sichtbareAdminGruppen` entsprechen den vorhandenen Signaturen in `teilnehmer.ts`.
+**Typ-Konsistenz:** `sortiereAbgemeldeteAnsEnde(meldungen: readonly AdminMeldungEintrag[]): AdminMeldungEintrag[]` in Task 1 definiert und in Task 2 identisch aufgerufen (Eingabe `.filter(...)` liefert mutable, ist auf `readonly` zuweisbar). Signale `gruppen`/`adminGruppen` in Task 2 auf `readonly`-Element-Typ umgestellt; `set(...)` mit mutable Daten bleibt gültig. `abmelden`/`reaktivieren`/`sichtbareAdminGruppen` entsprechen den vorhandenen Signaturen in `teilnehmer.ts`. ADR 0014 folgt dem Format von ADR 0012 (Kontext→Entscheidung→Konsequenzen→Alternativen, Status/Datum, README-Zeile).

@@ -101,8 +101,19 @@
                 <ul class="admin-list">
                   @for (spieler of meldung.spieler; track $index) {
                     <li class="admin-row">
-                      <span class="admin-name">{{ spieler.vorname }} {{ spieler.nachname }}</span>
-                      <span class="admin-radikal-id">{{ spieler.radikalId ?? '—' }}</span>
+                      <span class="admin-name">
+                        {{ spieler.vorname }} {{ spieler.nachname }}
+                        @if (!spieler.radikalId) {
+                          <span class="neu-anlegen-badge">neu anlegen</span>
+                        }
+                      </span>
+                      <span class="admin-radikal-id">
+                        @if (spieler.radikalId) {
+                          {{ spieler.radikalId }}
+                        } @else {
+                          {{ anlageGrundlage(spieler) }}
+                        }
+                      </span>
                     </li>
                   }
                 </ul>

@@ -50,6 +50,10 @@ fehmarnopen:
         password: ${ADMIN_1_PASSWORD}
       - username: ${ADMIN_2_USERNAME:admin2}
         password: ${ADMIN_2_PASSWORD}
+  anmeldung:
+    # Letzter Anmeldetag (inklusive, Ende des Tages Europe/Berlin). Per ENV ANMELDESCHLUSS
+    # überschreibbar. Flyer 2027: Anmeldeschluss 28. Februar 2027 (#153, ADR 0013).
+    anmeldeschluss: ${ANMELDESCHLUSS:2027-02-28}
 app:
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:4200}

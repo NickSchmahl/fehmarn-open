@@ -60,7 +60,11 @@ public class UebersichtMapper {
         List<AdminUebersichtResponse.SpielerEintrag> spieler = anmeldung.getSpieler().stream()
                 .sorted(spielerReihenfolge())
                 .map(einzelspieler -> new AdminUebersichtResponse.SpielerEintrag(
-                        einzelspieler.getVorname(), einzelspieler.getNachname(), einzelspieler.getRadikalId()))
+                        einzelspieler.getVorname(),
+                        einzelspieler.getNachname(),
+                        einzelspieler.getRadikalId(),
+                        einzelspieler.getInitialen(),
+                        einzelspieler.getGeburtsdatum()))
                 .toList();
         return new AdminUebersichtResponse.MeldungEintrag(
                 anmeldung.getId(), anmeldung.getTeamName(), anmeldung.isAnwesend(), anmeldung.isAbgemeldet(), spieler);

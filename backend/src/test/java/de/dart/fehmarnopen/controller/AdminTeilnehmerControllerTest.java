@@ -51,7 +51,7 @@ class AdminTeilnehmerControllerTest {
                                 "Team A",
                                 true,
                                 false,
-                                List.of(new SpielerEintrag("Max", "Mustermann", "MM-1"))))))));
+                                List.of(new SpielerEintrag("Max", "Mustermann", "MM-1", null, null))))))));
 
         mockMvc.perform(get("/api/admin/teilnehmer"))
                 .andExpect(status().isOk())

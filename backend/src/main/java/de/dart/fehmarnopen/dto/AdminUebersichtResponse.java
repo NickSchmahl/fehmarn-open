@@ -1,6 +1,7 @@
 package de.dart.fehmarnopen.dto;
 
 import de.dart.fehmarnopen.entity.Disziplin;
+import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -20,5 +21,6 @@ public record AdminUebersichtResponse(List<DisziplinGruppe> disziplinen) {
     public record MeldungEintrag(
             Long id, String teamName, boolean anwesend, boolean abgemeldet, List<SpielerEintrag> spieler) {}
 
-    public record SpielerEintrag(String vorname, String nachname, String radikalId) {}
+    public record SpielerEintrag(
+            String vorname, String nachname, String radikalId, String initialen, LocalDate geburtsdatum) {}
 }

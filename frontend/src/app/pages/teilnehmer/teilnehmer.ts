@@ -1,6 +1,7 @@
 import { Component, computed, inject, signal, OnInit } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Disziplin, disziplinLabel } from '../../shared/disziplin';
+import { formatiereIsoDatum } from '../../shared/datum';
 import { AuthService } from '../../auth/service/auth.service';
 
 // ── Typen: öffentliche Übersicht (TeilnehmerUebersichtResponse) ───────────────
@@ -44,6 +45,8 @@ export interface AdminSpielerEintrag {
   vorname: string;
   nachname: string;
   radikalId: string | null;
+  initialen: string | null;
+  geburtsdatum: string | null; // ISO yyyy-MM-dd, nur Admin-Sicht
 }
 
 /** Eine Meldung im Admin: Status liegt pro Meldung, die Spieler hängen darunter. */
@@ -191,6 +194,12 @@ export class Teilnehmer implements OnInit {
 
   setSuche(value: string): void {
     this.suchbegriff.set(value);
+  }
+
+  /** Anlage-Grundlage für Spieler ohne Radikal ID: "Initialen, dd.MM.yyyy". */
+  anlageGrundlage(spieler: AdminSpielerEintrag): string {
+    const datum = formatiereIsoDatum(spieler.geburtsdatum);
+    return [spieler.initialen, datum].filter((teil) => teil).join(', ');
   }
 
   // ── Admin-Aktionen: jeweils pro Meldung (eine Anmeldung-id) ──

@@ -7,6 +7,7 @@ import de.dart.fehmarnopen.dto.TeilnehmerUebersichtResponse;
 import de.dart.fehmarnopen.entity.Anmeldung;
 import de.dart.fehmarnopen.entity.Disziplin;
 import de.dart.fehmarnopen.entity.Spieler;
+import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -133,5 +134,37 @@ class UebersichtMapperTest {
         assertThat(meldung.spieler()).hasSize(2);
         assertThat(meldung.spieler().get(0).nachname()).isEqualTo("Adam"); // nach Nachname sortiert
         assertThat(meldung.spieler().get(1).radikalId()).isEqualTo("AS-1");
+    }
+
+    @Test
+    void admin_spielerOhneId_liefertInitialenUndGeburtsdatum() {
+        Spieler mitId = spielerEntity("Anna", "Schmidt");
+        mitId.setRadikalId("AS-1");
+        Spieler ohneId = new Spieler();
+        ohneId.setVorname("Bert");
+        ohneId.setNachname("Adam");
+        ohneId.setRadikalId(null);
+        ohneId.setInitialen("BA");
+        ohneId.setGeburtsdatum(LocalDate.of(1990, 3, 14));
+        Anmeldung anmeldung = anmeldung(Disziplin.HERRENDOPPEL, "Team A", mitId, ohneId);
+
+        List<AdminUebersichtResponse.SpielerEintrag> spieler = uebersichtMapper
+                .zuAdminUebersicht(List.of(anmeldung))
+                .disziplinen()
+                .get(0)
+                .meldungen()
+                .get(0)
+                .spieler();
+
+        // Sortiert nach Nachname: Adam (ohne ID) zuerst, dann Schmidt (mit ID).
+        AdminUebersichtResponse.SpielerEintrag ohne = spieler.get(0);
+        assertThat(ohne.radikalId()).isNull();
+        assertThat(ohne.initialen()).isEqualTo("BA");
+        assertThat(ohne.geburtsdatum()).isEqualTo(LocalDate.of(1990, 3, 14));
+
+        AdminUebersichtResponse.SpielerEintrag mit = spieler.get(1);
+        assertThat(mit.radikalId()).isEqualTo("AS-1");
+        assertThat(mit.initialen()).isNull();
+        assertThat(mit.geburtsdatum()).isNull();
     }
 }

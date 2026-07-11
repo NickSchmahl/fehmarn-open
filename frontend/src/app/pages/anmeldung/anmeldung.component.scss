@@ -83,59 +83,12 @@
   margin-bottom: 1.5rem;
 }
 
-/* Bullseye (identisch zur Login-Page) */
-.bullseye {
-  position: relative;
+.brand-logo {
+  display: block;
   width: 40px;
   height: 40px;
   margin: 0 auto 0.75rem;
-}
-
-.ring {
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  border: 2px solid;
-  animation: pulse-ring 3s ease-in-out infinite;
-}
-.r1 {
-  border-color: var(--border);
-  inset: 0;
-  animation-delay: 0s;
-}
-.r2 {
-  border-color: var(--text-dim);
-  inset: 6px;
-  animation-delay: 0.2s;
-}
-.r3 {
-  border-color: var(--accent);
-  inset: 12px;
-  animation-delay: 0.4s;
-}
-
-.center-dot {
-  position: absolute;
-  width: 8px;
-  height: 8px;
-  background: var(--accent);
-  border-radius: 50%;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  box-shadow:
-    0 0 10px var(--accent),
-    0 0 24px rgba(232, 197, 71, 0.4);
-}
-
-@keyframes pulse-ring {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
+  color: var(--text);
 }
 
 .anmeldung-title {

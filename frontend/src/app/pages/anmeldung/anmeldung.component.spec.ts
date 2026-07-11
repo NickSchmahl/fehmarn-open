@@ -46,6 +46,10 @@ describe('AnmeldungComponent', () => {
     fixture = TestBed.createComponent(AnmeldungComponent);
     component = fixture.componentInstance;
     httpMock = TestBed.inject(HttpTestingController);
+    fixture.detectChanges(); // löst ngOnInit + Status-GET aus
+    httpMock
+      .expectOne('/api/anmeldung/status')
+      .flush({ anmeldungOffen: true, anmeldeschluss: '2027-02-28' });
     await fixture.whenStable();
   });
 
@@ -513,5 +517,29 @@ describe('AnmeldungComponent', () => {
   it('typt FormGroup korrekt für Spieler-Zugriff', () => {
     waehleDisziplin(HERRENDOPPEL);
     expect(component.spielerGroup(HERRENDOPPEL, 0) instanceof FormGroup).toBe(true);
+  });
+
+  describe('Anmeldeschluss', () => {
+    it('übernimmt Status aus dem GET und formatiert das Datum', () => {
+      expect(component.anmeldungOffen()).toBe(true);
+      expect(component.anmeldeschlussAnzeige()).toBe('28.02.2027');
+    });
+
+    it('zeigt bei offener Anmeldung das Formular und keine Infoseite', () => {
+      fixture.detectChanges();
+      expect(host().querySelector('form')).not.toBeNull();
+      expect(host().querySelector('.anmeldung-geschlossen')).toBeNull();
+    });
+
+    it('zeigt bei geschlossener Anmeldung die Infoseite statt des Formulars', () => {
+      component.anmeldungOffen.set(false);
+      component.anmeldeschlussAnzeige.set('28.02.2027');
+      fixture.detectChanges();
+
+      expect(host().querySelector('form')).toBeNull();
+      const info = host().querySelector('.anmeldung-geschlossen');
+      expect(info).not.toBeNull();
+      expect((info as HTMLElement).textContent).toContain('28.02.2027');
+    });
   });
 });

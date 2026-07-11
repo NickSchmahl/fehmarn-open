@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import {
   AbstractControl,
   FormArray,
@@ -19,6 +19,20 @@ interface PreisPosten {
   spielerAnzahl: number;
   preisProSpieler: number; // Startgeld je Spieler dieser Disziplin (0 = kostenlos, z. B. U18)
   betrag: number;
+}
+
+/** Antwort von GET /api/anmeldung/status. */
+interface AnmeldeschlussStatus {
+  anmeldungOffen: boolean;
+  anmeldeschluss: string; // ISO YYYY-MM-DD
+}
+
+/** Formatiert ein ISO-Datum (YYYY-MM-DD) als deutsches Datum (TT.MM.JJJJ) für die Anzeige. */
+function formatiereDatum(isoDatum: string): string {
+  const teile = isoDatum.split('-');
+  if (teile.length !== 3) return isoDatum;
+  const [jahr, monat, tag] = teile;
+  return `${tag}.${monat}.${jahr}`;
 }
 
 /** Extrahiert typsicher eine Fehlermeldung aus einem unbekannten Fehlerobjekt. */
@@ -127,7 +141,7 @@ function radikalIdAngabeValidator(group: AbstractControl): ValidationErrors | nu
   templateUrl: './anmeldung.component.html',
   styleUrl: './anmeldung.component.scss',
 })
-export class AnmeldungComponent {
+export class AnmeldungComponent implements OnInit {
   private formBuilder = inject(FormBuilder);
   private httpClient = inject(HttpClient);
 
@@ -138,6 +152,24 @@ export class AnmeldungComponent {
   loading = signal(false);
   successMsg = signal<string | null>(null);
   errorMessage = signal<string | null>(null);
+
+  // Anmeldeschluss-Status (aus GET /api/anmeldung/status). Default offen, bis geladen; bei
+  // geschlossenem Status wird das Formular gar nicht gerendert.
+  anmeldungOffen = signal(true);
+  anmeldeschlussAnzeige = signal<string | null>(null);
+
+  ngOnInit(): void {
+    this.httpClient.get<AnmeldeschlussStatus>('/api/anmeldung/status').subscribe({
+      next: (status) => {
+        this.anmeldungOffen.set(status.anmeldungOffen);
+        this.anmeldeschlussAnzeige.set(formatiereDatum(status.anmeldeschluss));
+      },
+      // Defensiv: bei Ladefehler das Formular zeigen; das Backend sperrt späte POSTs ohnehin (403).
+      error: () => {
+        this.anmeldungOffen.set(true);
+      },
+    });
+  }
 
   // ── Formular ────────────────────────────────────────────────────────────
   // Es gibt kein Kontaktfeld mehr: Name & Radikal-ID-Angabe leben ausschliesslich in den

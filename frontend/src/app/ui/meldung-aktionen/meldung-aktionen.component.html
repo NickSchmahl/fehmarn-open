@@ -1,0 +1,61 @@
+<div class="meldung-aktionen">
+  <button
+    type="button"
+    class="ma-btn ma-btn--anwesend"
+    [class.ma-btn--anwesend-aktiv]="anwesend()"
+    [attr.aria-pressed]="anwesend()"
+    [attr.aria-label]="anwesend() ? 'Als abwesend markieren' : 'Als anwesend markieren'"
+    [title]="anwesend() ? 'Als abwesend markieren' : 'Als anwesend markieren'"
+    (click)="toggleAnwesenheit.emit(!anwesend())"
+  >
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path
+        d="M5 12.5l4.5 4.5L19 7"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+    </svg>
+  </button>
+
+  @if (abgemeldet()) {
+    <button
+      type="button"
+      class="ma-btn ma-btn--reaktivieren"
+      aria-label="Reaktivieren"
+      title="Reaktivieren"
+      (click)="reaktivieren.emit()"
+    >
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path
+          d="M4 12a8 8 0 1 1 2.3 5.6M4 12V6m0 6h6"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </svg>
+    </button>
+  } @else {
+    <button
+      type="button"
+      class="ma-btn ma-btn--abmelden"
+      aria-label="Abmelden"
+      title="Abmelden"
+      (click)="abmelden.emit()"
+    >
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path
+          d="M6 6l12 12M18 6L6 18"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+          stroke-linecap="round"
+        />
+      </svg>
+    </button>
+  }
+</div>

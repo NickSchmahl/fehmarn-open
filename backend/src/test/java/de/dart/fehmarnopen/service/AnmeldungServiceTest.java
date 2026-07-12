@@ -17,7 +17,6 @@ import de.dart.fehmarnopen.entity.Anmeldung;
 import de.dart.fehmarnopen.entity.Disziplin;
 import de.dart.fehmarnopen.entity.Spieler;
 import de.dart.fehmarnopen.exception.AnmeldungGesperrtException;
-import de.dart.fehmarnopen.exception.DoppelteAnmeldungException;
 import de.dart.fehmarnopen.exception.DoppelterTeamnameException;
 import de.dart.fehmarnopen.exception.NichtGefundenException;
 import de.dart.fehmarnopen.exception.UngueltigeAnmeldungException;
@@ -148,16 +147,16 @@ class AnmeldungServiceTest {
     }
 
     @Test
-    void anmelden_beiDoppelterDisziplinImRequest_wirftDoppelteAnmeldung() {
+    void anmelden_mitZweiHerreneinzelMeldungen_speichertZweiAnmeldungen() {
+        when(anmeldungRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
         AnmeldungRequest request = new AnmeldungRequest(List.of(
                 new DisziplinAnmeldung(Disziplin.HERRENEINZEL, null, List.of(spieler("Max", "M"))),
                 new DisziplinAnmeldung(Disziplin.HERRENEINZEL, null, List.of(spieler("Tim", "T")))));
 
-        assertThatThrownBy(() -> anmeldungService.anmelden(request))
-                .isInstanceOf(DoppelteAnmeldungException.class)
-                .hasMessageContaining("HERRENEINZEL");
+        List<Anmeldung> result = anmeldungService.anmelden(request);
 
-        verify(anmeldungRepository, never()).save(any());
+        assertThat(result).hasSize(2);
+        verify(anmeldungRepository, times(2)).save(any(Anmeldung.class));
     }
 
     @Test

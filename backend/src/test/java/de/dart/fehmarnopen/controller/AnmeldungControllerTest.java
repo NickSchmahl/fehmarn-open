@@ -14,7 +14,6 @@ import de.dart.fehmarnopen.dto.AnmeldungRequest.SpielerRequest;
 import de.dart.fehmarnopen.entity.Anmeldung;
 import de.dart.fehmarnopen.entity.Disziplin;
 import de.dart.fehmarnopen.entity.Spieler;
-import de.dart.fehmarnopen.exception.DoppelteAnmeldungException;
 import de.dart.fehmarnopen.exception.DoppelterTeamnameException;
 import de.dart.fehmarnopen.exception.GlobalExceptionHandler;
 import de.dart.fehmarnopen.service.AnmeldeschlussService;
@@ -133,21 +132,6 @@ class AnmeldungControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    void postAnmeldung_beiDoppelterDisziplin_sollConflictZurueckgeben() throws Exception {
-        AnmeldungRequest request = new AnmeldungRequest(List.of(
-                new DisziplinAnmeldung(Disziplin.HERRENEINZEL, null, List.of(spielerRequest("Max"))),
-                new DisziplinAnmeldung(Disziplin.HERRENEINZEL, null, List.of(spielerRequest("Tim")))));
-
-        when(anmeldungService.anmelden(any())).thenThrow(new DoppelteAnmeldungException("HERRENEINZEL"));
-
-        mockMvc.perform(post("/api/anmeldung")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonMapper.writeValueAsString(request)))
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.message").value("Bereits für Disziplin angemeldet: HERRENEINZEL"));
     }
 
     @Test

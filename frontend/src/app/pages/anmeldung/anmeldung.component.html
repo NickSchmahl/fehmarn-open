@@ -120,19 +120,32 @@
                       <div class="spieler-row" [formGroupName]="j">
                         <div class="spieler-row-head">
                           <span class="spieler-nr">Spieler {{ j + 1 }}</span>
-                          @if (canRemoveSpieler(i)) {
-                            <button
-                              type="button"
-                              class="spieler-remove"
-                              (click)="removeSpieler(i, j)"
-                              [attr.aria-label]="'Spieler ' + (j + 1) + ' entfernen'"
-                            >
-                              Entfernen
-                            </button>
-                          }
+                          <div class="spieler-row-head-right">
+                            <label class="radikal-toggle">
+                              <input
+                                type="checkbox"
+                                formControlName="hatKeineRadikalId"
+                                (change)="toggleRadikalId(i, j)"
+                              />
+                              Ich habe noch keine Radikal ID
+                            </label>
+                            @if (canRemoveSpieler(i)) {
+                              <button
+                                type="button"
+                                class="spieler-remove"
+                                (click)="removeSpieler(i, j)"
+                                [attr.aria-label]="'Spieler ' + (j + 1) + ' entfernen'"
+                              >
+                                Entfernen
+                              </button>
+                            }
+                          </div>
                         </div>
 
-                        <div class="field-row">
+                        <div
+                          class="spieler-felder"
+                          [class.spieler-felder--split]="hatKeineRadikalId(i, j)"
+                        >
                           <div class="field-group">
                             <label [for]="'vorname-' + i + '-' + j" class="field-label">
                               Vorname <span class="required">*</span>
@@ -168,34 +181,32 @@
                               <span class="field-error">Nachname ist erforderlich.</span>
                             }
                           </div>
-                        </div>
 
-                        <!-- Radikal-ID-Angabe: entweder Radikal ID oder Initialen + Geburtsdatum -->
-                        @if (!hatKeineRadikalId(i, j)) {
-                          <div class="field-group">
-                            <label [for]="'radikalId-' + i + '-' + j" class="field-label">
-                              Radikal ID <span class="required">*</span>
-                            </label>
-                            <input
-                              [id]="'radikalId-' + i + '-' + j"
-                              type="text"
-                              formControlName="radikalId"
-                              class="field-input field-input--sm"
-                              [class.field-input--error]="
-                                radikalAngabeInvalid(i, j) ||
-                                spielerFeldHatFehler(i, j, 'radikalId', 'pattern')
-                              "
-                              placeholder="MM01011990"
-                            />
-                            @if (spielerFeldHatFehler(i, j, 'radikalId', 'pattern')) {
-                              <span class="field-error">
-                                Format: zwei Buchstaben und achtstelliges Geburtsdatum (z.&nbsp;B.
-                                MM01011990).
-                              </span>
-                            }
-                          </div>
-                        } @else {
-                          <div class="field-row">
+                          <!-- Radikal-ID-Angabe: entweder Radikal ID oder Initialen + Geburtsdatum -->
+                          @if (!hatKeineRadikalId(i, j)) {
+                            <div class="field-group">
+                              <label [for]="'radikalId-' + i + '-' + j" class="field-label">
+                                Radikal ID <span class="required">*</span>
+                              </label>
+                              <input
+                                [id]="'radikalId-' + i + '-' + j"
+                                type="text"
+                                formControlName="radikalId"
+                                class="field-input field-input--sm"
+                                [class.field-input--error]="
+                                  radikalAngabeInvalid(i, j) ||
+                                  spielerFeldHatFehler(i, j, 'radikalId', 'pattern')
+                                "
+                                placeholder="MM01011990"
+                              />
+                              @if (spielerFeldHatFehler(i, j, 'radikalId', 'pattern')) {
+                                <span class="field-error">
+                                  Format: zwei Buchstaben und achtstelliges Geburtsdatum (z.&nbsp;B.
+                                  MM01011990).
+                                </span>
+                              }
+                            </div>
+                          } @else {
                             <div class="field-group">
                               <label [for]="'initialen-' + i + '-' + j" class="field-label">
                                 Initialen <span class="required">*</span>
@@ -239,17 +250,8 @@
                                 </span>
                               }
                             </div>
-                          </div>
-                        }
-
-                        <label class="radikal-toggle">
-                          <input
-                            type="checkbox"
-                            formControlName="hatKeineRadikalId"
-                            (change)="toggleRadikalId(i, j)"
-                          />
-                          Ich habe noch keine Radikal ID
-                        </label>
+                          }
+                        </div>
 
                         @if (radikalAngabeInvalid(i, j)) {
                           <span class="field-error">

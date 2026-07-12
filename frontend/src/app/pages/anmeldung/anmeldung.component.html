@@ -39,7 +39,7 @@
             an – daraus wird eine erstellt.
           </p>
 
-          @if (form.errors?.['noDisziplin'] && form.touched) {
+          @if (form.errors?.['noDisziplin'] && submitted()) {
             <div class="alert-error" role="alert">Bitte wähle mindestens eine Disziplin aus.</div>
           }
 

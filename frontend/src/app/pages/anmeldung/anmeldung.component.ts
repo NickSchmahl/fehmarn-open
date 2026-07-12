@@ -153,6 +153,9 @@ export class AnmeldungComponent implements OnInit {
   loading = signal(false);
   successMsg = signal<string | null>(null);
   errorMessage = signal<string | null>(null);
+  // Erst nach einem Absende-Versuch sollen formweite Pflichtfehler (z. B. keine Disziplin gewählt)
+  // erscheinen – nicht schon, wenn ein Feld nur berührt/wieder abgewählt wurde.
+  submitted = signal(false);
 
   // Anmeldeschluss-Status (aus GET /api/anmeldung/status). Default offen, bis geladen; bei
   // geschlossenem Status wird das Formular gar nicht gerendert.
@@ -403,6 +406,7 @@ export class AnmeldungComponent implements OnInit {
     // Alte Teamname-Dubletten-Fehler (vom Server gesetzt) zurücksetzen, damit sie das erneute
     // Absenden nicht blockieren.
     this.clearTeamnameDuplikatFehler();
+    this.submitted.set(true);
     this.form.markAllAsTouched();
     if (this.form.invalid) return;
 
@@ -426,6 +430,7 @@ export class AnmeldungComponent implements OnInit {
         this.loading.set(false);
         this.successMsg.set('Anmeldung erfolgreich! Wir sehen uns beim Turnier.');
         this.form.reset();
+        this.submitted.set(false);
         this._formValue.set(this.form.getRawValue());
       },
       error: (err: unknown) => {

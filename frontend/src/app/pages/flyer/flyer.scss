@@ -16,7 +16,9 @@
 }
 
 .flyer-page {
-  min-height: 100vh;
+  // Kein eigenes min-height:100vh – app-main (app.scss) stellt das schon für die
+  // gesamte Seite bereit; ein zweites min-height:100vh hier würde die Seite auf
+  // volle Viewport-Höhe aufblasen und einen Leerraum vor dem Footer erzeugen.
   display: grid;
   place-items: start center;
   background-color: var(--bg);

@@ -417,7 +417,7 @@ describe('Teilnehmer (admin)', () => {
     httpTesting.expectOne('/api/admin/teilnehmer').flush(adminResponse);
   });
 
-  it('zeigt bei Reaktivierungs-Konflikt (409) die Server-Meldung an', () => {
+  it('zeigt den Reaktivierungs-Konflikt (409) nur an der betroffenen Zeile', () => {
     fixture.detectChanges();
     httpTesting.expectOne('/api/admin/teilnehmer').flush(adminResponse);
 
@@ -429,9 +429,51 @@ describe('Teilnehmer (admin)', () => {
       { status: 409, statusText: 'Conflict' },
     );
 
-    expect(component.aktionsFehler()).toContain('bereits vergeben');
+    expect(component.fehlerFuer(5)).toContain('bereits vergeben');
+    // Fehler ist zeilenbezogen: andere Zeilen bleiben sauber.
+    expect(component.fehlerFuer(999)).toBeNull();
     // Kein Reload nach Fehler.
     httpTesting.expectNone('/api/admin/teilnehmer');
+  });
+
+  it('räumt den Zeilen-Fehler weg, sobald eine andere Aktion startet', () => {
+    fixture.detectChanges();
+    httpTesting.expectOne('/api/admin/teilnehmer').flush(adminResponse);
+
+    component.reaktivieren(5);
+    httpTesting
+      .expectOne('/api/admin/anmeldung/5/reaktivieren')
+      .flush(
+        { status: 409, message: 'Teamname ist in dieser Disziplin bereits vergeben: Team A' },
+        { status: 409, statusText: 'Conflict' },
+      );
+    expect(component.fehlerFuer(5)).toContain('bereits vergeben');
+
+    // Andere Aktion (Abmelden) startet -> Fehler verschwindet sofort.
+    component.abmelden(5);
+    expect(component.fehlerFuer(5)).toBeNull();
+
+    httpTesting.expectOne('/api/admin/anmeldung/5/abmelden').flush(null);
+    httpTesting.expectOne('/api/admin/teilnehmer').flush(adminResponse);
+  });
+
+  it('rendert den Reaktivierungs-Fehler in der Zeile, nicht global', () => {
+    fixture.detectChanges();
+    httpTesting.expectOne('/api/admin/teilnehmer').flush(adminResponse);
+
+    component.reaktivieren(5);
+    httpTesting
+      .expectOne('/api/admin/anmeldung/5/reaktivieren')
+      .flush(
+        { status: 409, message: 'Teamname ist in dieser Disziplin bereits vergeben: Team A' },
+        { status: 409, statusText: 'Conflict' },
+      );
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const zeilenFehler = root.querySelectorAll('.team-block-fehler');
+    expect(zeilenFehler).toHaveLength(1);
+    expect(zeilenFehler[0].textContent).toContain('bereits vergeben');
   });
 
   it('filtert nach Suchbegriff über Spielernamen', () => {

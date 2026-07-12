@@ -17,9 +17,6 @@
       </div>
     } @else if (isAdmin()) {
       <!-- ══ Admin-Modus ═════════════════════════════════════════════════ -->
-      @if (aktionsFehler(); as meldung) {
-        <div class="alert-error" role="alert">{{ meldung }}</div>
-      }
       @if (adminGruppen().length === 0) {
         <div class="empty-state"><p>Noch keine Anmeldungen.</p></div>
       } @else {
@@ -81,6 +78,10 @@
                       />
                     </div>
                   </div>
+                }
+
+                @if (fehlerFuer(meldung.id); as fehler) {
+                  <div class="team-block-fehler alert-error" role="alert">{{ fehler }}</div>
                 }
 
                 <ul class="admin-list">

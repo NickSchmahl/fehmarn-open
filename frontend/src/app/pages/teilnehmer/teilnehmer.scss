@@ -336,6 +336,14 @@
   opacity: 0.6;
 }
 
+/* Anwesend: dezenter grüner Akzent an der Kopfzeile – analog zur abgemeldet-Kennzeichnung,
+   stapelbar mit dieser (grüner Grund + gedimmt bleibt unterscheidbar). */
+.team-head--anwesend {
+  border-radius: var(--radius);
+  background: var(--success-dim);
+  box-shadow: inset 2px 0 0 var(--success);
+}
+
 .team-head-name {
   font-size: 0.72rem;
   font-weight: 700;
@@ -376,6 +384,13 @@
 }
 .admin-row--abgemeldet .admin-name {
   text-decoration: line-through;
+}
+
+/* Anwesend: gleiche grüne Kennzeichnung für die Einzelmeldungs-Zeile. */
+.admin-row--anwesend {
+  border-color: rgba(76, 175, 130, 0.4);
+  background: var(--success-dim);
+  box-shadow: inset 2px 0 0 var(--success);
 }
 
 .admin-row-info {

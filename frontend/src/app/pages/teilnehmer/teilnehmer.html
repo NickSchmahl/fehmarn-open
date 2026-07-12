@@ -64,43 +64,36 @@
                 [class.team-block--named]="meldung.teamName"
                 [class.admin-row--abgemeldet]="meldung.abgemeldet"
               >
-                <div class="team-head" [class.team-head--abgemeldet]="meldung.abgemeldet">
-                  <span class="team-head-name">
-                    @if (meldung.teamName) {
+                @if (meldung.teamName) {
+                  <div
+                    class="team-head"
+                    [class.team-head--abgemeldet]="meldung.abgemeldet"
+                    [class.team-head--anwesend]="meldung.anwesend"
+                  >
+                    <span class="team-head-name">
                       {{ meldung.teamName }}
-                    }
-                    @if (meldung.abgemeldet) {
-                      <span class="status-badge">abgemeldet</span>
-                    }
-                  </span>
-                  <div class="team-head-actions">
-                    <label class="anwesend-toggle">
-                      <input
-                        type="checkbox"
-                        [checked]="meldung.anwesend"
-                        (change)="toggleAnwesenheit(meldung.id, !meldung.anwesend)"
+                      @if (meldung.abgemeldet) {
+                        <span class="status-badge">abgemeldet</span>
+                      }
+                    </span>
+                    <div class="team-head-actions">
+                      <app-meldung-aktionen
+                        [anwesend]="meldung.anwesend"
+                        [abgemeldet]="meldung.abgemeldet"
+                        (toggleAnwesenheit)="toggleAnwesenheit(meldung.id, $event)"
+                        (abmelden)="abmelden(meldung.id)"
+                        (reaktivieren)="reaktivieren(meldung.id)"
                       />
-                      anwesend
-                    </label>
-                    @if (meldung.abgemeldet) {
-                      <button
-                        type="button"
-                        class="btn btn-ghost"
-                        (click)="reaktivieren(meldung.id)"
-                      >
-                        Reaktivieren
-                      </button>
-                    } @else {
-                      <button type="button" class="btn btn-danger" (click)="abmelden(meldung.id)">
-                        Abmelden
-                      </button>
-                    }
+                    </div>
                   </div>
-                </div>
+                }
 
                 <ul class="admin-list">
                   @for (spieler of meldung.spieler; track $index) {
-                    <li class="admin-row">
+                    <li
+                      class="admin-row"
+                      [class.admin-row--anwesend]="!meldung.teamName && meldung.anwesend"
+                    >
                       <span class="admin-name">
                         {{ spieler.vorname }} {{ spieler.nachname }}
                         @if (!spieler.radikalId) {
@@ -114,6 +107,15 @@
                           {{ anlageGrundlage(spieler) }}
                         }
                       </span>
+                      @if (!meldung.teamName) {
+                        <app-meldung-aktionen
+                          [anwesend]="meldung.anwesend"
+                          [abgemeldet]="meldung.abgemeldet"
+                          (toggleAnwesenheit)="toggleAnwesenheit(meldung.id, $event)"
+                          (abmelden)="abmelden(meldung.id)"
+                          (reaktivieren)="reaktivieren(meldung.id)"
+                        />
+                      }
                     </li>
                   }
                 </ul>

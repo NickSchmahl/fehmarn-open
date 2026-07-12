@@ -107,6 +107,17 @@ export function meldungPasstZurSuche(meldung: AdminMeldungEintrag, suche: string
   );
 }
 
+/**
+ * Sortiert abgemeldete Meldungen stabil ans Ende; aktive behalten ihre bisherige Reihenfolge.
+ * Nimmt eine `readonly`-Liste und arbeitet auf einer Kopie, damit Signal-Arrays nie in-place
+ * verändert werden (siehe ADR 0014).
+ */
+export function sortiereAbgemeldeteAnsEnde(
+  meldungen: readonly AdminMeldungEintrag[],
+): AdminMeldungEintrag[] {
+  return [...meldungen].sort((a, b) => Number(a.abgemeldet) - Number(b.abgemeldet));
+}
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
 @Component({
@@ -129,10 +140,10 @@ export class Teilnehmer implements OnInit {
   readonly aktiveDisziplin = signal<Filter>('ALLE');
 
   // Öffentlicher Modus
-  readonly gruppen = signal<DisziplinGruppe[]>([]);
+  readonly gruppen = signal<readonly DisziplinGruppe[]>([]);
 
   // Admin-Modus
-  readonly adminGruppen = signal<AdminGruppe[]>([]);
+  readonly adminGruppen = signal<readonly AdminGruppe[]>([]);
   readonly suchbegriff = signal('');
 
   /** Filter-Chips: "Alle" + jede vorhandene Disziplin mit Anzahl (Meldungen). */
@@ -176,7 +187,9 @@ export class Teilnehmer implements OnInit {
         disziplin: gruppe.disziplin,
         label: disziplinLabel(gruppe.disziplin),
         anzahl: gruppe.anzahl,
-        meldungen: gruppe.meldungen.filter((meldung) => meldungPasstZurSuche(meldung, suche)),
+        meldungen: sortiereAbgemeldeteAnsEnde(
+          gruppe.meldungen.filter((meldung) => meldungPasstZurSuche(meldung, suche)),
+        ),
       }))
       .filter((gruppe) => gruppe.meldungen.length > 0);
   });

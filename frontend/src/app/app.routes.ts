@@ -2,7 +2,7 @@ import { Routes } from '@angular/router';
 import { AdminLoginComponent } from './pages/login/login.component';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'anmeldung', pathMatch: 'full' },
+  { path: '', redirectTo: 'flyer', pathMatch: 'full' },
   {
     path: 'anmeldung',
     loadComponent: () =>
@@ -28,5 +28,5 @@ export const routes: Routes = [
     path: 'admin/login',
     component: AdminLoginComponent,
   },
-  { path: '**', redirectTo: 'anmeldung' },
+  { path: '**', redirectTo: 'flyer' },
 ];

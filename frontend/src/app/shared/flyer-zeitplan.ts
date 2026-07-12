@@ -75,6 +75,10 @@ export const FLYER_ZEITPLAN: FlyerZeitplanEintrag[] = [
 
 export const FLYER_TURNIER = {
   titel: '12. Fehmarn Open',
+  // Titel-Präfix und Gold-Akzent getrennt gepflegt, damit das Template nicht per
+  // String-Splitting raten muss, welches Wort in --accent hervorgehoben wird.
+  titelPraefix: '12. Fehmarn',
+  titelAkzent: 'Open',
   jahr: '2027',
   termin: '05.–07. März 2027',
   ort: 'Teestube · Gahlendorfer Weg 25 · 23769 Fehmarn',

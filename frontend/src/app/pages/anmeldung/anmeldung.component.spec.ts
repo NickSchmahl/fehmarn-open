@@ -248,6 +248,33 @@ describe('AnmeldungComponent', () => {
     expect(host().querySelectorAll('.spieler-block').length).toBe(2);
   });
 
+  // ── Disziplin-Pflichtfehler erst beim Absenden ────────────────────────────
+
+  describe('Disziplin-Pflichtfehler', () => {
+    function disziplinFehlerSichtbar(): boolean {
+      return Array.from(host().querySelectorAll('.alert-error')).some((e) =>
+        e.textContent.includes('mindestens eine Disziplin'),
+      );
+    }
+
+    it('zeigt den Fehler nicht schon beim An- und wieder Abwählen einer Disziplin', () => {
+      waehleDisziplin(HERRENDOPPEL);
+      component.disziplinGroup(HERRENDOPPEL).get('selected')?.setValue(false);
+      // Simuliert das Anklicken/Wegklicken: die Felder gelten als „berührt" (blur).
+      component.form.markAllAsTouched();
+      fixture.detectChanges();
+
+      expect(disziplinFehlerSichtbar()).toBe(false);
+    });
+
+    it('zeigt den Fehler nach dem Absenden ohne Auswahl', () => {
+      component.onSubmit();
+      fixture.detectChanges();
+
+      expect(disziplinFehlerSichtbar()).toBe(true);
+    });
+  });
+
   // ── Validierung Radikal-ID-Angabe ─────────────────────────────────────────
 
   it('Absenden ohne Radikal-ID-Angabe eines Spielers ist ungültig (kein Request)', () => {

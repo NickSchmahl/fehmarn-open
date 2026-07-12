@@ -457,6 +457,25 @@ describe('Teilnehmer (admin)', () => {
     httpTesting.expectOne('/api/admin/teilnehmer').flush(adminResponse);
   });
 
+  it('rendert den Reaktivierungs-Fehler in der Zeile, nicht global', () => {
+    fixture.detectChanges();
+    httpTesting.expectOne('/api/admin/teilnehmer').flush(adminResponse);
+
+    component.reaktivieren(5);
+    httpTesting
+      .expectOne('/api/admin/anmeldung/5/reaktivieren')
+      .flush(
+        { status: 409, message: 'Teamname ist in dieser Disziplin bereits vergeben: Team A' },
+        { status: 409, statusText: 'Conflict' },
+      );
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const zeilenFehler = root.querySelectorAll('.team-block-fehler');
+    expect(zeilenFehler).toHaveLength(1);
+    expect(zeilenFehler[0].textContent).toContain('bereits vergeben');
+  });
+
   it('filtert nach Suchbegriff über Spielernamen', () => {
     fixture.detectChanges();
     httpTesting.expectOne('/api/admin/teilnehmer').flush(adminResponse);

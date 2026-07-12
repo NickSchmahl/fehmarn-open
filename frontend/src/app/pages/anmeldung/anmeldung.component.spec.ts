@@ -175,6 +175,41 @@ describe('AnmeldungComponent', () => {
     expect(component.needsTeamName(HERRENDOPPEL)).toBe(true);
   });
 
+  describe('Feld-Layout der Spielerzeile (#168)', () => {
+    it('legt Vorname, Nachname und Radikal ID in eine gemeinsame Feldreihe', () => {
+      waehleDisziplin(HERRENEINZEL);
+
+      const gefunden = host().querySelector('.spieler-row .spieler-felder');
+      expect(gefunden).not.toBeNull();
+      const felder = gefunden as HTMLElement;
+
+      const ids = Array.from(felder.querySelectorAll('input')).map((el) => el.id);
+      expect(ids.some((id) => id.startsWith('vorname-'))).toBe(true);
+      expect(ids.some((id) => id.startsWith('nachname-'))).toBe(true);
+      expect(ids.some((id) => id.startsWith('radikalId-'))).toBe(true);
+      expect(felder.classList.contains('spieler-felder--split')).toBe(false);
+    });
+
+    it('zeigt bei „keine Radikal ID" Initialen und Geburtsdatum in derselben Reihe (--split)', () => {
+      waehleDisziplin(HERRENEINZEL);
+      component.spielerGroup(HERRENEINZEL, 0).get('hatKeineRadikalId')?.setValue(true);
+      component.toggleRadikalId(HERRENEINZEL, 0);
+      fixture.detectChanges();
+
+      const gefunden = host().querySelector('.spieler-row .spieler-felder');
+      expect(gefunden).not.toBeNull();
+      const felder = gefunden as HTMLElement;
+      expect(felder.classList.contains('spieler-felder--split')).toBe(true);
+
+      const ids = Array.from(felder.querySelectorAll('input')).map((el) => el.id);
+      expect(ids.some((id) => id.startsWith('vorname-'))).toBe(true);
+      expect(ids.some((id) => id.startsWith('nachname-'))).toBe(true);
+      expect(ids.some((id) => id.startsWith('initialen-'))).toBe(true);
+      expect(ids.some((id) => id.startsWith('geburtsdatum-'))).toBe(true);
+      expect(ids.some((id) => id.startsWith('radikalId-'))).toBe(false);
+    });
+  });
+
   it('Teamwettbewerb: 4 Pflichtzeilen, auffüllbar bis 6, keine 7.', () => {
     waehleDisziplin(TEAMWETTBEWERB);
     expect(spielerZeilenAnzahl()).toBe(4);

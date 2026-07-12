@@ -417,7 +417,7 @@ describe('Teilnehmer (admin)', () => {
     httpTesting.expectOne('/api/admin/teilnehmer').flush(adminResponse);
   });
 
-  it('zeigt bei Reaktivierungs-Konflikt (409) die Server-Meldung an', () => {
+  it('zeigt den Reaktivierungs-Konflikt (409) nur an der betroffenen Zeile', () => {
     fixture.detectChanges();
     httpTesting.expectOne('/api/admin/teilnehmer').flush(adminResponse);
 
@@ -429,7 +429,9 @@ describe('Teilnehmer (admin)', () => {
       { status: 409, statusText: 'Conflict' },
     );
 
-    expect(component.aktionsFehler()).toContain('bereits vergeben');
+    expect(component.fehlerFuer(5)).toContain('bereits vergeben');
+    // Fehler ist zeilenbezogen: andere Zeilen bleiben sauber.
+    expect(component.fehlerFuer(999)).toBeNull();
     // Kein Reload nach Fehler.
     httpTesting.expectNone('/api/admin/teilnehmer');
   });

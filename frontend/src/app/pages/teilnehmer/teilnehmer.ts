@@ -76,6 +76,12 @@ export interface AdminAnzeigeGruppe {
   meldungen: AdminMeldungEintrag[];
 }
 
+/** Fehler einer Zeilen-Aktion (z. B. 409 beim Reaktivieren wegen Teamname-Dublette). */
+export interface AktionsFehler {
+  meldungId: number;
+  text: string;
+}
+
 type Filter = Disziplin | 'ALLE';
 
 interface FilterChip {
@@ -135,8 +141,8 @@ export class Teilnehmer implements OnInit {
 
   readonly loading = signal(false);
   readonly error = signal(false);
-  // Fehler einer Admin-Aktion (z. B. 409 beim Reaktivieren wegen Teamname-Dublette).
-  readonly aktionsFehler = signal<string | null>(null);
+  // Fehler einer Admin-Aktion, zeilenbezogen: welche Meldung + fachlicher Text.
+  readonly aktionsFehler = signal<AktionsFehler | null>(null);
   readonly aktiveDisziplin = signal<Filter>('ALLE');
 
   // Öffentlicher Modus
@@ -210,6 +216,17 @@ export class Teilnehmer implements OnInit {
     this.suchbegriff.set(value);
   }
 
+  /** Fehlertext für genau diese Meldung – oder null, wenn der Fehler eine andere/keine Zeile betrifft. */
+  fehlerFuer(meldungId: number): string | null {
+    const fehler = this.aktionsFehler();
+    return fehler?.meldungId === meldungId ? fehler.text : null;
+  }
+
+  /** Start einer Admin-Aktion: einen evtl. sichtbaren Zeilen-Fehler wegräumen. */
+  private aktionBeginnen(): void {
+    this.aktionsFehler.set(null);
+  }
+
   /** Anlage-Grundlage für Spieler ohne Radikal ID: "Initialen, dd.MM.yyyy". */
   anlageGrundlage(spieler: AdminSpielerEintrag): string {
     const datum = formatiereIsoDatum(spieler.geburtsdatum);
@@ -219,6 +236,7 @@ export class Teilnehmer implements OnInit {
   // ── Admin-Aktionen: jeweils pro Meldung (eine Anmeldung-id) ──
 
   abmelden(id: number): void {
+    this.aktionBeginnen();
     this.http.post(`/api/admin/anmeldung/${id}/abmelden`, {}).subscribe({
       next: () => {
         this.ladeAdmin();
@@ -227,14 +245,14 @@ export class Teilnehmer implements OnInit {
   }
 
   reaktivieren(id: number): void {
-    this.aktionsFehler.set(null);
+    this.aktionBeginnen();
     this.http.post(`/api/admin/anmeldung/${id}/reaktivieren`, {}).subscribe({
       next: () => {
         this.ladeAdmin();
       },
-      // Reaktivieren kann an einer Teamname-Dublette scheitern (409) – Meldung anzeigen.
+      // Reaktivieren kann an einer Teamname-Dublette scheitern (409) – Fehler an der Zeile zeigen.
       error: (err: unknown) => {
-        this.aktionsFehler.set(this.fehlerMeldung(err));
+        this.aktionsFehler.set({ meldungId: id, text: this.fehlerMeldung(err) });
       },
     });
   }
@@ -248,6 +266,7 @@ export class Teilnehmer implements OnInit {
   }
 
   toggleAnwesenheit(id: number, anwesend: boolean): void {
+    this.aktionBeginnen();
     this.http.put(`/api/admin/anmeldung/${id}/anwesenheit`, { anwesend }).subscribe({
       next: () => {
         this.ladeAdmin();

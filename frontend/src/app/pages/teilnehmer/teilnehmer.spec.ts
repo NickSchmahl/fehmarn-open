@@ -2,7 +2,12 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 
-import { Teilnehmer, meldungPasstZurSuche, AdminMeldungEintrag } from './teilnehmer';
+import {
+  Teilnehmer,
+  meldungPasstZurSuche,
+  sortiereAbgemeldeteAnsEnde,
+  AdminMeldungEintrag,
+} from './teilnehmer';
 import { AuthService } from '../../auth/service/auth.service';
 
 function adminMeldung(over: Partial<AdminMeldungEintrag>): AdminMeldungEintrag {
@@ -48,6 +53,49 @@ describe('meldungPasstZurSuche', () => {
   });
 });
 
+describe('sortiereAbgemeldeteAnsEnde', () => {
+  it('schiebt abgemeldete Meldungen ans Ende', () => {
+    const eingabe = [
+      adminMeldung({ id: 1, abgemeldet: false }),
+      adminMeldung({ id: 2, abgemeldet: true }),
+      adminMeldung({ id: 3, abgemeldet: false }),
+    ];
+    expect(sortiereAbgemeldeteAnsEnde(eingabe).map((m) => m.id)).toEqual([1, 3, 2]);
+  });
+
+  it('hält die Reihenfolge aktiver Meldungen stabil', () => {
+    const eingabe = [
+      adminMeldung({ id: 10, abgemeldet: false }),
+      adminMeldung({ id: 20, abgemeldet: false }),
+      adminMeldung({ id: 30, abgemeldet: false }),
+    ];
+    expect(sortiereAbgemeldeteAnsEnde(eingabe).map((m) => m.id)).toEqual([10, 20, 30]);
+  });
+
+  it('hält die Reihenfolge abgemeldeter Meldungen untereinander stabil', () => {
+    const eingabe = [
+      adminMeldung({ id: 1, abgemeldet: true }),
+      adminMeldung({ id: 2, abgemeldet: false }),
+      adminMeldung({ id: 3, abgemeldet: true }),
+    ];
+    expect(sortiereAbgemeldeteAnsEnde(eingabe).map((m) => m.id)).toEqual([2, 1, 3]);
+  });
+
+  it('lässt eine Gruppe ganz ohne Abgemeldete unverändert', () => {
+    const eingabe = [adminMeldung({ id: 1 }), adminMeldung({ id: 2 })];
+    expect(sortiereAbgemeldeteAnsEnde(eingabe).map((m) => m.id)).toEqual([1, 2]);
+  });
+
+  it('mutiert die Eingabeliste nicht', () => {
+    const eingabe = [
+      adminMeldung({ id: 1, abgemeldet: true }),
+      adminMeldung({ id: 2, abgemeldet: false }),
+    ];
+    sortiereAbgemeldeteAnsEnde(eingabe);
+    expect(eingabe.map((m) => m.id)).toEqual([1, 2]);
+  });
+});
+
 function setup(isLoggedIn: boolean) {
   TestBed.configureTestingModule({
     imports: [Teilnehmer],
@@ -90,6 +138,14 @@ describe('Teilnehmer (öffentlich)', () => {
     expect(host.querySelector('.teilnehmer-header')?.textContent).not.toContain(
       'Wer ist schon dabei',
     );
+  });
+
+  it('zeigt die Fehmarn-Bildmarke im Header', () => {
+    fixture.detectChanges();
+    httpTesting.expectOne('/api/teilnehmer').flush({ disziplinen: [] });
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.querySelector('.teilnehmer-header app-brand-icon')).not.toBeNull();
+    expect(host.querySelector('.bullseye')).toBeNull();
   });
 
   it('lädt die öffentliche Übersicht von GET /api/teilnehmer', () => {
@@ -583,5 +639,94 @@ describe('Teilnehmer (admin)', () => {
     const root = fixture.nativeElement as HTMLElement;
     const toggle = root.querySelector<HTMLButtonElement>('.ma-btn--anwesend');
     expect(toggle?.disabled).toBe(true);
+  });
+
+  it('sortiert abgemeldete Teams ans Ende der Disziplin-Gruppe', () => {
+    fixture.detectChanges();
+    httpTesting.expectOne('/api/admin/teilnehmer').flush({
+      disziplinen: [
+        {
+          disziplin: 'HERRENDOPPEL',
+          anzahl: 3,
+          meldungen: [
+            { id: 1, teamName: 'Aktiv 1', anwesend: false, abgemeldet: false, spieler: [] },
+            { id: 2, teamName: 'Abgemeldet', anwesend: false, abgemeldet: true, spieler: [] },
+            { id: 3, teamName: 'Aktiv 2', anwesend: false, abgemeldet: false, spieler: [] },
+          ],
+        },
+      ],
+    });
+
+    const reihenfolge = component.sichtbareAdminGruppen()[0].meldungen.map((m) => m.id);
+    expect(reihenfolge).toEqual([1, 3, 2]);
+  });
+
+  it('rutscht ein Team nach dem Abmelden ans Ende (Live-Update über Reload)', () => {
+    fixture.detectChanges();
+    httpTesting.expectOne('/api/admin/teilnehmer').flush({
+      disziplinen: [
+        {
+          disziplin: 'HERRENDOPPEL',
+          anzahl: 2,
+          meldungen: [
+            { id: 1, teamName: 'Team 1', anwesend: false, abgemeldet: false, spieler: [] },
+            { id: 2, teamName: 'Team 2', anwesend: false, abgemeldet: false, spieler: [] },
+          ],
+        },
+      ],
+    });
+
+    component.abmelden(1);
+    httpTesting.expectOne('/api/admin/anmeldung/1/abmelden').flush(null);
+    // Reload liefert Team 1 nun als abgemeldet zurück.
+    httpTesting.expectOne('/api/admin/teilnehmer').flush({
+      disziplinen: [
+        {
+          disziplin: 'HERRENDOPPEL',
+          anzahl: 2,
+          meldungen: [
+            { id: 1, teamName: 'Team 1', anwesend: false, abgemeldet: true, spieler: [] },
+            { id: 2, teamName: 'Team 2', anwesend: false, abgemeldet: false, spieler: [] },
+          ],
+        },
+      ],
+    });
+
+    expect(component.sichtbareAdminGruppen()[0].meldungen.map((m) => m.id)).toEqual([2, 1]);
+  });
+
+  it('rutscht ein Team nach der Reaktivierung zurück in den aktiven Bereich', () => {
+    fixture.detectChanges();
+    httpTesting.expectOne('/api/admin/teilnehmer').flush({
+      disziplinen: [
+        {
+          disziplin: 'HERRENDOPPEL',
+          anzahl: 2,
+          meldungen: [
+            { id: 1, teamName: 'Team 1', anwesend: false, abgemeldet: false, spieler: [] },
+            { id: 2, teamName: 'Team 2', anwesend: false, abgemeldet: true, spieler: [] },
+          ],
+        },
+      ],
+    });
+    // Ausgangslage: abgemeldetes Team 2 steht hinten.
+    expect(component.sichtbareAdminGruppen()[0].meldungen.map((m) => m.id)).toEqual([1, 2]);
+
+    component.reaktivieren(2);
+    httpTesting.expectOne('/api/admin/anmeldung/2/reaktivieren').flush(null);
+    httpTesting.expectOne('/api/admin/teilnehmer').flush({
+      disziplinen: [
+        {
+          disziplin: 'HERRENDOPPEL',
+          anzahl: 2,
+          meldungen: [
+            { id: 1, teamName: 'Team 1', anwesend: false, abgemeldet: false, spieler: [] },
+            { id: 2, teamName: 'Team 2', anwesend: false, abgemeldet: false, spieler: [] },
+          ],
+        },
+      ],
+    });
+
+    expect(component.sichtbareAdminGruppen()[0].meldungen.map((m) => m.id)).toEqual([1, 2]);
   });
 });

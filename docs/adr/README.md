@@ -21,5 +21,7 @@ Entscheidungen bekommen ein neues ADR mit Status „ersetzt durch …".
 | [0010](0010-tls-reverse-proxy.md) | HTTPS/TLS über Reverse Proxy (Caddy) | Akzeptiert |
 | [0011](0011-validierung-fachlich-im-service.md) | Fachliche Konflikt-Validierung im Service (409) statt Bean-Validation-Constraint | Akzeptiert |
 | [0012](0012-nested-tests-fachlogik.md) | `@Nested`-Testklassen je Methode für fachliche Tests | Akzeptiert |
+| [0013](0013-anmeldeschluss-config-statt-db.md) | Anmeldeschluss als Server-Config statt DB | Akzeptiert |
+| [0014](0014-signals-immutable-daten.md) | Signals halten unveränderliche Daten (kein In-place-Mutieren) | Akzeptiert |
 
 > Neuen ADR anlegen: nächste freie Nummer, Dateiname `NNNN-kurz-titel.md`, Zeile hier ergänzen.

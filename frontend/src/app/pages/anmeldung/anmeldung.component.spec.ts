@@ -57,6 +57,13 @@ describe('AnmeldungComponent', () => {
     httpMock.verify();
   });
 
+  it('zeigt die Fehmarn-Bildmarke im Anmeldungs-Header', () => {
+    fixture.detectChanges();
+    const element = fixture.nativeElement as HTMLElement;
+    expect(element.querySelector('.anmeldung-header app-brand-icon')).not.toBeNull();
+    expect(element.querySelector('.bullseye')).toBeNull();
+  });
+
   function waehleDisziplin(i: number): void {
     component.disziplinGroup(i).get('selected')?.setValue(true);
     fixture.detectChanges();

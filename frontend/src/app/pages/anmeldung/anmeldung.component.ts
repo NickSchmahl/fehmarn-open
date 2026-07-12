@@ -10,6 +10,7 @@ import {
 } from '@angular/forms';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { DISZIPLINEN } from '../../shared/disziplin';
+import { BrandIconComponent } from '../../ui/brand-icon/brand-icon.component';
 
 // ── Typen ────────────────────────────────────────────────────────────────────
 
@@ -137,7 +138,7 @@ function radikalIdAngabeValidator(group: AbstractControl): ValidationErrors | nu
 @Component({
   selector: 'app-anmeldung',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, BrandIconComponent],
   templateUrl: './anmeldung.component.html',
   styleUrl: './anmeldung.component.scss',
 })

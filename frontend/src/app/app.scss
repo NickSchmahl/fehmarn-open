@@ -46,33 +46,10 @@
 }
 
 .brand-mark {
-  position: relative;
   width: 38px;
   height: 38px;
   flex: 0 0 auto;
-  border: 1px solid var(--border);
-  border-radius: 50%;
-  background:
-    radial-gradient(circle at center, var(--accent) 0 4px, transparent 5px),
-    radial-gradient(
-      circle at center,
-      transparent 0 11px,
-      var(--text-dim) 12px 13px,
-      transparent 14px
-    ),
-    radial-gradient(circle at center, transparent 0 18px, var(--border) 19px 20px, transparent 21px);
-  box-shadow: 0 0 22px rgba(232, 197, 71, 0.18);
-}
-
-.brand-mark span {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 24px;
-  height: 1px;
-  background: var(--accent);
-  transform: translate(-50%, -50%) rotate(-18deg);
-  transform-origin: center;
+  color: var(--text);
 }
 
 .brand-text {

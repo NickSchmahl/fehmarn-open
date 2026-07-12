@@ -5,12 +5,17 @@ import de.dart.fehmarnopen.dto.AnmeldungRequest;
 import de.dart.fehmarnopen.dto.AnmeldungRequest.SpielerRequest;
 import de.dart.fehmarnopen.dto.TeilnehmerUebersichtResponse;
 import de.dart.fehmarnopen.entity.Anmeldung;
+import de.dart.fehmarnopen.entity.Disziplin;
 import de.dart.fehmarnopen.entity.Spieler;
+import de.dart.fehmarnopen.exception.DoppelterTeamnameException;
 import de.dart.fehmarnopen.exception.NichtGefundenException;
 import de.dart.fehmarnopen.mapper.UebersichtMapper;
 import de.dart.fehmarnopen.repository.AnmeldungRepository;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,6 +33,7 @@ public class AnmeldungService {
     @Transactional
     public List<Anmeldung> anmelden(AnmeldungRequest request) {
         anmeldeschlussService.pruefeAnmeldungOffen();
+        pruefeKeineDoppeltenTeamnamenImRequest(request);
         return request.disziplinen().stream().map(this::anmeldenFuerDisziplin).toList();
     }
 
@@ -96,5 +102,23 @@ public class AnmeldungService {
         return anmeldungRepository
                 .findById(anmeldungId)
                 .orElseThrow(() -> new NichtGefundenException("Anmeldung nicht gefunden: " + anmeldungId));
+    }
+
+    private void pruefeKeineDoppeltenTeamnamenImRequest(AnmeldungRequest request) {
+        Map<Disziplin, List<String>> gesehenJeDisziplin = new EnumMap<>(Disziplin.class);
+        for (AnmeldungRequest.DisziplinAnmeldung eingabe : request.disziplinen()) {
+            String normalisiert = teamnameValidierungService.normalisiere(eingabe.teamName());
+            if (normalisiert == null) {
+                continue; // Einzel/U18 ohne Teamname – nichts zu prüfen.
+            }
+            List<String> bereitsGesehen =
+                    gesehenJeDisziplin.computeIfAbsent(eingabe.disziplin(), d -> new ArrayList<>());
+            boolean kollision = bereitsGesehen.stream()
+                    .anyMatch(vorhanden -> String.CASE_INSENSITIVE_ORDER.compare(vorhanden, normalisiert) == 0);
+            if (kollision) {
+                throw new DoppelterTeamnameException(eingabe.disziplin(), normalisiert);
+            }
+            bereitsGesehen.add(normalisiert);
+        }
     }
 }

@@ -275,4 +275,19 @@ class AnmeldungServiceTest {
         assertThat(result).hasSize(1);
         verify(anmeldeschlussService).pruefeAnmeldungOffen();
     }
+
+    @Test
+    void anmelden_zweiTeamsGleicherNameSelbeDisziplin_wirftDoppelterTeamname() {
+        when(teamnameValidierungService.normalisiere("Die Bullseye Boys")).thenReturn("Die Bullseye Boys");
+        when(teamnameValidierungService.normalisiere("die bullseye boys")).thenReturn("die bullseye boys");
+        AnmeldungRequest request = new AnmeldungRequest(List.of(
+                new DisziplinAnmeldung(
+                        Disziplin.HERRENDOPPEL, "Die Bullseye Boys", List.of(spieler("A", "A"), spieler("B", "B"))),
+                new DisziplinAnmeldung(
+                        Disziplin.HERRENDOPPEL, "die bullseye boys", List.of(spieler("C", "C"), spieler("D", "D")))));
+
+        assertThatThrownBy(() -> anmeldungService.anmelden(request)).isInstanceOf(DoppelterTeamnameException.class);
+
+        verify(anmeldungRepository, never()).save(any());
+    }
 }

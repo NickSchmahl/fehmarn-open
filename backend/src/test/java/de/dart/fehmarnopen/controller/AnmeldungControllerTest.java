@@ -101,6 +101,28 @@ class AnmeldungControllerTest {
     }
 
     @Test
+    void postAnmeldung_mitZweiMeldungenDerselbenDisziplin_sollBeideZurueckgeben() throws Exception {
+        AnmeldungRequest request = new AnmeldungRequest(List.of(
+                new DisziplinAnmeldung(Disziplin.HERRENEINZEL, null, List.of(spielerRequest("Max"))),
+                new DisziplinAnmeldung(Disziplin.HERRENEINZEL, null, List.of(spielerRequest("Tim")))));
+
+        when(anmeldungService.anmelden(any()))
+                .thenReturn(List.of(
+                        buildAnmeldung(Disziplin.HERRENEINZEL, null, "Max"),
+                        buildAnmeldung(Disziplin.HERRENEINZEL, null, "Tim")));
+
+        mockMvc.perform(post("/api/anmeldung")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.anmeldungen.length()").value(2))
+                .andExpect(jsonPath("$.anmeldungen[0].disziplin").value("HERRENEINZEL"))
+                .andExpect(jsonPath("$.anmeldungen[0].spieler[0].vorname").value("Max"))
+                .andExpect(jsonPath("$.anmeldungen[1].disziplin").value("HERRENEINZEL"))
+                .andExpect(jsonPath("$.anmeldungen[1].spieler[0].vorname").value("Tim"));
+    }
+
+    @Test
     void postAnmeldung_ohneDisziplinen_sollBadRequestZurueckgeben() throws Exception {
         AnmeldungRequest request = new AnmeldungRequest(List.of());
 

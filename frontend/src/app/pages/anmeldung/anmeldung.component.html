@@ -105,7 +105,8 @@
                     }
                     @if (teamNameZeichenFehler(i)) {
                       <span class="field-error"
-                        >Teamname darf nur Buchstaben, Zahlen und Leerzeichen enthalten.</span
+                        >Bitte einen gültigen Teamnamen eingeben – z. B. „Die Bären“ oder „Team
+                        42“.</span
                       >
                     }
                     @if (teamNameDuplikatText(i); as duplikatMeldung) {
@@ -169,8 +170,8 @@
                             }
                             @if (spielerFeldHatFehler(i, j, 'vorname', 'zeichen')) {
                               <span class="field-error"
-                                >Name darf nur Buchstaben, Leerzeichen und Bindestrich
-                                enthalten.</span
+                                >Bitte einen gültigen Namen eingeben – z. B. „Anna“, „Anna Lena“
+                                oder „Anna-Lena“.</span
                               >
                             }
                           </div>
@@ -193,8 +194,8 @@
                             }
                             @if (spielerFeldHatFehler(i, j, 'nachname', 'zeichen')) {
                               <span class="field-error"
-                                >Name darf nur Buchstaben, Leerzeichen und Bindestrich
-                                enthalten.</span
+                                >Bitte einen gültigen Namen eingeben – z. B. „Anna“, „Anna Lena“
+                                oder „Anna-Lena“.</span
                               >
                             }
                           </div>

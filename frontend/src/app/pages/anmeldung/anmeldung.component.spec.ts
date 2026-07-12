@@ -522,7 +522,7 @@ describe('AnmeldungComponent', () => {
       fixture.detectChanges();
 
       const fehler = Array.from(host().querySelectorAll('.field-error')).map((e) => e.textContent);
-      expect(fehler.some((t) => t.includes('nur Buchstaben, Zahlen und Leerzeichen'))).toBe(true);
+      expect(fehler.some((t) => t.includes('gültigen Teamnamen'))).toBe(true);
     });
 
     it('akzeptiert einen Doppelnamen mit Bindestrich im Vornamen', () => {
@@ -562,9 +562,7 @@ describe('AnmeldungComponent', () => {
       fixture.detectChanges();
 
       const fehler = Array.from(host().querySelectorAll('.field-error')).map((e) => e.textContent);
-      expect(fehler.some((t) => t.includes('nur Buchstaben, Leerzeichen und Bindestrich'))).toBe(
-        true,
-      );
+      expect(fehler.some((t) => t.includes('gültigen Namen'))).toBe(true);
     });
   });
 

@@ -151,7 +151,7 @@ class AnmeldungServiceTest {
     void anmelden_beiUngueltigemSpielernamen_speichertNichts() {
         when(spielernameValidierungService.normalisiereUndPruefe(eq("Anna1"), any()))
                 .thenThrow(new UngueltigeAnmeldungException(
-                        "Vorname darf nur Buchstaben, Leerzeichen und Bindestrich enthalten"));
+                        "Vorname: bitte einen gültigen Namen eingeben (z. B. „Anna“, „Anna Lena“ oder „Anna-Lena“)"));
         AnmeldungRequest request = new AnmeldungRequest(
                 List.of(new DisziplinAnmeldung(Disziplin.HERRENEINZEL, null, List.of(spieler("Anna1", "Schmidt")))));
 

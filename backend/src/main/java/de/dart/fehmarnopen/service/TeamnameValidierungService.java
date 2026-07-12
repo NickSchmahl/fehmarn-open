@@ -71,7 +71,8 @@ public class TeamnameValidierungService {
 
     private void pruefeZeichensatz(String normalisiert) {
         if (!ERLAUBTE_ZEICHEN.matcher(normalisiert).matches()) {
-            throw new UngueltigeAnmeldungException("Teamname darf nur Buchstaben, Zahlen und Leerzeichen enthalten");
+            throw new UngueltigeAnmeldungException(
+                    "Bitte einen gültigen Teamnamen eingeben (z. B. „Die Bären“ oder „Team 42“)");
         }
     }
 

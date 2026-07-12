@@ -36,8 +36,8 @@ public class SpielernameValidierungService {
             return normalisiert;
         }
         if (!ERLAUBTES_MUSTER.matcher(normalisiert).matches()) {
-            throw new UngueltigeAnmeldungException(
-                    feldbezeichnung + " darf nur Buchstaben, Leerzeichen und Bindestrich enthalten");
+            throw new UngueltigeAnmeldungException(feldbezeichnung
+                    + ": bitte einen gültigen Namen eingeben (z. B. „Anna“, „Anna Lena“ oder „Anna-Lena“)");
         }
         return normalisiert;
     }

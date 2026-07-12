@@ -84,6 +84,31 @@ function teamnameMaxLaengeValidator(control: AbstractControl): ValidationErrors 
   return normalisiert.length > TEAMNAME_MAX_LAENGE ? { maxlaenge: TEAMNAME_MAX_LAENGE } : null;
 }
 
+/**
+ * Zeichensatz wie im Backend (#167): nach Normalisierung nur Buchstaben (inkl. Umlaute), Ziffern und
+ * Leerzeichen – Sonderzeichen inkl. Bindestrich sind verboten. Leer bleibt Sache der Pflichtprüfung.
+ */
+const TEAMNAME_MUSTER = /^[\p{L}\p{N} ]+$/u;
+function teamnameMusterValidator(control: AbstractControl): ValidationErrors | null {
+  const value = typeof control.value === 'string' ? control.value : '';
+  const normalisiert = normalisiereTeamname(value);
+  if (normalisiert === null) return null;
+  return TEAMNAME_MUSTER.test(normalisiert) ? null : { zeichen: true };
+}
+
+/**
+ * Zeichensatz für Personennamen wie im Backend (#167): Buchstaben (inkl. Umlaute), einzelne
+ * Leerzeichen und der Bindestrich für Doppelnamen – Letzterer nur zwischen zwei Buchstaben. Leere
+ * Eingaben bleiben Sache der Pflichtprüfung ({@link Validators.required}).
+ */
+const SPIELERNAME_MUSTER = /^\p{L}+([ -]\p{L}+)*$/u;
+function spielernameMusterValidator(control: AbstractControl): ValidationErrors | null {
+  const value = typeof control.value === 'string' ? control.value : '';
+  const normalisiert = value.trim().replace(/\s+/g, ' ');
+  if (normalisiert === '') return null;
+  return SPIELERNAME_MUSTER.test(normalisiert) ? null : { zeichen: true };
+}
+
 /** Radikal ID: zwei Buchstaben (Initialen) + achtstelliges Geburtsdatum TTMMJJJJ (z. B. MM01011990). */
 const RADIKAL_ID_MUSTER = /^[A-Za-z]{2}\d{8}$/;
 
@@ -264,8 +289,8 @@ export class AnmeldungComponent implements OnInit {
   private createSpielerGroup(): FormGroup {
     return this.formBuilder.group(
       {
-        vorname: ['', [Validators.required]],
-        nachname: ['', [Validators.required]],
+        vorname: ['', [Validators.required, spielernameMusterValidator]],
+        nachname: ['', [Validators.required, spielernameMusterValidator]],
         hatKeineRadikalId: [false],
         radikalId: ['', [radikalIdPatternValidator]],
         initialen: [''],
@@ -282,7 +307,11 @@ export class AnmeldungComponent implements OnInit {
 
     if (selected) {
       if (meta.teamName) {
-        teamNameCtrl?.setValidators([Validators.required, teamnameMaxLaengeValidator]);
+        teamNameCtrl?.setValidators([
+          Validators.required,
+          teamnameMaxLaengeValidator,
+          teamnameMusterValidator,
+        ]);
       }
       // Auf die Pflichtanzahl auffüllen (idempotent, falls bereits Zeilen vorhanden sind).
       while (spieler.length < meta.minSpieler) {
@@ -345,6 +374,11 @@ export class AnmeldungComponent implements OnInit {
   teamNameLaengeFehler(i: number): boolean {
     const ctrl = this.disziplinGroup(i).get('teamName');
     return ctrl !== null && ctrl.hasError('maxlaenge') && ctrl.touched;
+  }
+
+  teamNameZeichenFehler(i: number): boolean {
+    const ctrl = this.disziplinGroup(i).get('teamName');
+    return ctrl !== null && ctrl.hasError('zeichen') && ctrl.touched;
   }
 
   /** Fachliche Dubletten-Meldung vom Server (per {@link zeigeTeamnameDuplikatAmFeld} gesetzt) oder null. */

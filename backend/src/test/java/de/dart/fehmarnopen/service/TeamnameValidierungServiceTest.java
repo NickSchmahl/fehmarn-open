@@ -152,5 +152,52 @@ class TeamnameValidierungServiceTest {
             assertThat(teamnameValidierungService.normalisiereUndPruefe(Disziplin.HERRENEINZEL, null, null))
                     .isNull();
         }
+
+        @Test
+        void buchstabenZiffernLeerzeichenSindErlaubt() {
+            when(anmeldungRepository.findByDisziplinAndAbgemeldetFalse(Disziplin.HERRENDOPPEL))
+                    .thenReturn(List.of());
+
+            assertThatCode(() -> teamnameValidierungService.normalisiereUndPruefe(
+                            Disziplin.HERRENDOPPEL, "München 42", null))
+                    .doesNotThrowAnyException();
+        }
+
+        @Test
+        void punktWirdAbgelehnt() {
+            assertThatThrownBy(() ->
+                            teamnameValidierungService.normalisiereUndPruefe(Disziplin.HERRENDOPPEL, "Team.", null))
+                    .isInstanceOf(UngueltigeAnmeldungException.class);
+        }
+
+        @Test
+        void ampersandWirdAbgelehnt() {
+            assertThatThrownBy(
+                            () -> teamnameValidierungService.normalisiereUndPruefe(Disziplin.HERRENDOPPEL, "a&b", null))
+                    .isInstanceOf(UngueltigeAnmeldungException.class);
+        }
+
+        @Test
+        void apostrophWirdAbgelehnt() {
+            assertThatThrownBy(() ->
+                            teamnameValidierungService.normalisiereUndPruefe(Disziplin.HERRENDOPPEL, "O'Brien", null))
+                    .isInstanceOf(UngueltigeAnmeldungException.class);
+        }
+
+        @Test
+        void bindestrichBeimTeamnamenWirdAbgelehnt() {
+            // Abgrenzung zum Personennamen: dort ist der Bindestrich erlaubt, beim Teamnamen nicht.
+            assertThatThrownBy(() ->
+                            teamnameValidierungService.normalisiereUndPruefe(Disziplin.HERRENDOPPEL, "Team-Eins", null))
+                    .isInstanceOf(UngueltigeAnmeldungException.class);
+        }
+
+        @Test
+        void zeichensatzGiltNachNormalisierung() {
+            // Rand-Leerzeichen werden zwar normalisiert, das Sonderzeichen bleibt und wird abgelehnt.
+            assertThatThrownBy(() ->
+                            teamnameValidierungService.normalisiereUndPruefe(Disziplin.HERRENDOPPEL, "  Team.  ", null))
+                    .isInstanceOf(UngueltigeAnmeldungException.class);
+        }
     }
 }

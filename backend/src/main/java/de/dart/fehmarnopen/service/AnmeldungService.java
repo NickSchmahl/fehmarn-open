@@ -25,6 +25,7 @@ public class AnmeldungService {
 
     private final AnmeldungRepository anmeldungRepository;
     private final SpielerValidierungService spielerValidierungService;
+    private final SpielernameValidierungService spielernameValidierungService;
     private final TeamnameValidierungService teamnameValidierungService;
     private final UebersichtMapper uebersichtMapper;
     private final AnmeldeschlussService anmeldeschlussService;
@@ -61,8 +62,8 @@ public class AnmeldungService {
 
     private Spieler zuSpieler(SpielerRequest request) {
         Spieler spieler = new Spieler();
-        spieler.setVorname(request.vorname());
-        spieler.setNachname(request.nachname());
+        spieler.setVorname(spielernameValidierungService.normalisiereUndPruefe(request.vorname(), "Vorname"));
+        spieler.setNachname(spielernameValidierungService.normalisiereUndPruefe(request.nachname(), "Nachname"));
         spieler.setRadikalId(request.radikalId());
         spieler.setInitialen(request.initialen());
         spieler.setGeburtsdatum(request.geburtsdatum());

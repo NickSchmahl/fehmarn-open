@@ -106,6 +106,17 @@ export function meldungPasstZurSuche(meldung: AdminMeldungEintrag, suche: string
   );
 }
 
+/**
+ * Sortiert abgemeldete Meldungen stabil ans Ende; aktive behalten ihre bisherige Reihenfolge.
+ * Nimmt eine `readonly`-Liste und arbeitet auf einer Kopie, damit Signal-Arrays nie in-place
+ * verändert werden (siehe ADR 0014).
+ */
+export function sortiereAbgemeldeteAnsEnde(
+  meldungen: readonly AdminMeldungEintrag[],
+): AdminMeldungEintrag[] {
+  return [...meldungen].sort((a, b) => Number(a.abgemeldet) - Number(b.abgemeldet));
+}
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
 @Component({

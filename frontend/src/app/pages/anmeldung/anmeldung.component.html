@@ -103,6 +103,12 @@
                         >Teamname darf höchstens {{ teamnameMaxLaenge }} Zeichen haben.</span
                       >
                     }
+                    @if (teamNameZeichenFehler(i)) {
+                      <span class="field-error"
+                        >Bitte einen gültigen Teamnamen eingeben – z. B. „Die Bären“ oder „Team
+                        42“.</span
+                      >
+                    }
                     @if (teamNameDuplikatText(i); as duplikatMeldung) {
                       <span class="field-error">{{ duplikatMeldung }}</span>
                     }
@@ -159,8 +165,14 @@
                               autocomplete="given-name"
                               placeholder="Max"
                             />
-                            @if (spielerFeldInvalid(i, j, 'vorname')) {
+                            @if (spielerFeldHatFehler(i, j, 'vorname', 'required')) {
                               <span class="field-error">Vorname ist erforderlich.</span>
+                            }
+                            @if (spielerFeldHatFehler(i, j, 'vorname', 'zeichen')) {
+                              <span class="field-error"
+                                >Bitte einen gültigen Namen eingeben – z. B. „Anna“, „Anna Lena“
+                                oder „Anna-Lena“.</span
+                              >
                             }
                           </div>
 
@@ -177,8 +189,14 @@
                               autocomplete="family-name"
                               placeholder="Mustermann"
                             />
-                            @if (spielerFeldInvalid(i, j, 'nachname')) {
+                            @if (spielerFeldHatFehler(i, j, 'nachname', 'required')) {
                               <span class="field-error">Nachname ist erforderlich.</span>
+                            }
+                            @if (spielerFeldHatFehler(i, j, 'nachname', 'zeichen')) {
+                              <span class="field-error"
+                                >Bitte einen gültigen Namen eingeben – z. B. „Anna“, „Anna Lena“
+                                oder „Anna-Lena“.</span
+                              >
                             }
                           </div>
 

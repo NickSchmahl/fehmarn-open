@@ -6,12 +6,14 @@ import de.dart.fehmarnopen.exception.DoppelterTeamnameException;
 import de.dart.fehmarnopen.exception.UngueltigeAnmeldungException;
 import de.dart.fehmarnopen.repository.AnmeldungRepository;
 import java.util.Objects;
+import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 /**
  * Prüft und normalisiert Teamnamen (#152): Trim + interne Mehrfach-Leerzeichen zusammenfassen,
- * höchstens 20 Zeichen, eindeutig je Disziplin (case-insensitiv, nur gegen aktive Anmeldungen).
+ * höchstens 20 Zeichen, nur Buchstaben/Ziffern/Leerzeichen (#167) und eindeutig je Disziplin
+ * (case-insensitiv, nur gegen aktive Anmeldungen).
  *
  * <p>Die Eindeutigkeit ist eine fachliche Konfliktprüfung und liegt bewusst hier im Service statt in
  * einem Bean-Validation-Constraint (siehe ADR 0011): 409-Semantik, deckt auch die Reaktivierung ab
@@ -22,6 +24,10 @@ import org.springframework.stereotype.Component;
 public class TeamnameValidierungService {
 
     private static final int MAX_LAENGE = 20;
+
+    // Nach Normalisierung erlaubt: Buchstaben (inkl. Umlaute), Ziffern und einzelne Leerzeichen.
+    // Sonderzeichen inkl. Bindestrich sind verboten – sie erzeugten sonst Beinah-Dubletten (#167).
+    private static final Pattern ERLAUBTE_ZEICHEN = Pattern.compile("^[\\p{L}\\p{N} ]+$");
 
     private final AnmeldungRepository anmeldungRepository;
 
@@ -52,6 +58,7 @@ public class TeamnameValidierungService {
             return null;
         }
         pruefeLaenge(normalisiert);
+        pruefeZeichensatz(normalisiert);
         pruefeEindeutig(disziplin, normalisiert, ausschlussId);
         return normalisiert;
     }
@@ -59,6 +66,13 @@ public class TeamnameValidierungService {
     private void pruefeLaenge(String normalisiert) {
         if (normalisiert.length() > MAX_LAENGE) {
             throw new UngueltigeAnmeldungException("Teamname darf höchstens " + MAX_LAENGE + " Zeichen haben");
+        }
+    }
+
+    private void pruefeZeichensatz(String normalisiert) {
+        if (!ERLAUBTE_ZEICHEN.matcher(normalisiert).matches()) {
+            throw new UngueltigeAnmeldungException(
+                    "Bitte einen gültigen Teamnamen eingeben (z. B. „Die Bären“ oder „Team 42“)");
         }
     }
 

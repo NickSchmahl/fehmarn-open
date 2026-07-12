@@ -34,7 +34,7 @@ describe('Flyer', () => {
   });
 
   it('zeigt Vereinsname, Titel, Termin und Ort', () => {
-    const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    const text = (fixture.nativeElement as HTMLElement).textContent;
     expect(text).toContain('Dartverein Fehmarn e.V.');
     expect(text).toContain('12. Fehmarn Open');
     expect(text).toContain('05.–07. März 2027');
@@ -42,7 +42,7 @@ describe('Flyer', () => {
   });
 
   it('zeigt jede Disziplin mit Tag und 1.-Platz-Preisgeld', () => {
-    const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    const text = (fixture.nativeElement as HTMLElement).textContent;
     for (const zeile of component.zeilen) {
       expect(text).toContain(zeile.label);
       expect(text).toContain(zeile.tag);
@@ -61,6 +61,6 @@ describe('Flyer', () => {
   it('enthält keinen QR-Code-Platzhalter', () => {
     const element = fixture.nativeElement as HTMLElement;
     expect(element.querySelector('.qr-code')).toBeNull();
-    expect((element.textContent ?? '').toLowerCase()).not.toContain('qr-code');
+    expect(element.textContent.toLowerCase()).not.toContain('qr-code');
   });
 });

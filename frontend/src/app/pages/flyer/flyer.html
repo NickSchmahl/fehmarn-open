@@ -47,17 +47,13 @@
         }
       </div>
       <div class="flyer-tabelle-zeile" role="row">
-        <span class="flyer-tabelle-zelle flyer-tabelle-label" role="rowheader"
-          >Anmeldeschluss</span
-        >
+        <span class="flyer-tabelle-zelle flyer-tabelle-label" role="rowheader">Anmeldeschluss</span>
         @for (zeile of zeilen; track zeile.value) {
           <span class="flyer-tabelle-zelle" role="cell">{{ zeile.anmeldeschluss }}</span>
         }
       </div>
       <div class="flyer-tabelle-zeile" role="row">
-        <span class="flyer-tabelle-zelle flyer-tabelle-label" role="rowheader"
-          >Turnierbeginn</span
-        >
+        <span class="flyer-tabelle-zelle flyer-tabelle-label" role="rowheader">Turnierbeginn</span>
         @for (zeile of zeilen; track zeile.value) {
           <span class="flyer-tabelle-zelle flyer-tabelle-zelle--stark" role="cell">{{
             zeile.turnierbeginn

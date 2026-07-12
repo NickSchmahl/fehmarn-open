@@ -17,6 +17,7 @@ import de.dart.fehmarnopen.entity.Anmeldung;
 import de.dart.fehmarnopen.entity.Disziplin;
 import de.dart.fehmarnopen.entity.Spieler;
 import de.dart.fehmarnopen.exception.AnmeldungGesperrtException;
+import de.dart.fehmarnopen.exception.DoppelteRadikalIdException;
 import de.dart.fehmarnopen.exception.DoppelterTeamnameException;
 import de.dart.fehmarnopen.exception.NichtGefundenException;
 import de.dart.fehmarnopen.exception.UngueltigeAnmeldungException;
@@ -60,6 +61,10 @@ class AnmeldungServiceTest {
         return new SpielerRequest(vorname, nachname, "RAD-1", null, null);
     }
 
+    private SpielerRequest spieler(String vorname, String nachname, String radikalId) {
+        return new SpielerRequest(vorname, nachname, radikalId, null, null);
+    }
+
     private Spieler spielerEntity(String vorname, String nachname) {
         Spieler spieler = new Spieler();
         spieler.setVorname(vorname);
@@ -98,7 +103,9 @@ class AnmeldungServiceTest {
                         eq(Disziplin.HERRENDOPPEL), eq(" Die  Bullseye Boys "), isNull()))
                 .thenReturn("Die Bullseye Boys");
         AnmeldungRequest request = new AnmeldungRequest(List.of(new DisziplinAnmeldung(
-                Disziplin.HERRENDOPPEL, " Die  Bullseye Boys ", List.of(spieler("Max", "M"), spieler("Tim", "T")))));
+                Disziplin.HERRENDOPPEL,
+                " Die  Bullseye Boys ",
+                List.of(spieler("Max", "M", "RAD-1"), spieler("Tim", "T", "RAD-2")))));
 
         List<Anmeldung> result = anmeldungService.anmelden(request);
 
@@ -111,7 +118,7 @@ class AnmeldungServiceTest {
         when(teamnameValidierungService.normalisiereUndPruefe(eq(Disziplin.HERRENDOPPEL), any(), isNull()))
                 .thenThrow(new DoppelterTeamnameException(Disziplin.HERRENDOPPEL, "Team"));
         AnmeldungRequest request = new AnmeldungRequest(List.of(new DisziplinAnmeldung(
-                Disziplin.HERRENDOPPEL, "Team", List.of(spieler("Max", "M"), spieler("Tim", "T")))));
+                Disziplin.HERRENDOPPEL, "Team", List.of(spieler("Max", "M", "RAD-1"), spieler("Tim", "T", "RAD-2")))));
 
         assertThatThrownBy(() -> anmeldungService.anmelden(request)).isInstanceOf(DoppelterTeamnameException.class);
 
@@ -136,9 +143,11 @@ class AnmeldungServiceTest {
     void anmelden_mehrereDisziplinen_speichertAlle() {
         when(anmeldungRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
         AnmeldungRequest request = new AnmeldungRequest(List.of(
-                new DisziplinAnmeldung(Disziplin.HERRENEINZEL, null, List.of(spieler("Max", "M"))),
+                new DisziplinAnmeldung(Disziplin.HERRENEINZEL, null, List.of(spieler("Max", "M", "RAD-1"))),
                 new DisziplinAnmeldung(
-                        Disziplin.HERRENDOPPEL, "Team", List.of(spieler("Max", "M"), spieler("Tim", "T")))));
+                        Disziplin.HERRENDOPPEL,
+                        "Team",
+                        List.of(spieler("Max", "M", "RAD-1"), spieler("Tim", "T", "RAD-2")))));
 
         List<Anmeldung> result = anmeldungService.anmelden(request);
 
@@ -150,8 +159,8 @@ class AnmeldungServiceTest {
     void anmelden_mitZweiHerreneinzelMeldungen_speichertZweiAnmeldungen() {
         when(anmeldungRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
         AnmeldungRequest request = new AnmeldungRequest(List.of(
-                new DisziplinAnmeldung(Disziplin.HERRENEINZEL, null, List.of(spieler("Max", "M"))),
-                new DisziplinAnmeldung(Disziplin.HERRENEINZEL, null, List.of(spieler("Tim", "T")))));
+                new DisziplinAnmeldung(Disziplin.HERRENEINZEL, null, List.of(spieler("Max", "M", "RAD-1"))),
+                new DisziplinAnmeldung(Disziplin.HERRENEINZEL, null, List.of(spieler("Tim", "T", "RAD-2")))));
 
         List<Anmeldung> result = anmeldungService.anmelden(request);
 
@@ -165,7 +174,7 @@ class AnmeldungServiceTest {
                 .when(spielerValidierungService)
                 .validiere(eq(Disziplin.HERRENEINZEL), anyList());
         AnmeldungRequest request = new AnmeldungRequest(List.of(new DisziplinAnmeldung(
-                Disziplin.HERRENEINZEL, null, List.of(spieler("Max", "M"), spieler("Tim", "T")))));
+                Disziplin.HERRENEINZEL, null, List.of(spieler("Max", "M", "RAD-1"), spieler("Tim", "T", "RAD-2")))));
 
         assertThatThrownBy(() -> anmeldungService.anmelden(request)).isInstanceOf(UngueltigeAnmeldungException.class);
 
@@ -282,11 +291,26 @@ class AnmeldungServiceTest {
         when(teamnameValidierungService.normalisiere("die bullseye boys")).thenReturn("die bullseye boys");
         AnmeldungRequest request = new AnmeldungRequest(List.of(
                 new DisziplinAnmeldung(
-                        Disziplin.HERRENDOPPEL, "Die Bullseye Boys", List.of(spieler("A", "A"), spieler("B", "B"))),
+                        Disziplin.HERRENDOPPEL,
+                        "Die Bullseye Boys",
+                        List.of(spieler("A", "A", "RAD-1"), spieler("B", "B", "RAD-2"))),
                 new DisziplinAnmeldung(
-                        Disziplin.HERRENDOPPEL, "die bullseye boys", List.of(spieler("C", "C"), spieler("D", "D")))));
+                        Disziplin.HERRENDOPPEL,
+                        "die bullseye boys",
+                        List.of(spieler("C", "C", "RAD-3"), spieler("D", "D", "RAD-4")))));
 
         assertThatThrownBy(() -> anmeldungService.anmelden(request)).isInstanceOf(DoppelterTeamnameException.class);
+
+        verify(anmeldungRepository, never()).save(any());
+    }
+
+    @Test
+    void anmelden_gleicheRadikalIdZweimalImSelbenEinzel_wirftDoppelteRadikalId() {
+        AnmeldungRequest request = new AnmeldungRequest(List.of(
+                new DisziplinAnmeldung(Disziplin.HERRENEINZEL, null, List.of(spieler("Max", "M"))),
+                new DisziplinAnmeldung(Disziplin.HERRENEINZEL, null, List.of(spieler("Max", "M")))));
+
+        assertThatThrownBy(() -> anmeldungService.anmelden(request)).isInstanceOf(DoppelteRadikalIdException.class);
 
         verify(anmeldungRepository, never()).save(any());
     }

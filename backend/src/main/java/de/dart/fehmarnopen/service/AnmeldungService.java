@@ -7,6 +7,7 @@ import de.dart.fehmarnopen.dto.TeilnehmerUebersichtResponse;
 import de.dart.fehmarnopen.entity.Anmeldung;
 import de.dart.fehmarnopen.entity.Disziplin;
 import de.dart.fehmarnopen.entity.Spieler;
+import de.dart.fehmarnopen.exception.DoppelteRadikalIdException;
 import de.dart.fehmarnopen.exception.DoppelterTeamnameException;
 import de.dart.fehmarnopen.exception.NichtGefundenException;
 import de.dart.fehmarnopen.mapper.UebersichtMapper;
@@ -14,8 +15,10 @@ import de.dart.fehmarnopen.repository.AnmeldungRepository;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,6 +37,7 @@ public class AnmeldungService {
     public List<Anmeldung> anmelden(AnmeldungRequest request) {
         anmeldeschlussService.pruefeAnmeldungOffen();
         pruefeKeineDoppeltenTeamnamenImRequest(request);
+        pruefeKeineDoppeltenRadikalIdsImRequest(request);
         return request.disziplinen().stream().map(this::anmeldenFuerDisziplin).toList();
     }
 
@@ -119,6 +123,23 @@ public class AnmeldungService {
                 throw new DoppelterTeamnameException(eingabe.disziplin(), normalisiert);
             }
             bereitsGesehen.add(normalisiert);
+        }
+    }
+
+    private void pruefeKeineDoppeltenRadikalIdsImRequest(AnmeldungRequest request) {
+        Map<Disziplin, Set<String>> gesehenJeDisziplin = new EnumMap<>(Disziplin.class);
+        for (AnmeldungRequest.DisziplinAnmeldung eingabe : request.disziplinen()) {
+            Set<String> bereitsGesehen =
+                    gesehenJeDisziplin.computeIfAbsent(eingabe.disziplin(), disziplin -> new HashSet<>());
+            for (SpielerRequest spielerRequest : eingabe.spieler()) {
+                String radikalId = spielerRequest.radikalId();
+                if (radikalId == null || radikalId.isBlank()) {
+                    continue; // Ohne Radikal ID kein zuverlässiger Schlüssel – hier nicht prüfen.
+                }
+                if (!bereitsGesehen.add(radikalId)) {
+                    throw new DoppelteRadikalIdException(radikalId);
+                }
+            }
         }
     }
 }

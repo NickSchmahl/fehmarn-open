@@ -67,4 +67,24 @@ describe('MeldungAktionenComponent', () => {
     reaktivieren?.click();
     expect(gefeuert).toBe(true);
   });
+
+  it('deaktiviert den Anwesend-Toggle, wenn abgemeldet, und emittiert dann nicht beim Klick', () => {
+    const fixture = createFixture(true, true);
+    const root = fixture.nativeElement as HTMLElement;
+    const btn = root.querySelector<HTMLButtonElement>('.ma-btn--anwesend');
+    expect(btn?.disabled).toBe(true);
+
+    let emitted: boolean | undefined;
+    fixture.componentInstance.toggleAnwesenheit.subscribe((wert) => (emitted = wert));
+    btn?.click();
+    expect(emitted).toBeUndefined();
+  });
+
+  it('lässt den Anwesend-Toggle aktiv, solange nicht abgemeldet', () => {
+    const fixture = createFixture(false, false);
+    const btn = (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>(
+      '.ma-btn--anwesend',
+    );
+    expect(btn?.disabled).toBe(false);
+  });
 });

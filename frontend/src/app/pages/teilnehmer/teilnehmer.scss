@@ -336,8 +336,8 @@
   opacity: 0.6;
 }
 
-/* Anwesend: dezenter grüner Akzent an der Kopfzeile – analog zur abgemeldet-Kennzeichnung,
-   stapelbar mit dieser (grüner Grund + gedimmt bleibt unterscheidbar). */
+/* Anwesend: dezenter grüner Akzent an der Kopfzeile. Wird nur gesetzt, wenn nicht
+   gleichzeitig abgemeldet – abgemeldet gewinnt immer (siehe Klassenbindung im Template). */
 .team-head--anwesend {
   border-radius: var(--radius);
   background: var(--success-dim);
@@ -386,7 +386,8 @@
   text-decoration: line-through;
 }
 
-/* Anwesend: gleiche grüne Kennzeichnung für die Einzelmeldungs-Zeile. */
+/* Anwesend: gleiche grüne Kennzeichnung für die Einzelmeldungs-Zeile, ebenfalls nur
+   ohne gleichzeitiges Abgemeldet-sein (siehe Klassenbindung im Template). */
 .admin-row--anwesend {
   border-color: rgba(76, 175, 130, 0.4);
   background: var(--success-dim);

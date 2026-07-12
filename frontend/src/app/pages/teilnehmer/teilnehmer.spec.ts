@@ -489,4 +489,99 @@ describe('Teilnehmer (admin)', () => {
     ) as HTMLElement;
     expect(einzelRow.classList.contains('admin-row--anwesend')).toBe(true);
   });
+
+  it('abgemeldet überschreibt die Anwesend-Hervorhebung (Team-Kopfzeile und Einzelzeile)', () => {
+    fixture.detectChanges();
+    httpTesting.expectOne('/api/admin/teilnehmer').flush({
+      disziplinen: [
+        {
+          disziplin: 'HERRENDOPPEL',
+          anzahl: 1,
+          meldungen: [
+            {
+              id: 5,
+              teamName: 'Team A',
+              anwesend: true,
+              abgemeldet: true,
+              spieler: [
+                {
+                  vorname: 'Anna',
+                  nachname: 'Schmidt',
+                  radikalId: 'AS-1',
+                  initialen: null,
+                  geburtsdatum: null,
+                },
+              ],
+            },
+          ],
+        },
+        {
+          disziplin: 'HERRENEINZEL',
+          anzahl: 1,
+          meldungen: [
+            {
+              id: 7,
+              teamName: null,
+              anwesend: true,
+              abgemeldet: true,
+              spieler: [
+                {
+                  vorname: 'Bert',
+                  nachname: 'Adam',
+                  radikalId: 'BA-2',
+                  initialen: null,
+                  geburtsdatum: null,
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const teamHead = root.querySelector('.team-head');
+    expect(teamHead?.classList.contains('team-head--abgemeldet')).toBe(true);
+    expect(teamHead?.classList.contains('team-head--anwesend')).toBe(false);
+
+    const einzelRow = Array.from(root.querySelectorAll('.admin-row')).find((z) =>
+      z.textContent.includes('Bert Adam'),
+    ) as HTMLElement;
+    expect(einzelRow.classList.contains('admin-row--anwesend')).toBe(false);
+  });
+
+  it('deaktiviert den Anwesend-Toggle für abgemeldete Meldungen', () => {
+    fixture.detectChanges();
+    httpTesting.expectOne('/api/admin/teilnehmer').flush({
+      disziplinen: [
+        {
+          disziplin: 'HERRENDOPPEL',
+          anzahl: 1,
+          meldungen: [
+            {
+              id: 5,
+              teamName: 'Team A',
+              anwesend: false,
+              abgemeldet: true,
+              spieler: [
+                {
+                  vorname: 'Anna',
+                  nachname: 'Schmidt',
+                  radikalId: 'AS-1',
+                  initialen: null,
+                  geburtsdatum: null,
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const toggle = root.querySelector<HTMLButtonElement>('.ma-btn--anwesend');
+    expect(toggle?.disabled).toBe(true);
+  });
 });

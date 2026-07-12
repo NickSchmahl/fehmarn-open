@@ -68,7 +68,7 @@
                   <div
                     class="team-head"
                     [class.team-head--abgemeldet]="meldung.abgemeldet"
-                    [class.team-head--anwesend]="meldung.anwesend"
+                    [class.team-head--anwesend]="meldung.anwesend && !meldung.abgemeldet"
                   >
                     <span class="team-head-name">
                       {{ meldung.teamName }}
@@ -92,7 +92,9 @@
                   @for (spieler of meldung.spieler; track $index) {
                     <li
                       class="admin-row"
-                      [class.admin-row--anwesend]="!meldung.teamName && meldung.anwesend"
+                      [class.admin-row--anwesend]="
+                        !meldung.teamName && meldung.anwesend && !meldung.abgemeldet
+                      "
                     >
                       <span class="admin-name">
                         {{ spieler.vorname }} {{ spieler.nachname }}

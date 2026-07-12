@@ -38,6 +38,16 @@
   color: var(--text);
 }
 
+/* Abgemeldet: Anwesend-Toggle ergibt keinen Sinn mehr, daher gesperrt. */
+.ma-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.ma-btn:disabled:hover {
+  border-color: var(--border);
+  color: var(--text-muted);
+}
+
 /* Anwesend aktiv: grüner Akzent. */
 .ma-btn--anwesend-aktiv {
   border-color: rgba(76, 175, 130, 0.5);

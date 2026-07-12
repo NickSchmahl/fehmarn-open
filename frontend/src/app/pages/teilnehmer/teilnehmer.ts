@@ -139,10 +139,10 @@ export class Teilnehmer implements OnInit {
   readonly aktiveDisziplin = signal<Filter>('ALLE');
 
   // Öffentlicher Modus
-  readonly gruppen = signal<DisziplinGruppe[]>([]);
+  readonly gruppen = signal<readonly DisziplinGruppe[]>([]);
 
   // Admin-Modus
-  readonly adminGruppen = signal<AdminGruppe[]>([]);
+  readonly adminGruppen = signal<readonly AdminGruppe[]>([]);
   readonly suchbegriff = signal('');
 
   /** Filter-Chips: "Alle" + jede vorhandene Disziplin mit Anzahl (Meldungen). */
@@ -186,7 +186,9 @@ export class Teilnehmer implements OnInit {
         disziplin: gruppe.disziplin,
         label: disziplinLabel(gruppe.disziplin),
         anzahl: gruppe.anzahl,
-        meldungen: gruppe.meldungen.filter((meldung) => meldungPasstZurSuche(meldung, suche)),
+        meldungen: sortiereAbgemeldeteAnsEnde(
+          gruppe.meldungen.filter((meldung) => meldungPasstZurSuche(meldung, suche)),
+        ),
       }))
       .filter((gruppe) => gruppe.meldungen.length > 0);
   });

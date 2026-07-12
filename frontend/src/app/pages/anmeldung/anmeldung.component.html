@@ -125,16 +125,26 @@
                       <div class="spieler-row" [formGroupName]="j">
                         <div class="spieler-row-head">
                           <span class="spieler-nr">Spieler {{ j + 1 }}</span>
-                          @if (canRemoveSpieler(i)) {
-                            <button
-                              type="button"
-                              class="spieler-remove"
-                              (click)="removeSpieler(i, j)"
-                              [attr.aria-label]="'Spieler ' + (j + 1) + ' entfernen'"
-                            >
-                              Entfernen
-                            </button>
-                          }
+                          <div class="spieler-row-head-right">
+                            <label class="radikal-toggle">
+                              <input
+                                type="checkbox"
+                                formControlName="hatKeineRadikalId"
+                                (change)="toggleRadikalId(i, j)"
+                              />
+                              Ich habe noch keine Radikal ID
+                            </label>
+                            @if (canRemoveSpieler(i)) {
+                              <button
+                                type="button"
+                                class="spieler-remove"
+                                (click)="removeSpieler(i, j)"
+                                [attr.aria-label]="'Spieler ' + (j + 1) + ' entfernen'"
+                              >
+                                Entfernen
+                              </button>
+                            }
+                          </div>
                         </div>
 
                         <div
@@ -247,15 +257,6 @@
                             </div>
                           }
                         </div>
-
-                        <label class="radikal-toggle">
-                          <input
-                            type="checkbox"
-                            formControlName="hatKeineRadikalId"
-                            (change)="toggleRadikalId(i, j)"
-                          />
-                          Ich habe noch keine Radikal ID
-                        </label>
 
                         @if (radikalAngabeInvalid(i, j)) {
                           <span class="field-error">

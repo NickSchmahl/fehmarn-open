@@ -368,6 +368,17 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
+  row-gap: 0.375rem;
+}
+
+/* Rechte Kopfzeilen-Gruppe: Radikal-ID-Toggle sitzt hier direkt über der
+   Radikal-ID-/Initialen-Spalte, statt als eigene Zeile Platz zu kosten. */
+.spieler-row-head-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
 }
 
 /* Vorname / Nachname / Radikal ID einer Spielerzeile nebeneinander in

@@ -239,19 +239,17 @@
   .mobile-tabs a.active,
   .mobile-tabs a:hover,
   .mobile-tabs button:hover {
-    border-color: rgba(232, 197, 71, 0.28);
     background: var(--accent-dim);
     color: var(--accent);
   }
 
+  .mobile-tabs a.active {
+    border-radius: 14px;
+    padding: 6px 14px;
+  }
+
   .tab-icon {
-    display: grid;
-    place-items: center;
-    width: 24px;
-    height: 24px;
-    border: 1px solid currentColor;
-    border-radius: 50%;
-    font-size: 0.68rem;
-    line-height: 1;
+    width: 22px;
+    height: 22px;
   }
 }

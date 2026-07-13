@@ -308,6 +308,33 @@ describe('AnmeldungComponent', () => {
     });
   });
 
+  // ── Disziplin-Pflichtfehler erst beim Absenden ────────────────────────────
+
+  describe('Disziplin-Pflichtfehler', () => {
+    function disziplinFehlerSichtbar(): boolean {
+      return Array.from(host().querySelectorAll('.alert-error')).some((e) =>
+        e.textContent.includes('mindestens eine Disziplin'),
+      );
+    }
+
+    it('zeigt den Fehler nicht schon beim An- und wieder Abwählen einer Disziplin', () => {
+      waehleDisziplin(HERRENDOPPEL);
+      component.disziplinGroup(HERRENDOPPEL).get('selected')?.setValue(false);
+      // Simuliert das Anklicken/Wegklicken: die Felder gelten als „berührt" (blur).
+      component.form.markAllAsTouched();
+      fixture.detectChanges();
+
+      expect(disziplinFehlerSichtbar()).toBe(false);
+    });
+
+    it('zeigt den Fehler nach dem Absenden ohne Auswahl', () => {
+      component.onSubmit();
+      fixture.detectChanges();
+
+      expect(disziplinFehlerSichtbar()).toBe(true);
+    });
+  });
+
   // ── Validierung Radikal-ID-Angabe ─────────────────────────────────────────
 
   it('Absenden ohne Radikal-ID-Angabe eines Spielers ist ungültig (kein Request)', () => {
@@ -559,6 +586,88 @@ describe('AnmeldungComponent', () => {
     expect(body.disziplinen[0].disziplin).toBe('HERRENEINZEL');
     expect(body.disziplinen[1].disziplin).toBe('HERRENEINZEL');
     req.flush({});
+  });
+
+  // ── Zeichensatz-Validierung (#167) ────────────────────────────────────────
+
+  describe('Zeichensatz-Validierung (#167)', () => {
+    it('akzeptiert Buchstaben, Ziffern und Leerzeichen im Teamnamen', () => {
+      waehleDisziplin(HERRENDOPPEL);
+      const ctrl = component.meldungGroup(HERRENDOPPEL, 0).get('teamName');
+      ctrl?.setValue('München 42');
+      expect(ctrl?.hasError('zeichen')).toBe(false);
+    });
+
+    it('lehnt ein Sonderzeichen im Teamnamen ab (Feldfehler, kein Request)', () => {
+      waehleDisziplin(HERRENDOPPEL);
+      component.meldungGroup(HERRENDOPPEL, 0).get('teamName')?.setValue('Team.');
+      setzeMitRadikalId(HERRENDOPPEL, 0, 0, 'Max', 'Mustermann');
+      setzeMitRadikalId(HERRENDOPPEL, 0, 1, 'Tom', 'Test');
+
+      component.onSubmit();
+
+      expect(component.form.invalid).toBe(true);
+      expect(component.teamNameZeichenFehler(HERRENDOPPEL, 0)).toBe(true);
+      httpMock.expectNone('/api/anmeldung');
+    });
+
+    it('lehnt einen Bindestrich im Teamnamen ab (nicht wie beim Personennamen)', () => {
+      waehleDisziplin(HERRENDOPPEL);
+      const ctrl = component.meldungGroup(HERRENDOPPEL, 0).get('teamName');
+      ctrl?.setValue('Team-Eins');
+      expect(ctrl?.hasError('zeichen')).toBe(true);
+    });
+
+    it('zeigt die Zeichensatz-Meldung sichtbar am Teamnamenfeld', () => {
+      waehleDisziplin(HERRENDOPPEL);
+      component.meldungGroup(HERRENDOPPEL, 0).get('teamName')?.setValue('Team.');
+
+      component.onSubmit();
+      fixture.detectChanges();
+
+      const fehler = Array.from(host().querySelectorAll('.field-error')).map((e) => e.textContent);
+      expect(fehler.some((t) => t.includes('gültigen Teamnamen'))).toBe(true);
+    });
+
+    it('akzeptiert einen Doppelnamen mit Bindestrich im Vornamen', () => {
+      waehleDisziplin(HERRENDOPPEL);
+      const ctrl = component.spielerGroup(HERRENDOPPEL, 0, 0).get('vorname');
+      ctrl?.setValue('Anna-Lena');
+      expect(ctrl?.hasError('zeichen')).toBe(false);
+    });
+
+    it('lehnt Ziffern/Sonderzeichen im Vornamen ab (Feldfehler, kein Request)', () => {
+      waehleDisziplin(HERRENDOPPEL);
+      component.meldungGroup(HERRENDOPPEL, 0).get('teamName')?.setValue('Team X');
+      setzeMitRadikalId(HERRENDOPPEL, 0, 0, 'Max', 'Mustermann');
+      setzeMitRadikalId(HERRENDOPPEL, 0, 1, 'Tom', 'Test');
+      component.spielerGroup(HERRENDOPPEL, 0, 0).get('vorname')?.setValue('Ann@');
+
+      component.onSubmit();
+
+      expect(component.form.invalid).toBe(true);
+      expect(component.spielerFeldHatFehler(HERRENDOPPEL, 0, 0, 'vorname', 'zeichen')).toBe(true);
+      httpMock.expectNone('/api/anmeldung');
+    });
+
+    it('behandelt ein leeres Namensfeld als Pflichtfehler, nicht als Zeichensatzfehler', () => {
+      waehleDisziplin(HERRENDOPPEL);
+      const ctrl = component.spielerGroup(HERRENDOPPEL, 0, 0).get('vorname');
+      ctrl?.setValue('');
+      expect(ctrl?.hasError('required')).toBe(true);
+      expect(ctrl?.hasError('zeichen')).toBe(false);
+    });
+
+    it('zeigt die Zeichensatz-Meldung sichtbar am Namensfeld', () => {
+      waehleDisziplin(HERRENDOPPEL);
+      component.spielerGroup(HERRENDOPPEL, 0, 0).get('vorname')?.setValue('Ann@');
+
+      component.onSubmit();
+      fixture.detectChanges();
+
+      const fehler = Array.from(host().querySelectorAll('.field-error')).map((e) => e.textContent);
+      expect(fehler.some((t) => t.includes('gültigen Namen'))).toBe(true);
+    });
   });
 
   // ── Preisberechnung (10 € pro Spieler) ────────────────────────────────────

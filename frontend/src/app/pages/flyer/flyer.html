@@ -1,1 +1,150 @@
-<p>flyer works!</p>
+<div class="flyer-page">
+  <!-- ── Querformat/Infoblatt (Desktop) ─────────────────────────────── -->
+  <article class="flyer-canvas flyer-quer" aria-label="Flyer 12. Fehmarn Open, Querformat">
+    <header class="flyer-quer-head">
+      <div class="flyer-crest">
+        <app-brand-icon class="flyer-crest-icon" />
+      </div>
+      <div class="flyer-verein">
+        <span class="flyer-vereinsname">{{ turnier.vereinsname }}</span>
+        <span class="flyer-unterzeile">{{ turnier.unterzeile }}</span>
+      </div>
+      <div class="flyer-meta-rechts">
+        <span>{{ turnier.automaten }}</span>
+        <span>{{ turnier.bestOf }}</span>
+      </div>
+    </header>
+
+    <div class="flyer-titelzeile">
+      <h1 class="flyer-titel">
+        {{ turnier.titelPraefix }}
+        <span class="flyer-titel-open">{{ turnier.titelAkzent }}</span>
+        <small class="flyer-jahr">{{ turnier.jahr }}</small>
+      </h1>
+      <div class="flyer-termin-block">
+        <span class="flyer-termin">{{ turnier.termin }}</span>
+        <span class="flyer-ort">{{ turnier.ort }}</span>
+      </div>
+    </div>
+
+    <div class="flyer-tabelle" role="table" aria-label="Disziplinen-Zeitplan">
+      <div class="flyer-tabelle-zeile flyer-tabelle-kopf" role="row">
+        <span class="flyer-tabelle-zelle flyer-tabelle-label" role="columnheader">Disziplin</span>
+        @for (zeile of zeilen; track zeile.value) {
+          <span class="flyer-tabelle-zelle" role="columnheader">{{ zeile.label }}</span>
+        }
+      </div>
+      <div class="flyer-tabelle-zeile" role="row">
+        <span class="flyer-tabelle-zelle flyer-tabelle-label" role="rowheader">Tag</span>
+        @for (zeile of zeilen; track zeile.value) {
+          <span class="flyer-tabelle-zelle" role="cell">{{ zeile.tag }}</span>
+        }
+      </div>
+      <div class="flyer-tabelle-zeile" role="row">
+        <span class="flyer-tabelle-zelle flyer-tabelle-label" role="rowheader">Spielmodus</span>
+        @for (zeile of zeilen; track zeile.value) {
+          <span class="flyer-tabelle-zelle" role="cell">{{ zeile.spielmodus }}</span>
+        }
+      </div>
+      <div class="flyer-tabelle-zeile" role="row">
+        <span class="flyer-tabelle-zelle flyer-tabelle-label" role="rowheader">Anmeldeschluss</span>
+        @for (zeile of zeilen; track zeile.value) {
+          <span class="flyer-tabelle-zelle" role="cell">{{ zeile.anmeldeschluss }}</span>
+        }
+      </div>
+      <div class="flyer-tabelle-zeile" role="row">
+        <span class="flyer-tabelle-zelle flyer-tabelle-label" role="rowheader">Turnierbeginn</span>
+        @for (zeile of zeilen; track zeile.value) {
+          <span class="flyer-tabelle-zelle flyer-tabelle-zelle--stark" role="cell">{{
+            zeile.turnierbeginn
+          }}</span>
+        }
+      </div>
+      <div class="flyer-tabelle-zeile flyer-tabelle-zeile--gold" role="row">
+        <span class="flyer-tabelle-zelle flyer-tabelle-label" role="rowheader">1. Platz</span>
+        @for (zeile of zeilen; track zeile.value) {
+          <span class="flyer-tabelle-zelle" role="cell">{{ zeile.ersterPlatz }}</span>
+        }
+      </div>
+      <div class="flyer-tabelle-zeile" role="row">
+        <span class="flyer-tabelle-zelle flyer-tabelle-label" role="rowheader"
+          >Startgeld p. P.</span
+        >
+        @for (zeile of zeilen; track zeile.value) {
+          <span class="flyer-tabelle-zelle" role="cell">
+            @if (zeile.preisProSpieler > 0) {
+              {{ zeile.preisProSpieler }},00&nbsp;€
+            } @else {
+              kostenlos
+            }
+          </span>
+        }
+      </div>
+    </div>
+
+    <div class="flyer-fusszeile">
+      <div class="flyer-preisgeld-badge">
+        <span class="flyer-preisgeld-zahl">{{ turnier.gesamtPreisgeld }}</span>
+        <span class="flyer-preisgeld-text">an Preisgeldern über alle Disziplinen</span>
+      </div>
+      <a class="flyer-cta" routerLink="/anmeldung">Jetzt anmelden</a>
+    </div>
+
+    <footer class="flyer-kleingedruckt">
+      <p>{{ turnier.hinweisSpielmodus }}</p>
+      <p>{{ turnier.hinweisEinlass }}</p>
+      <p class="flyer-anmeldeschluss-pill">Anmeldeschluss: {{ turnier.anmeldeschlussDatum }}</p>
+    </footer>
+  </article>
+
+  <!-- ── Hochformat/Poster (Mobil) ───────────────────────────────────── -->
+  <article class="flyer-canvas flyer-hoch" aria-label="Flyer 12. Fehmarn Open, Hochformat">
+    <header class="flyer-hoch-head">
+      <app-brand-icon class="flyer-crest-icon" />
+      <span class="flyer-vereinsname">{{ turnier.vereinsname }} · RadikalDarts</span>
+    </header>
+
+    <div class="flyer-hoch-titel">
+      <span class="flyer-hoch-titel-klein">{{ turnier.titel }}</span>
+      <span class="flyer-hoch-titel-open">{{ turnier.titelAkzent }}</span>
+      <span class="flyer-hoch-titel-jahr">{{ turnier.jahr }}</span>
+    </div>
+
+    <div class="flyer-hoch-termin-pill">
+      <span>{{ turnier.termin }}</span>
+      <span class="flyer-hoch-trenner" aria-hidden="true">·</span>
+      <span>{{ turnier.ort }}</span>
+    </div>
+
+    <div class="flyer-hoch-liste" role="table" aria-label="Disziplinen-Übersicht">
+      <div class="flyer-hoch-zeile flyer-hoch-kopf" role="row">
+        <span role="columnheader">Disziplin</span>
+        <span role="columnheader">Tag</span>
+        <span role="columnheader">Beginn</span>
+        <span role="columnheader">1. Platz</span>
+      </div>
+      @for (zeile of zeilen; track zeile.value) {
+        <div class="flyer-hoch-zeile" role="row">
+          <span class="flyer-hoch-name" role="cell">{{ zeile.label }}</span>
+          <span role="cell">{{ zeile.tag }}</span>
+          <span role="cell">{{ zeile.turnierbeginn }}</span>
+          <span class="flyer-hoch-preis" role="cell">{{ zeile.ersterPlatz }}</span>
+        </div>
+      }
+    </div>
+
+    <div class="flyer-preisgeld-badge flyer-preisgeld-badge--zentriert">
+      <span class="flyer-preisgeld-zahl">{{ turnier.gesamtPreisgeld }}</span>
+      <span class="flyer-preisgeld-text"
+        >Gesamt-Preisgeld · Startgeld nur 10&nbsp;€ p.&nbsp;P. · U18 kostenlos</span
+      >
+    </div>
+
+    <a class="flyer-cta flyer-cta--block" routerLink="/anmeldung">Jetzt anmelden</a>
+
+    <footer class="flyer-kleingedruckt flyer-kleingedruckt--zentriert">
+      <p>{{ turnier.automaten }} · Gastronomie vor Ort · Zahlung &amp; Check-in vor Ort.</p>
+      <p class="flyer-anmeldeschluss-pill">Anmeldeschluss: {{ turnier.anmeldeschlussDatum }}</p>
+    </footer>
+  </article>
+</div>

@@ -39,7 +39,7 @@
             an – daraus wird eine erstellt.
           </p>
 
-          @if (form.errors?.['noDisziplin'] && form.touched) {
+          @if (form.errors?.['noDisziplin'] && submitted()) {
             <div class="alert-error" role="alert">Bitte wähle mindestens eine Disziplin aus.</div>
           }
 
@@ -122,6 +122,12 @@
                                 haben.</span
                               >
                             }
+                            @if (teamNameZeichenFehler(i, k)) {
+                              <span class="field-error"
+                                >Bitte einen gültigen Teamnamen eingeben – z. B. „Die Bären“ oder
+                                „Team 42“.</span
+                              >
+                            }
                             @if (teamNameDuplikatText(i, k); as duplikatMeldung) {
                               <span class="field-error">{{ duplikatMeldung }}</span>
                             }
@@ -181,8 +187,14 @@
                                     autocomplete="given-name"
                                     placeholder="Max"
                                   />
-                                  @if (spielerFeldInvalid(i, k, j, 'vorname')) {
+                                  @if (spielerFeldHatFehler(i, k, j, 'vorname', 'required')) {
                                     <span class="field-error">Vorname ist erforderlich.</span>
+                                  }
+                                  @if (spielerFeldHatFehler(i, k, j, 'vorname', 'zeichen')) {
+                                    <span class="field-error"
+                                      >Bitte einen gültigen Namen eingeben – z. B. „Anna“, „Anna
+                                      Lena“ oder „Anna-Lena“.</span
+                                    >
                                   }
                                 </div>
 
@@ -204,8 +216,14 @@
                                     autocomplete="family-name"
                                     placeholder="Mustermann"
                                   />
-                                  @if (spielerFeldInvalid(i, k, j, 'nachname')) {
+                                  @if (spielerFeldHatFehler(i, k, j, 'nachname', 'required')) {
                                     <span class="field-error">Nachname ist erforderlich.</span>
+                                  }
+                                  @if (spielerFeldHatFehler(i, k, j, 'nachname', 'zeichen')) {
+                                    <span class="field-error"
+                                      >Bitte einen gültigen Namen eingeben – z. B. „Anna“, „Anna
+                                      Lena“ oder „Anna-Lena“.</span
+                                    >
                                   }
                                 </div>
 

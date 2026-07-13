@@ -26,6 +26,7 @@ import de.dart.fehmarnopen.repository.AnmeldungRepository;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -46,6 +47,10 @@ class AnmeldungServiceTest {
     @Mock
     private TeamnameValidierungService teamnameValidierungService;
 
+    // Blackbox: die Namensregeln selbst sind in SpielernameValidierungServiceTest abgedeckt.
+    @Mock
+    private SpielernameValidierungService spielernameValidierungService;
+
     // Blackbox: die Gruppier-/Sortierlogik ist in UebersichtMapperTest abgedeckt.
     @Mock
     private UebersichtMapper uebersichtMapper;
@@ -56,6 +61,15 @@ class AnmeldungServiceTest {
 
     @InjectMocks
     private AnmeldungService anmeldungService;
+
+    @BeforeEach
+    void spielernamenDurchreichen() {
+        // Der Namensservice reicht im Normalfall den (normalisierten) Namen durch; lenient, weil
+        // nicht jeder Test eine Anmeldung anlegt.
+        lenient()
+                .when(spielernameValidierungService.normalisiereUndPruefe(any(), any()))
+                .thenAnswer(inv -> inv.getArgument(0));
+    }
 
     private SpielerRequest spieler(String vorname, String nachname) {
         return new SpielerRequest(vorname, nachname, "RAD-1", null, null);
@@ -136,6 +150,19 @@ class AnmeldungServiceTest {
         assertThatThrownBy(() -> anmeldungService.reaktivieren(7L)).isInstanceOf(DoppelterTeamnameException.class);
 
         assertThat(anmeldung.isAbgemeldet()).isTrue();
+        verify(anmeldungRepository, never()).save(any());
+    }
+
+    @Test
+    void anmelden_beiUngueltigemSpielernamen_speichertNichts() {
+        when(spielernameValidierungService.normalisiereUndPruefe(eq("Anna1"), any()))
+                .thenThrow(new UngueltigeAnmeldungException(
+                        "Vorname: bitte einen gültigen Namen eingeben (z. B. „Anna“, „Anna Lena“ oder „Anna-Lena“)"));
+        AnmeldungRequest request = new AnmeldungRequest(
+                List.of(new DisziplinAnmeldung(Disziplin.HERRENEINZEL, null, List.of(spieler("Anna1", "Schmidt")))));
+
+        assertThatThrownBy(() -> anmeldungService.anmelden(request)).isInstanceOf(UngueltigeAnmeldungException.class);
+
         verify(anmeldungRepository, never()).save(any());
     }
 

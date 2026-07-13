@@ -90,6 +90,16 @@
                       let k = $index
                     ) {
                       <div class="meldung-card" [formGroupName]="k">
+                        @if (canRemoveMeldung(i)) {
+                          <button
+                            type="button"
+                            class="meldung-remove"
+                            (click)="removeMeldung(i, k)"
+                            [attr.aria-label]="'Meldung ' + (k + 1) + ' entfernen'"
+                          >
+                            Meldung entfernen
+                          </button>
+                        }
                         @if (needsTeamName(i)) {
                           <div class="teamname-field">
                             <label [for]="'teamname-' + i + '-' + k" class="field-label">
@@ -314,6 +324,10 @@
                         </div>
                       </div>
                     }
+
+                    <button type="button" class="meldung-add" (click)="addMeldung(i)">
+                      + Weitere Meldung
+                    </button>
                   </div>
                 }
               </div>

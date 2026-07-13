@@ -310,6 +310,20 @@ export class AnmeldungComponent implements OnInit {
     }
   }
 
+  addMeldung(i: number): void {
+    this.meldungenArray(i).push(this.createMeldungGroup(i));
+  }
+
+  removeMeldung(i: number, k: number): void {
+    if (this.canRemoveMeldung(i)) {
+      this.meldungenArray(i).removeAt(k);
+    }
+  }
+
+  canRemoveMeldung(i: number): boolean {
+    return this.meldungenArray(i).length > 1;
+  }
+
   addSpieler(i: number, k: number): void {
     if (this.canAddSpieler(i, k)) {
       this.spielerArray(i, k).push(this.createSpielerGroup());

@@ -248,6 +248,48 @@ describe('AnmeldungComponent', () => {
     expect(host().querySelectorAll('.spieler-block').length).toBe(2);
   });
 
+  // ── Weitere Meldung hinzufügen/entfernen (#169) ────────────────────────────
+
+  describe('Weitere Meldung hinzufügen/entfernen (#169)', () => {
+    /** Klickt den (bei genau einer gewählten Disziplin eindeutigen) „Weitere Meldung"-Button. */
+    function klickeMeldungHinzufuegen(): void {
+      const btn = host().querySelector('.meldung-add');
+      (btn as HTMLButtonElement | null)?.click();
+      fixture.detectChanges();
+    }
+
+    it('fügt bei Herreneinzel per Klick eine zweite eigenständige Meldung hinzu', () => {
+      waehleDisziplin(HERRENEINZEL);
+      fixture.detectChanges();
+
+      klickeMeldungHinzufuegen();
+
+      expect(component.meldungenArray(HERRENEINZEL).length).toBe(2);
+      expect(component.spielerArray(HERRENEINZEL, 1).length).toBe(1);
+    });
+
+    it('lässt die letzte verbleibende Meldung nicht entfernen', () => {
+      waehleDisziplin(HERRENEINZEL);
+      fixture.detectChanges();
+
+      expect(component.canRemoveMeldung(HERRENEINZEL)).toBe(false);
+      expect(host().querySelector('.meldung-remove')).toBeNull();
+    });
+
+    it('entfernt per Klick eine zusätzlich hinzugefügte Meldung wieder', () => {
+      waehleDisziplin(HERRENEINZEL);
+      fixture.detectChanges();
+      klickeMeldungHinzufuegen();
+      expect(component.meldungenArray(HERRENEINZEL).length).toBe(2);
+
+      const removeBtn = host().querySelector('.meldung-remove');
+      (removeBtn as HTMLButtonElement | null)?.click();
+      fixture.detectChanges();
+
+      expect(component.meldungenArray(HERRENEINZEL).length).toBe(1);
+    });
+  });
+
   // ── Validierung Radikal-ID-Angabe ─────────────────────────────────────────
 
   it('Absenden ohne Radikal-ID-Angabe eines Spielers ist ungültig (kein Request)', () => {

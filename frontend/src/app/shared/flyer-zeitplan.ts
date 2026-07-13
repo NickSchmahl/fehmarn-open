@@ -1,9 +1,35 @@
 // Turnier-Zeitplan des 12. Fehmarn Open (05.–07. März 2027), reale Daten aus dem
 // Original-Flyer des Vereins. Ergänzt DISZIPLINEN (Preise/Spieleranzahl) um Tag,
-// Spielmodus, Anmeldeschluss-Uhrzeit, Turnierbeginn und 1.-Platz-Preisgeld – wird
-// ausschließlich von der Flyer-Seite genutzt.
+// Spielmodus, Anmeldeschluss-Uhrzeit, Turnierbeginn und Preisgelder (1. Platz +
+// weitere Platzierungen) – wird ausschließlich von der Flyer-Seite genutzt.
 
 import { Disziplin, DISZIPLINEN, DisziplinMeta } from './disziplin';
+
+export interface Preisplatzierung {
+  label: string;
+  wert: string;
+}
+
+// Platzierungs-Labels der weiteren Plätze (Platz 1 steht separat in ersterPlatz).
+// Reihenfolge = Zeilen-/Spaltenreihenfolge auf dem Flyer.
+export const WEITERE_PLATZ_LABELS = [
+  '2.',
+  '3.',
+  '4.',
+  '5./6.',
+  '7./8.',
+  '9./12.',
+  '13./16.',
+] as const;
+
+// Baut die weiteren Platzierungen positionsweise passend zu WEITERE_PLATZ_LABELS
+// und lässt nicht besetzte (leere) Plätze weg.
+function weiterePlaetze(...werte: string[]): Preisplatzierung[] {
+  return WEITERE_PLATZ_LABELS.map((label, index) => ({
+    label,
+    wert: werte[index] ?? '',
+  })).filter((platz) => platz.wert !== '');
+}
 
 export interface FlyerZeitplanEintrag {
   disziplin: Disziplin;
@@ -12,6 +38,7 @@ export interface FlyerZeitplanEintrag {
   anmeldeschluss: string;
   turnierbeginn: string;
   ersterPlatz: string;
+  weiterePlaetze: Preisplatzierung[];
 }
 
 export const FLYER_ZEITPLAN: FlyerZeitplanEintrag[] = [
@@ -22,6 +49,7 @@ export const FLYER_ZEITPLAN: FlyerZeitplanEintrag[] = [
     anmeldeschluss: '18:00',
     turnierbeginn: '19:00',
     ersterPlatz: '1.200 €',
+    weiterePlaetze: weiterePlaetze('700 €', '500 €', '300 €', '150 €', '100 €'),
   },
   {
     disziplin: 'HERRENEINZEL',
@@ -30,6 +58,7 @@ export const FLYER_ZEITPLAN: FlyerZeitplanEintrag[] = [
     anmeldeschluss: '10:00',
     turnierbeginn: '11:00',
     ersterPlatz: '850 €',
+    weiterePlaetze: weiterePlaetze('600 €', '400 €', '280 €', '125 €', '100 €', '75 €', '40 €'),
   },
   {
     disziplin: 'DAMENEINZEL',
@@ -38,6 +67,7 @@ export const FLYER_ZEITPLAN: FlyerZeitplanEintrag[] = [
     anmeldeschluss: '12:00',
     turnierbeginn: '12:30',
     ersterPlatz: '300 €',
+    weiterePlaetze: weiterePlaetze('200 €', '150 €', '100 €', '75 €', '50 €'),
   },
   {
     disziplin: 'U18',
@@ -46,6 +76,7 @@ export const FLYER_ZEITPLAN: FlyerZeitplanEintrag[] = [
     anmeldeschluss: '13:00',
     turnierbeginn: '14:00',
     ersterPlatz: 'Sachpreise',
+    weiterePlaetze: weiterePlaetze(),
   },
   {
     disziplin: 'TRIPLE_MIX',
@@ -54,6 +85,7 @@ export const FLYER_ZEITPLAN: FlyerZeitplanEintrag[] = [
     anmeldeschluss: '19:30',
     turnierbeginn: 'n. Einzel',
     ersterPlatz: '800 €',
+    weiterePlaetze: weiterePlaetze('550 €', '400 €', '300 €', '200 €', '150 €'),
   },
   {
     disziplin: 'HERRENDOPPEL',
@@ -62,6 +94,7 @@ export const FLYER_ZEITPLAN: FlyerZeitplanEintrag[] = [
     anmeldeschluss: '10:30',
     turnierbeginn: '11:00',
     ersterPlatz: '600 €',
+    weiterePlaetze: weiterePlaetze('400 €', '300 €', '200 €', '150 €', '100 €'),
   },
   {
     disziplin: 'DAMENDOPPEL',
@@ -70,6 +103,7 @@ export const FLYER_ZEITPLAN: FlyerZeitplanEintrag[] = [
     anmeldeschluss: '11:30',
     turnierbeginn: '12:00',
     ersterPlatz: '350 €',
+    weiterePlaetze: weiterePlaetze('250 €', '150 €', '100 €', '75 €'),
   },
 ];
 
@@ -102,6 +136,7 @@ export interface FlyerZeile extends DisziplinMeta {
   anmeldeschluss: string;
   turnierbeginn: string;
   ersterPlatz: string;
+  weiterePlaetze: Preisplatzierung[];
 }
 
 const ZEITPLAN_NACH_DISZIPLIN = new Map<Disziplin, FlyerZeitplanEintrag>(

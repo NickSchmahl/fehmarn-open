@@ -41,11 +41,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ErrorResponse.of(403, ex.getMessage()));
     }
 
-    @ExceptionHandler(DoppelteAnmeldungException.class)
-    public ResponseEntity<ErrorResponse> handleDoppelteAnmeldung(DoppelteAnmeldungException ex) {
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(ErrorResponse.of(409, ex.getMessage()));
-    }
-
     @ExceptionHandler(DoppelterTeamnameException.class)
     public ResponseEntity<ErrorResponse> handleDoppelterTeamname(DoppelterTeamnameException ex) {
         // Disziplin als Feldkennung mitgeben, damit das Frontend den Fehler dem richtigen
@@ -61,6 +56,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(UngueltigeAnmeldungException.class)
     public ResponseEntity<ErrorResponse> handleUngueltigeAnmeldung(UngueltigeAnmeldungException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ErrorResponse.of(400, ex.getMessage()));
+    }
+
+    @ExceptionHandler(DoppelteRadikalIdException.class)
+    public ResponseEntity<ErrorResponse> handleDoppelteRadikalId(DoppelteRadikalIdException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ErrorResponse.of(400, ex.getMessage()));
     }
 

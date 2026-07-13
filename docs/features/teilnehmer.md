@@ -34,8 +34,13 @@ Flyer ansehen
 
 ## Fachregeln
 
-- Doppelte Anmeldung derselben Person in derselben Disziplin → `DoppelteAnmeldungException`
-  (→ HTTP-Fehler via `GlobalExceptionHandler`).
+- Mehrere Meldungen je Disziplin in einem Anmeldevorgang sind erlaubt (#169) – z. B. mehrere
+  Einzel-Spieler oder mehrere Doppel-Teams in einem Request. Es gibt keine Sperre gegen
+  dieselbe Disziplin mehrfach im Request mehr.
+- Innerhalb eines Requests: doppelter (normalisierter, case-insensitiver) Teamname in
+  derselben Disziplin → `DoppelterTeamnameException` (409); doppelte Radikal-ID in derselben
+  Disziplin → `DoppelteRadikalIdException` (400). Beide Prüfungen laufen in-memory, bevor
+  irgendetwas gespeichert wird (`AnmeldungService`).
 - Eine Anmeldeschluss-Sperre ist **nicht** vorgesehen – der zugehörige tote Code
   (`TurnierConfig`, `AnmeldungGesperrtException`) soll entfernt werden (siehe [admin.md](admin.md)).
 

@@ -7,13 +7,17 @@ import de.dart.fehmarnopen.dto.TeilnehmerUebersichtResponse;
 import de.dart.fehmarnopen.entity.Anmeldung;
 import de.dart.fehmarnopen.entity.Disziplin;
 import de.dart.fehmarnopen.entity.Spieler;
-import de.dart.fehmarnopen.exception.DoppelteAnmeldungException;
+import de.dart.fehmarnopen.exception.DoppelteRadikalIdException;
+import de.dart.fehmarnopen.exception.DoppelterTeamnameException;
 import de.dart.fehmarnopen.exception.NichtGefundenException;
 import de.dart.fehmarnopen.mapper.UebersichtMapper;
 import de.dart.fehmarnopen.repository.AnmeldungRepository;
 import java.time.LocalDateTime;
-import java.util.EnumSet;
+import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -33,7 +37,8 @@ public class AnmeldungService {
     @Transactional
     public List<Anmeldung> anmelden(AnmeldungRequest request) {
         anmeldeschlussService.pruefeAnmeldungOffen();
-        pruefeKeineDoppeltenDisziplinen(request);
+        pruefeKeineDoppeltenTeamnamenImRequest(request);
+        pruefeKeineDoppeltenRadikalIdsImRequest(request);
         return request.disziplinen().stream().map(this::anmeldenFuerDisziplin).toList();
     }
 
@@ -49,15 +54,6 @@ public class AnmeldungService {
         anmeldung.setSpieler(spieler);
 
         return anmeldungRepository.save(anmeldung);
-    }
-
-    private void pruefeKeineDoppeltenDisziplinen(AnmeldungRequest request) {
-        Set<Disziplin> gesehen = EnumSet.noneOf(Disziplin.class);
-        for (AnmeldungRequest.DisziplinAnmeldung eingabe : request.disziplinen()) {
-            if (!gesehen.add(eingabe.disziplin())) {
-                throw new DoppelteAnmeldungException(eingabe.disziplin().name());
-            }
-        }
     }
 
     private Spieler zuSpieler(SpielerRequest request) {
@@ -111,5 +107,40 @@ public class AnmeldungService {
         return anmeldungRepository
                 .findById(anmeldungId)
                 .orElseThrow(() -> new NichtGefundenException("Anmeldung nicht gefunden: " + anmeldungId));
+    }
+
+    private void pruefeKeineDoppeltenTeamnamenImRequest(AnmeldungRequest request) {
+        Map<Disziplin, List<String>> gesehenJeDisziplin = new EnumMap<>(Disziplin.class);
+        for (AnmeldungRequest.DisziplinAnmeldung eingabe : request.disziplinen()) {
+            String normalisiert = teamnameValidierungService.normalisiere(eingabe.teamName());
+            if (normalisiert == null) {
+                continue; // Einzel/U18 ohne Teamname – nichts zu prüfen.
+            }
+            List<String> bereitsGesehen =
+                    gesehenJeDisziplin.computeIfAbsent(eingabe.disziplin(), d -> new ArrayList<>());
+            boolean kollision = bereitsGesehen.stream()
+                    .anyMatch(vorhanden -> String.CASE_INSENSITIVE_ORDER.compare(vorhanden, normalisiert) == 0);
+            if (kollision) {
+                throw new DoppelterTeamnameException(eingabe.disziplin(), normalisiert);
+            }
+            bereitsGesehen.add(normalisiert);
+        }
+    }
+
+    private void pruefeKeineDoppeltenRadikalIdsImRequest(AnmeldungRequest request) {
+        Map<Disziplin, Set<String>> gesehenJeDisziplin = new EnumMap<>(Disziplin.class);
+        for (AnmeldungRequest.DisziplinAnmeldung eingabe : request.disziplinen()) {
+            Set<String> bereitsGesehen =
+                    gesehenJeDisziplin.computeIfAbsent(eingabe.disziplin(), disziplin -> new HashSet<>());
+            for (SpielerRequest spielerRequest : eingabe.spieler()) {
+                String radikalId = spielerRequest.radikalId();
+                if (radikalId == null || radikalId.isBlank()) {
+                    continue; // Ohne Radikal ID kein zuverlässiger Schlüssel – hier nicht prüfen.
+                }
+                if (!bereitsGesehen.add(radikalId)) {
+                    throw new DoppelteRadikalIdException(radikalId);
+                }
+            }
+        }
     }
 }

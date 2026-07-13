@@ -210,8 +210,7 @@ export class AnmeldungComponent implements OnInit {
         DISZIPLINEN.map(() =>
           this.formBuilder.group({
             selected: [false],
-            teamName: [''],
-            spieler: this.formBuilder.array<FormGroup>([]),
+            meldungen: this.formBuilder.array<FormGroup>([]),
           }),
         ),
       ),
@@ -227,12 +226,36 @@ export class AnmeldungComponent implements OnInit {
     return this.disziplinenArray.at(i) as FormGroup;
   }
 
-  spielerArray(i: number): FormArray {
-    return this.disziplinGroup(i).get('spieler') as FormArray;
+  meldungenArray(i: number): FormArray {
+    return this.disziplinGroup(i).get('meldungen') as FormArray;
   }
 
-  spielerGroup(i: number, j: number): FormGroup {
-    return this.spielerArray(i).at(j) as FormGroup;
+  meldungGroup(i: number, k: number): FormGroup {
+    return this.meldungenArray(i).at(k) as FormGroup;
+  }
+
+  spielerArray(i: number, k: number): FormArray {
+    return this.meldungGroup(i, k).get('spieler') as FormArray;
+  }
+
+  spielerGroup(i: number, k: number, j: number): FormGroup {
+    return this.spielerArray(i, k).at(j) as FormGroup;
+  }
+
+  /** Eine Meldung: (bei Team-Disziplinen) Teamname + auf Pflichtzahl aufgefüllte Spielerzeilen. */
+  private createMeldungGroup(i: number): FormGroup {
+    const meta = DISZIPLINEN[i];
+    const spieler = this.formBuilder.array<FormGroup>([]);
+    while (spieler.length < meta.minSpieler) {
+      spieler.push(this.createSpielerGroup());
+    }
+    const validators = meta.teamName
+      ? [Validators.required, teamnameMaxLaengeValidator, teamnameMusterValidator]
+      : [];
+    return this.formBuilder.group({
+      teamName: ['', validators],
+      spieler,
+    });
   }
 
   // ── Computed ─────────────────────────────────────────────────────────────
@@ -247,20 +270,24 @@ export class AnmeldungComponent implements OnInit {
   });
 
   /**
-   * Aufschlüsselung je gewählter Disziplin: jede erfasste Person kostet das disziplin-abhängige
-   * Startgeld (`meta.preisProSpieler`), der Betrag richtet sich also nach der Spielerzahl.
-   * Kostenlose Disziplinen (z. B. U18) tragen 0 € bei.
+   * Aufschlüsselung je Disziplin (eine Position pro Disziplin, unabhängig von der Anzahl
+   * Meldungen): jede erfasste Person kostet das disziplin-abhängige Startgeld
+   * (`meta.preisProSpieler`), der Betrag richtet sich also nach der Spielerzahl über alle
+   * Meldungen dieser Disziplin hinweg. Kostenlose Disziplinen (z. B. U18) tragen 0 € bei.
    */
   preisPosten = computed<PreisPosten[]>(() => {
     const disziplinen = this._formValue().disziplinen as {
       selected: boolean | null;
-      spieler: unknown[];
+      meldungen: { spieler: unknown[] }[];
     }[];
     return disziplinen
       .map((disziplin, i) => ({ disziplin, meta: DISZIPLINEN[i] }))
       .filter(({ disziplin }) => disziplin.selected === true)
       .map(({ disziplin, meta }) => {
-        const spielerAnzahl = disziplin.spieler.length;
+        const spielerAnzahl = disziplin.meldungen.reduce(
+          (summe, meldung) => summe + meldung.spieler.length,
+          0,
+        );
         return {
           label: meta.label,
           spielerAnzahl,
@@ -304,39 +331,53 @@ export class AnmeldungComponent implements OnInit {
   }
 
   private onDisziplinToggle(i: number, selected: boolean): void {
-    const meta = DISZIPLINEN[i];
-    const teamNameCtrl = this.disziplinGroup(i).get('teamName');
-    const spieler = this.spielerArray(i);
-
+    const meldungen = this.meldungenArray(i);
     if (selected) {
-      if (meta.teamName) {
-        teamNameCtrl?.setValidators([
-          Validators.required,
-          teamnameMaxLaengeValidator,
-          teamnameMusterValidator,
-        ]);
-      }
-      // Auf die Pflichtanzahl auffüllen (idempotent, falls bereits Zeilen vorhanden sind).
-      while (spieler.length < meta.minSpieler) {
-        spieler.push(this.createSpielerGroup());
+      if (meldungen.length === 0) {
+        meldungen.push(this.createMeldungGroup(i));
       }
     } else {
-      teamNameCtrl?.clearValidators();
-      teamNameCtrl?.setValue('');
-      spieler.clear();
-    }
-    teamNameCtrl?.updateValueAndValidity();
-  }
-
-  addSpieler(i: number): void {
-    if (this.canAddSpieler(i)) {
-      this.spielerArray(i).push(this.createSpielerGroup());
+      meldungen.clear();
     }
   }
 
-  removeSpieler(i: number, j: number): void {
-    if (this.canRemoveSpieler(i)) {
-      this.spielerArray(i).removeAt(j);
+  addMeldung(i: number): void {
+    const meldungen = this.meldungenArray(i);
+    meldungen.push(this.createMeldungGroup(i));
+    this.fokussiereVornameNachRender(i, meldungen.length - 1);
+  }
+
+  /**
+   * Springt nach dem Hinzufügen einer Meldung ins Vorname-Feld ihres ersten Spielers – wichtig für
+   * Tastatur-Bedienung: Enter auf „+ Weitere Meldung" soll direkt in die neue Zeile führen statt
+   * den Fokus auf dem Button zu belassen. `setTimeout` wartet den Render-Zyklus ab, da das Feld erst
+   * nach der Change Detection im DOM existiert.
+   */
+  private fokussiereVornameNachRender(i: number, k: number): void {
+    setTimeout(() => {
+      document.getElementById(`vorname-${i}-${k}-0`)?.focus();
+    });
+  }
+
+  removeMeldung(i: number, k: number): void {
+    if (this.canRemoveMeldung(i)) {
+      this.meldungenArray(i).removeAt(k);
+    }
+  }
+
+  canRemoveMeldung(i: number): boolean {
+    return this.meldungenArray(i).length > 1;
+  }
+
+  addSpieler(i: number, k: number): void {
+    if (this.canAddSpieler(i, k)) {
+      this.spielerArray(i, k).push(this.createSpielerGroup());
+    }
+  }
+
+  removeSpieler(i: number, k: number, j: number): void {
+    if (this.canRemoveSpieler(i, k)) {
+      this.spielerArray(i, k).removeAt(j);
     }
   }
 
@@ -346,8 +387,8 @@ export class AnmeldungComponent implements OnInit {
    * werden erst beim Absenden ausgeblendet ({@link toSpielerPayload}); hier werden nur die nun
    * ein-/ausgeblendeten Felder neu bewertet, damit veraltete Feldfehler verschwinden.
    */
-  toggleRadikalId(i: number, j: number): void {
-    const group = this.spielerGroup(i, j);
+  toggleRadikalId(i: number, k: number, j: number): void {
+    const group = this.spielerGroup(i, k, j);
     group.get('radikalId')?.updateValueAndValidity();
     group.get('geburtsdatum')?.updateValueAndValidity();
   }
@@ -362,67 +403,67 @@ export class AnmeldungComponent implements OnInit {
     return DISZIPLINEN[i].teamName && this.isDisziplinSelected(i);
   }
 
-  teamNameInvalid(i: number): boolean {
-    const ctrl = this.disziplinGroup(i).get('teamName');
+  teamNameInvalid(i: number, k: number): boolean {
+    const ctrl = this.meldungGroup(i, k).get('teamName');
     return ctrl !== null && ctrl.invalid && ctrl.touched;
   }
 
   readonly teamnameMaxLaenge = TEAMNAME_MAX_LAENGE;
 
-  teamNameRequiredFehler(i: number): boolean {
-    const ctrl = this.disziplinGroup(i).get('teamName');
+  teamNameRequiredFehler(i: number, k: number): boolean {
+    const ctrl = this.meldungGroup(i, k).get('teamName');
     return ctrl !== null && ctrl.hasError('required') && ctrl.touched;
   }
 
-  teamNameLaengeFehler(i: number): boolean {
-    const ctrl = this.disziplinGroup(i).get('teamName');
+  teamNameLaengeFehler(i: number, k: number): boolean {
+    const ctrl = this.meldungGroup(i, k).get('teamName');
     return ctrl !== null && ctrl.hasError('maxlaenge') && ctrl.touched;
   }
 
-  teamNameZeichenFehler(i: number): boolean {
-    const ctrl = this.disziplinGroup(i).get('teamName');
+  teamNameZeichenFehler(i: number, k: number): boolean {
+    const ctrl = this.meldungGroup(i, k).get('teamName');
     return ctrl !== null && ctrl.hasError('zeichen') && ctrl.touched;
   }
 
   /** Fachliche Dubletten-Meldung vom Server (per {@link zeigeTeamnameDuplikatAmFeld} gesetzt) oder null. */
-  teamNameDuplikatText(i: number): string | null {
-    const fehler: unknown = this.disziplinGroup(i).get('teamName')?.errors?.['duplikat'];
+  teamNameDuplikatText(i: number, k: number): string | null {
+    const fehler: unknown = this.meldungGroup(i, k).get('teamName')?.errors?.['duplikat'];
     return typeof fehler === 'string' ? fehler : null;
   }
 
-  canAddSpieler(i: number): boolean {
-    return this.spielerArray(i).length < DISZIPLINEN[i].maxSpieler;
+  canAddSpieler(i: number, k: number): boolean {
+    return this.spielerArray(i, k).length < DISZIPLINEN[i].maxSpieler;
   }
 
-  canRemoveSpieler(i: number): boolean {
-    return this.spielerArray(i).length > DISZIPLINEN[i].minSpieler;
+  canRemoveSpieler(i: number, k: number): boolean {
+    return this.spielerArray(i, k).length > DISZIPLINEN[i].minSpieler;
   }
 
-  hatKeineRadikalId(i: number, j: number): boolean {
-    return this.spielerGroup(i, j).get('hatKeineRadikalId')?.value === true;
+  hatKeineRadikalId(i: number, k: number, j: number): boolean {
+    return this.spielerGroup(i, k, j).get('hatKeineRadikalId')?.value === true;
   }
 
-  spielerFeldInvalid(i: number, j: number, feld: string): boolean {
-    const ctrl = this.spielerGroup(i, j).get(feld);
+  spielerFeldInvalid(i: number, k: number, j: number, feld: string): boolean {
+    const ctrl = this.spielerGroup(i, k, j).get(feld);
     return ctrl !== null && ctrl.invalid && ctrl.touched;
   }
 
   /** Prüft, ob ein Feld einen bestimmten (angefassten) Fehler trägt – für gezielte Meldungen. */
-  spielerFeldHatFehler(i: number, j: number, feld: string, fehler: string): boolean {
-    const ctrl = this.spielerGroup(i, j).get(feld);
+  spielerFeldHatFehler(i: number, k: number, j: number, feld: string, fehler: string): boolean {
+    const ctrl = this.spielerGroup(i, k, j).get(feld);
     return ctrl !== null && ctrl.touched && ctrl.hasError(fehler);
   }
 
   /** Heutiges Datum als `YYYY-MM-DD` – als `max` fürs Geburtsdatum-Feld (keine Zukunft). */
   readonly heuteIso = new Date().toISOString().slice(0, 10);
 
-  radikalAngabeInvalid(i: number, j: number): boolean {
-    const group = this.spielerGroup(i, j);
+  radikalAngabeInvalid(i: number, k: number, j: number): boolean {
+    const group = this.spielerGroup(i, k, j);
     return group.hasError('radikalIdAngabeFehlt') && group.touched;
   }
 
   /** Die (optionale) 4. Zeile bei Triple Mix darf als Ersatz eingetragen werden. */
-  zeigtErsatzHinweis(i: number, j: number): boolean {
+  zeigtErsatzHinweis(i: number, k: number, j: number): boolean {
     return DISZIPLINEN[i].value === 'TRIPLE_MIX' && j === 3;
   }
 
@@ -447,11 +488,15 @@ export class AnmeldungComponent implements OnInit {
     const disziplinen = this.disziplinenArray.controls
       .map((ctrl, i) => ({ ctrl, meta: DISZIPLINEN[i] }))
       .filter(({ ctrl }) => ctrl.get('selected')?.value === true)
-      .map(({ ctrl, meta }) => ({
-        disziplin: meta.value,
-        teamName: normalisiereTeamname(stringWert(ctrl, 'teamName')),
-        spieler: (ctrl.get('spieler') as FormArray).controls.map((s) => this.toSpielerPayload(s)),
-      }));
+      .flatMap(({ ctrl, meta }) =>
+        (ctrl.get('meldungen') as FormArray).controls.map((meldung) => ({
+          disziplin: meta.value,
+          teamName: normalisiereTeamname(stringWert(meldung, 'teamName')),
+          spieler: (meldung.get('spieler') as FormArray).controls.map((s) =>
+            this.toSpielerPayload(s),
+          ),
+        })),
+      );
 
     const body = { disziplinen };
 
@@ -478,13 +523,15 @@ export class AnmeldungComponent implements OnInit {
 
   /** Entfernt an allen Teamname-Feldern den serverseitig gesetzten `duplikat`-Fehler. */
   private clearTeamnameDuplikatFehler(): void {
-    for (const gruppe of this.disziplinenArray.controls) {
-      const ctrl = gruppe.get('teamName');
-      if (ctrl?.hasError('duplikat')) {
-        ctrl.setErrors(null);
-        ctrl.updateValueAndValidity();
+    this.disziplinenArray.controls.forEach((_, i) => {
+      for (const meldung of this.meldungenArray(i).controls) {
+        const ctrl = meldung.get('teamName');
+        if (ctrl?.hasError('duplikat')) {
+          ctrl.setErrors(null);
+          ctrl.updateValueAndValidity();
+        }
       }
-    }
+    });
   }
 
   /**
@@ -498,8 +545,8 @@ export class AnmeldungComponent implements OnInit {
     const feld = errors?.[0];
     if (!feld?.field) return false;
     const index = DISZIPLINEN.findIndex((d) => d.value === feld.field);
-    if (index < 0) return false;
-    const ctrl = this.disziplinGroup(index).get('teamName');
+    if (index < 0 || this.meldungenArray(index).length === 0) return false;
+    const ctrl = this.meldungGroup(index, 0).get('teamName');
     if (!ctrl) return false;
     ctrl.setErrors({
       duplikat: feld.message ?? 'Teamname ist in dieser Disziplin bereits vergeben.',

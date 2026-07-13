@@ -171,7 +171,7 @@ describe('AnmeldungComponent', () => {
     const host = fixture.nativeElement as HTMLElement;
     expect(component.spielerArray(U18, 0).length).toBe(1);
     expect(host.querySelectorAll('.spieler-row').length).toBe(1);
-    expect(component.needsTeamName(U18, 0)).toBe(false);
+    expect(component.needsTeamName(U18)).toBe(false);
   });
 
   it('zeigt bei Herrendoppel 2 Spielerzeilen und ein Teamname-Feld', () => {
@@ -179,7 +179,7 @@ describe('AnmeldungComponent', () => {
     const host = fixture.nativeElement as HTMLElement;
     expect(component.spielerArray(HERRENDOPPEL, 0).length).toBe(2);
     expect(host.querySelectorAll('.spieler-row').length).toBe(2);
-    expect(component.needsTeamName(HERRENDOPPEL, 0)).toBe(true);
+    expect(component.needsTeamName(HERRENDOPPEL)).toBe(true);
   });
 
   describe('Feld-Layout der Spielerzeile (#168)', () => {

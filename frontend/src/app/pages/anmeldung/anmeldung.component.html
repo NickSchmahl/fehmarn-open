@@ -90,7 +90,7 @@
                       let k = $index
                     ) {
                       <div class="meldung-card" [formGroupName]="k">
-                        @if (needsTeamName(i, k)) {
+                        @if (needsTeamName(i)) {
                           <div class="teamname-field">
                             <label [for]="'teamname-' + i + '-' + k" class="field-label">
                               Teamname <span class="required">*</span>

@@ -598,6 +598,24 @@ describe('AnmeldungComponent', () => {
     expect(host().querySelector('.price-total')?.textContent).toContain('40');
   });
 
+  it('zählt drei Herreneinzel-Meldungen als 30 € gesamt', () => {
+    waehleDisziplin(HERRENEINZEL);
+    component.addMeldung(HERRENEINZEL);
+    component.addMeldung(HERRENEINZEL);
+    fixture.detectChanges();
+
+    expect(component.preisPosten().length).toBe(3);
+    expect(component.gesamtpreis()).toBe(30);
+  });
+
+  it('zählt mehrere U18-Meldungen als kostenlos (0 €)', () => {
+    waehleDisziplin(U18);
+    component.addMeldung(U18);
+    fixture.detectChanges();
+
+    expect(component.gesamtpreis()).toBe(0);
+  });
+
   it('typt FormGroup korrekt für Spieler-Zugriff', () => {
     waehleDisziplin(HERRENDOPPEL);
     expect(component.spielerGroup(HERRENDOPPEL, 0, 0) instanceof FormGroup).toBe(true);

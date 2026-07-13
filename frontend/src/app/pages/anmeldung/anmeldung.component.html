@@ -338,7 +338,7 @@
         <!-- ── Preisübersicht ─────────────────────────────────────────────── -->
         @if (preisPosten().length > 0) {
           <div class="price-summary">
-            @for (posten of preisPosten(); track posten.label) {
+            @for (posten of preisPosten(); track $index) {
               <div class="price-row price-line">
                 @if (posten.preisProSpieler > 0) {
                   <span class="price-label">

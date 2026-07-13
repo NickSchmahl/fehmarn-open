@@ -295,6 +295,17 @@ describe('AnmeldungComponent', () => {
 
       expect(component.meldungenArray(HERRENEINZEL).length).toBe(1);
     });
+
+    it('springt nach „Weitere Meldung" ins Vorname-Feld der neuen Meldung (Tastaturbedienung)', async () => {
+      waehleDisziplin(HERRENEINZEL);
+      fixture.detectChanges();
+
+      klickeMeldungHinzufuegen();
+      await fixture.whenStable();
+
+      const vornameFeld = host().querySelector(`#vorname-${HERRENEINZEL}-1-0`);
+      expect(document.activeElement).toBe(vornameFeld);
+    });
   });
 
   // ── Validierung Radikal-ID-Angabe ─────────────────────────────────────────

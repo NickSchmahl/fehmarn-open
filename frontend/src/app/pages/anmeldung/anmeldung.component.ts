@@ -312,7 +312,21 @@ export class AnmeldungComponent implements OnInit {
   }
 
   addMeldung(i: number): void {
-    this.meldungenArray(i).push(this.createMeldungGroup(i));
+    const meldungen = this.meldungenArray(i);
+    meldungen.push(this.createMeldungGroup(i));
+    this.fokussiereVornameNachRender(i, meldungen.length - 1);
+  }
+
+  /**
+   * Springt nach dem Hinzufügen einer Meldung ins Vorname-Feld ihres ersten Spielers – wichtig für
+   * Tastatur-Bedienung: Enter auf „+ Weitere Meldung" soll direkt in die neue Zeile führen statt
+   * den Fokus auf dem Button zu belassen. `setTimeout` wartet den Render-Zyklus ab, da das Feld erst
+   * nach der Change Detection im DOM existiert.
+   */
+  private fokussiereVornameNachRender(i: number, k: number): void {
+    setTimeout(() => {
+      document.getElementById(`vorname-${i}-${k}-0`)?.focus();
+    });
   }
 
   removeMeldung(i: number, k: number): void {

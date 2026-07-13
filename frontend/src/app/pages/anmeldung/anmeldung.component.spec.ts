@@ -85,7 +85,7 @@ describe('AnmeldungComponent', () => {
   }
 
   function setzeMitRadikalId(i: number, j: number, vorname: string, nachname: string): void {
-    const group = component.spielerGroup(i, j);
+    const group = component.spielerGroup(i, 0, j);
     group.get('vorname')?.setValue(vorname);
     group.get('nachname')?.setValue(nachname);
     group.get('radikalId')?.setValue(`${vorname[0]}${nachname[0]}01011990`);
@@ -99,11 +99,11 @@ describe('AnmeldungComponent', () => {
     initialen: string,
     geburtsdatum: string,
   ): void {
-    const group = component.spielerGroup(i, j);
+    const group = component.spielerGroup(i, 0, j);
     group.get('vorname')?.setValue(vorname);
     group.get('nachname')?.setValue(nachname);
     group.get('hatKeineRadikalId')?.setValue(true);
-    component.toggleRadikalId(i, j);
+    component.toggleRadikalId(i, 0, j);
     group.get('initialen')?.setValue(initialen);
     group.get('geburtsdatum')?.setValue(geburtsdatum);
   }
@@ -169,17 +169,17 @@ describe('AnmeldungComponent', () => {
   it('zeigt bei U18 genau eine Spielerzeile und kein Teamname-Feld', () => {
     waehleDisziplin(U18);
     const host = fixture.nativeElement as HTMLElement;
-    expect(component.spielerArray(U18).length).toBe(1);
+    expect(component.spielerArray(U18, 0).length).toBe(1);
     expect(host.querySelectorAll('.spieler-row').length).toBe(1);
-    expect(component.needsTeamName(U18)).toBe(false);
+    expect(component.needsTeamName(U18, 0)).toBe(false);
   });
 
   it('zeigt bei Herrendoppel 2 Spielerzeilen und ein Teamname-Feld', () => {
     waehleDisziplin(HERRENDOPPEL);
     const host = fixture.nativeElement as HTMLElement;
-    expect(component.spielerArray(HERRENDOPPEL).length).toBe(2);
+    expect(component.spielerArray(HERRENDOPPEL, 0).length).toBe(2);
     expect(host.querySelectorAll('.spieler-row').length).toBe(2);
-    expect(component.needsTeamName(HERRENDOPPEL)).toBe(true);
+    expect(component.needsTeamName(HERRENDOPPEL, 0)).toBe(true);
   });
 
   describe('Feld-Layout der Spielerzeile (#168)', () => {
@@ -199,8 +199,8 @@ describe('AnmeldungComponent', () => {
 
     it('zeigt bei „keine Radikal ID" Initialen und Geburtsdatum in derselben Reihe (--split)', () => {
       waehleDisziplin(HERRENEINZEL);
-      component.spielerGroup(HERRENEINZEL, 0).get('hatKeineRadikalId')?.setValue(true);
-      component.toggleRadikalId(HERRENEINZEL, 0);
+      component.spielerGroup(HERRENEINZEL, 0, 0).get('hatKeineRadikalId')?.setValue(true);
+      component.toggleRadikalId(HERRENEINZEL, 0, 0);
       fixture.detectChanges();
 
       const gefunden = host().querySelector('.spieler-row .spieler-felder');
@@ -227,7 +227,7 @@ describe('AnmeldungComponent', () => {
 
     // Bei Maximum verschwindet der Hinzufügen-Button – keine 7. Zeile möglich.
     expect(host().querySelector('.spieler-add')).toBeNull();
-    expect(component.canAddSpieler(TEAMWETTBEWERB)).toBe(false);
+    expect(component.canAddSpieler(TEAMWETTBEWERB, 0)).toBe(false);
   });
 
   it('Triple Mix: 3 Pflichtzeilen + optionale 4. Zeile mit Ersatz-Hinweis, keine 5.', () => {
@@ -252,22 +252,22 @@ describe('AnmeldungComponent', () => {
 
   it('Absenden ohne Radikal-ID-Angabe eines Spielers ist ungültig (kein Request)', () => {
     waehleDisziplin(HERRENDOPPEL);
-    component.disziplinGroup(HERRENDOPPEL).get('teamName')?.setValue('Die Bullseye Boys');
-    component.spielerGroup(HERRENDOPPEL, 0).get('vorname')?.setValue('Max');
-    component.spielerGroup(HERRENDOPPEL, 0).get('nachname')?.setValue('Mustermann');
+    component.meldungGroup(HERRENDOPPEL, 0).get('teamName')?.setValue('Die Bullseye Boys');
+    component.spielerGroup(HERRENDOPPEL, 0, 0).get('vorname')?.setValue('Max');
+    component.spielerGroup(HERRENDOPPEL, 0, 0).get('nachname')?.setValue('Mustermann');
     // Spieler 0 ohne Radikal ID / Initialen → ungültig
     setzeMitRadikalId(HERRENDOPPEL, 1, 'Tom', 'Test');
 
     component.onSubmit();
 
     expect(component.form.invalid).toBe(true);
-    expect(component.radikalAngabeInvalid(HERRENDOPPEL, 0)).toBe(true);
+    expect(component.radikalAngabeInvalid(HERRENDOPPEL, 0, 0)).toBe(true);
     httpMock.expectNone('/api/anmeldung');
   });
 
   it('Spieler ohne Radikal ID, aber mit Initialen + Geburtsdatum ist gültig', () => {
     waehleDisziplin(HERRENDOPPEL);
-    component.disziplinGroup(HERRENDOPPEL).get('teamName')?.setValue('Die Bullseye Boys');
+    component.meldungGroup(HERRENDOPPEL, 0).get('teamName')?.setValue('Die Bullseye Boys');
     setzeOhneRadikalId(HERRENDOPPEL, 0, 'Max', 'Mustermann', 'MM', '1990-01-01');
     setzeMitRadikalId(HERRENDOPPEL, 1, 'Tom', 'Test');
 
@@ -286,38 +286,38 @@ describe('AnmeldungComponent', () => {
 
   it('behält den Radikal-ID-Wert beim Hin- und Herschalten des „keine ID"-Umschalters', () => {
     waehleDisziplin(HERRENDOPPEL);
-    const g = component.spielerGroup(HERRENDOPPEL, 0);
+    const g = component.spielerGroup(HERRENDOPPEL, 0, 0);
     g.get('radikalId')?.setValue('MM01011990');
 
     g.get('hatKeineRadikalId')?.setValue(true);
-    component.toggleRadikalId(HERRENDOPPEL, 0);
+    component.toggleRadikalId(HERRENDOPPEL, 0, 0);
     g.get('hatKeineRadikalId')?.setValue(false);
-    component.toggleRadikalId(HERRENDOPPEL, 0);
+    component.toggleRadikalId(HERRENDOPPEL, 0, 0);
 
     expect(g.get('radikalId')?.value).toBe('MM01011990');
   });
 
   it('ist im „keine ID"-Modus ungültig, wenn nur eine alte Radikal ID, aber keine Initialen/Geburtsdatum vorliegen', () => {
     waehleDisziplin(HERRENDOPPEL);
-    const g = component.spielerGroup(HERRENDOPPEL, 0);
+    const g = component.spielerGroup(HERRENDOPPEL, 0, 0);
     g.get('vorname')?.setValue('Max');
     g.get('nachname')?.setValue('Mustermann');
     g.get('radikalId')?.setValue('MM01011990');
     g.get('hatKeineRadikalId')?.setValue(true);
-    component.toggleRadikalId(HERRENDOPPEL, 0);
+    component.toggleRadikalId(HERRENDOPPEL, 0, 0);
 
     expect(g.hasError('radikalIdAngabeFehlt')).toBe(true);
   });
 
   it('blockiert nicht wegen unfertiger Radikal ID, wenn auf „keine ID" gewechselt und Initialen+Geburtsdatum ausgefüllt sind', () => {
     waehleDisziplin(HERRENDOPPEL);
-    component.disziplinGroup(HERRENDOPPEL).get('teamName')?.setValue('Team X');
-    const g = component.spielerGroup(HERRENDOPPEL, 0);
+    component.meldungGroup(HERRENDOPPEL, 0).get('teamName')?.setValue('Team X');
+    const g = component.spielerGroup(HERRENDOPPEL, 0, 0);
     g.get('vorname')?.setValue('Max');
     g.get('nachname')?.setValue('Mustermann');
     g.get('radikalId')?.setValue('MM01'); // unfertig/ungültig
     g.get('hatKeineRadikalId')?.setValue(true);
-    component.toggleRadikalId(HERRENDOPPEL, 0);
+    component.toggleRadikalId(HERRENDOPPEL, 0, 0);
     g.get('initialen')?.setValue('MM');
     g.get('geburtsdatum')?.setValue('1990-01-01');
     setzeMitRadikalId(HERRENDOPPEL, 1, 'Tom', 'Test');
@@ -330,9 +330,9 @@ describe('AnmeldungComponent', () => {
 
   it('lehnt eine Radikal ID im falschen Format ab (Feldfehler, kein Request)', () => {
     waehleDisziplin(HERRENDOPPEL);
-    component.disziplinGroup(HERRENDOPPEL).get('teamName')?.setValue('Team X');
+    component.meldungGroup(HERRENDOPPEL, 0).get('teamName')?.setValue('Team X');
     setzeMitRadikalId(HERRENDOPPEL, 0, 'Max', 'Mustermann');
-    const g = component.spielerGroup(HERRENDOPPEL, 1);
+    const g = component.spielerGroup(HERRENDOPPEL, 0, 1);
     g.get('vorname')?.setValue('Tom');
     g.get('nachname')?.setValue('Test');
     g.get('radikalId')?.setValue('MM-1234'); // altes Format mit Bindestrich, jetzt ungültig
@@ -340,15 +340,15 @@ describe('AnmeldungComponent', () => {
     component.onSubmit();
 
     expect(component.form.invalid).toBe(true);
-    expect(component.spielerFeldInvalid(HERRENDOPPEL, 1, 'radikalId')).toBe(true);
+    expect(component.spielerFeldInvalid(HERRENDOPPEL, 0, 1, 'radikalId')).toBe(true);
     httpMock.expectNone('/api/anmeldung');
   });
 
   it('zeigt die Format-Fehlermeldung sichtbar am Radikal-ID-Feld', () => {
     waehleDisziplin(HERRENDOPPEL);
-    component.disziplinGroup(HERRENDOPPEL).get('teamName')?.setValue('Team X');
+    component.meldungGroup(HERRENDOPPEL, 0).get('teamName')?.setValue('Team X');
     setzeMitRadikalId(HERRENDOPPEL, 0, 'Max', 'Mustermann');
-    const g = component.spielerGroup(HERRENDOPPEL, 1);
+    const g = component.spielerGroup(HERRENDOPPEL, 0, 1);
     g.get('vorname')?.setValue('Tom');
     g.get('nachname')?.setValue('Test');
     g.get('radikalId')?.setValue('MM-1234');
@@ -362,42 +362,42 @@ describe('AnmeldungComponent', () => {
 
   it('akzeptiert eine korrekt formatierte Radikal ID (zwei Buchstaben + achtstelliges Geburtsdatum)', () => {
     waehleDisziplin(HERRENDOPPEL);
-    component.disziplinGroup(HERRENDOPPEL).get('teamName')?.setValue('Team X');
+    component.meldungGroup(HERRENDOPPEL, 0).get('teamName')?.setValue('Team X');
     setzeMitRadikalId(HERRENDOPPEL, 0, 'Max', 'Mustermann');
     setzeMitRadikalId(HERRENDOPPEL, 1, 'Tom', 'Test');
 
-    expect(component.spielerFeldInvalid(HERRENDOPPEL, 0, 'radikalId')).toBe(false);
+    expect(component.spielerFeldInvalid(HERRENDOPPEL, 0, 0, 'radikalId')).toBe(false);
     expect(component.form.valid).toBe(true);
   });
 
   it('lehnt ein Geburtsdatum mit mehr als vierstelligem Jahr ab (Feldfehler)', () => {
     waehleDisziplin(HERRENDOPPEL);
-    component.disziplinGroup(HERRENDOPPEL).get('teamName')?.setValue('Team X');
+    component.meldungGroup(HERRENDOPPEL, 0).get('teamName')?.setValue('Team X');
     setzeMitRadikalId(HERRENDOPPEL, 0, 'Max', 'Mustermann');
-    const g = component.spielerGroup(HERRENDOPPEL, 1);
+    const g = component.spielerGroup(HERRENDOPPEL, 0, 1);
     g.get('vorname')?.setValue('Tom');
     g.get('nachname')?.setValue('Test');
     g.get('hatKeineRadikalId')?.setValue(true);
-    component.toggleRadikalId(HERRENDOPPEL, 1);
+    component.toggleRadikalId(HERRENDOPPEL, 0, 1);
     g.get('initialen')?.setValue('TT');
     g.get('geburtsdatum')?.setValue('12345-06-15'); // 5-stelliges Jahr
 
     component.onSubmit();
 
     expect(component.form.invalid).toBe(true);
-    expect(component.spielerFeldInvalid(HERRENDOPPEL, 1, 'geburtsdatum')).toBe(true);
+    expect(component.spielerFeldInvalid(HERRENDOPPEL, 0, 1, 'geburtsdatum')).toBe(true);
     httpMock.expectNone('/api/anmeldung');
   });
 
   it('lehnt ein Geburtsdatum in der Zukunft ab (Feldfehler)', () => {
     waehleDisziplin(HERRENDOPPEL);
-    component.disziplinGroup(HERRENDOPPEL).get('teamName')?.setValue('Team X');
+    component.meldungGroup(HERRENDOPPEL, 0).get('teamName')?.setValue('Team X');
     setzeMitRadikalId(HERRENDOPPEL, 0, 'Max', 'Mustermann');
-    const g = component.spielerGroup(HERRENDOPPEL, 1);
+    const g = component.spielerGroup(HERRENDOPPEL, 0, 1);
     g.get('vorname')?.setValue('Tom');
     g.get('nachname')?.setValue('Test');
     g.get('hatKeineRadikalId')?.setValue(true);
-    component.toggleRadikalId(HERRENDOPPEL, 1);
+    component.toggleRadikalId(HERRENDOPPEL, 0, 1);
     g.get('initialen')?.setValue('TT');
     const naechstesJahr = new Date().getFullYear() + 1;
     g.get('geburtsdatum')?.setValue(`${naechstesJahr}-06-15`);
@@ -405,7 +405,7 @@ describe('AnmeldungComponent', () => {
     component.onSubmit();
 
     expect(component.form.invalid).toBe(true);
-    expect(component.spielerFeldInvalid(HERRENDOPPEL, 1, 'geburtsdatum')).toBe(true);
+    expect(component.spielerFeldInvalid(HERRENDOPPEL, 0, 1, 'geburtsdatum')).toBe(true);
     httpMock.expectNone('/api/anmeldung');
   });
 
@@ -413,7 +413,7 @@ describe('AnmeldungComponent', () => {
 
   it('sendet ein Team-DTO mit radikalId-Feld an /api/anmeldung', () => {
     waehleDisziplin(HERRENDOPPEL);
-    component.disziplinGroup(HERRENDOPPEL).get('teamName')?.setValue('Die Bullseye Boys');
+    component.meldungGroup(HERRENDOPPEL, 0).get('teamName')?.setValue('Die Bullseye Boys');
     setzeMitRadikalId(HERRENDOPPEL, 0, 'Max', 'Mustermann');
     setzeMitRadikalId(HERRENDOPPEL, 1, 'Tom', 'Test');
 
@@ -432,7 +432,7 @@ describe('AnmeldungComponent', () => {
 
   it('normalisiert den Teamnamen im Payload (Trim + interne Whitespaces)', () => {
     waehleDisziplin(HERRENDOPPEL);
-    component.disziplinGroup(HERRENDOPPEL).get('teamName')?.setValue('  Die   Bullseye  Boys  ');
+    component.meldungGroup(HERRENDOPPEL, 0).get('teamName')?.setValue('  Die   Bullseye  Boys  ');
     setzeMitRadikalId(HERRENDOPPEL, 0, 'Max', 'Mustermann');
     setzeMitRadikalId(HERRENDOPPEL, 1, 'Tom', 'Test');
 
@@ -446,20 +446,20 @@ describe('AnmeldungComponent', () => {
 
   it('lehnt einen Teamnamen über 20 Zeichen ab (Feld-Fehler, kein Request)', () => {
     waehleDisziplin(HERRENDOPPEL);
-    component.disziplinGroup(HERRENDOPPEL).get('teamName')?.setValue('123456789012345678901'); // 21 Zeichen
+    component.meldungGroup(HERRENDOPPEL, 0).get('teamName')?.setValue('123456789012345678901'); // 21 Zeichen
     setzeMitRadikalId(HERRENDOPPEL, 0, 'Max', 'Mustermann');
     setzeMitRadikalId(HERRENDOPPEL, 1, 'Tom', 'Test');
 
     component.onSubmit();
 
     expect(component.form.invalid).toBe(true);
-    expect(component.teamNameLaengeFehler(HERRENDOPPEL)).toBe(true);
+    expect(component.teamNameLaengeFehler(HERRENDOPPEL, 0)).toBe(true);
     httpMock.expectNone('/api/anmeldung');
   });
 
   it('zeigt eine Teamname-Dublette (409) am richtigen Feld statt als Banner', () => {
     waehleDisziplin(HERRENDOPPEL);
-    component.disziplinGroup(HERRENDOPPEL).get('teamName')?.setValue('Die Bullseye Boys');
+    component.meldungGroup(HERRENDOPPEL, 0).get('teamName')?.setValue('Die Bullseye Boys');
     setzeMitRadikalId(HERRENDOPPEL, 0, 'Max', 'Mustermann');
     setzeMitRadikalId(HERRENDOPPEL, 1, 'Tom', 'Test');
 
@@ -480,7 +480,7 @@ describe('AnmeldungComponent', () => {
       { status: 409, statusText: 'Conflict' },
     );
 
-    expect(component.teamNameDuplikatText(HERRENDOPPEL)).toContain('bereits vergeben');
+    expect(component.teamNameDuplikatText(HERRENDOPPEL, 0)).toContain('bereits vergeben');
     expect(component.errorMessage()).toBeNull();
   });
 
@@ -494,7 +494,7 @@ describe('AnmeldungComponent', () => {
     waehleDisziplin(TEAMWETTBEWERB);
     klickeSpielerHinzufuegen(); // 4 → 5 Spieler
 
-    expect(component.spielerArray(TEAMWETTBEWERB).length).toBe(5);
+    expect(component.spielerArray(TEAMWETTBEWERB, 0).length).toBe(5);
     expect(component.preisPosten()[0].betrag).toBe(50);
     expect(component.gesamtpreis()).toBe(50);
   });
@@ -521,7 +521,7 @@ describe('AnmeldungComponent', () => {
     waehleDisziplin(U18);
     fixture.detectChanges();
 
-    expect(component.spielerArray(U18).length).toBe(1);
+    expect(component.spielerArray(U18, 0).length).toBe(1);
     expect(component.needsTeamName(U18)).toBe(false);
     expect(component.preisPosten()[0].betrag).toBe(0);
     expect(component.gesamtpreis()).toBe(0);
@@ -558,7 +558,7 @@ describe('AnmeldungComponent', () => {
 
   it('typt FormGroup korrekt für Spieler-Zugriff', () => {
     waehleDisziplin(HERRENDOPPEL);
-    expect(component.spielerGroup(HERRENDOPPEL, 0) instanceof FormGroup).toBe(true);
+    expect(component.spielerGroup(HERRENDOPPEL, 0, 0) instanceof FormGroup).toBe(true);
   });
 
   describe('Anmeldeschluss', () => {

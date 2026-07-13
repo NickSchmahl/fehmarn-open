@@ -58,6 +58,29 @@ describe('Flyer', () => {
     });
   });
 
+  it('liefert Werte weiterer Platzierungen über preisFuer und leer bei fehlenden', () => {
+    const team = component.zeilen.find((z) => z.value === 'TEAMWETTBEWERB')!;
+    expect(component.preisFuer(team, '2.')).toBe('700 €');
+    expect(component.preisFuer(team, '13./16.')).toBe(''); // Team hat keinen 13./16.
+  });
+
+  it('umschalten öffnet und schließt eine Disziplin unabhängig', () => {
+    const team = component.zeilen.find((z) => z.value === 'TEAMWETTBEWERB')!;
+    const herren = component.zeilen.find((z) => z.value === 'HERRENEINZEL')!;
+    expect(component.istOffen(team)).toBe(false);
+    component.umschalten(team);
+    expect(component.istOffen(team)).toBe(true);
+    expect(component.istOffen(herren)).toBe(false); // nur team offen
+    component.umschalten(team);
+    expect(component.istOffen(team)).toBe(false);
+  });
+
+  it('umschalten ist wirkungslos für Disziplinen ohne weitere Plätze', () => {
+    const u18 = component.zeilen.find((z) => z.value === 'U18')!;
+    component.umschalten(u18);
+    expect(component.istOffen(u18)).toBe(false);
+  });
+
   it('enthält keinen QR-Code-Platzhalter', () => {
     const element = fixture.nativeElement as HTMLElement;
     expect(element.querySelector('.qr-code')).toBeNull();

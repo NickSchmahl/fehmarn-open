@@ -93,6 +93,47 @@ describe('Flyer', () => {
     expect(component.istOffen(u18)).toBe(false);
   });
 
+  it('klappt eine Hochformat-Zeile per Klick auf und wieder zu', () => {
+    const el = fixture.nativeElement as HTMLElement;
+    const teamZeile = el.querySelector(
+      '.flyer-hoch-liste [data-disziplin="TEAMWETTBEWERB"] .flyer-hoch-zeile',
+    ) as HTMLElement;
+    const container = el.querySelector(
+      '.flyer-hoch-liste [data-disziplin="TEAMWETTBEWERB"]',
+    ) as HTMLElement;
+
+    // eingeklappt: keine weiteren Plätze im DOM, aria-expanded=false
+    expect(container.querySelector('.flyer-hoch-weitere')).toBeNull();
+    expect(teamZeile.getAttribute('aria-expanded')).toBe('false');
+
+    teamZeile.click();
+    fixture.detectChanges();
+    const weitere = container.querySelector('.flyer-hoch-weitere') as HTMLElement;
+    expect(weitere).not.toBeNull();
+    expect(weitere.textContent).toContain('2. Platz');
+    expect(weitere.textContent).toContain('700 €');
+    expect(teamZeile.getAttribute('aria-expanded')).toBe('true');
+
+    teamZeile.click();
+    fixture.detectChanges();
+    expect(container.querySelector('.flyer-hoch-weitere')).toBeNull();
+    expect(teamZeile.getAttribute('aria-expanded')).toBe('false');
+  });
+
+  it('macht Disziplinen ohne weitere Plätze nicht klickbar (U18)', () => {
+    const el = fixture.nativeElement as HTMLElement;
+    const u18Zeile = el.querySelector(
+      '.flyer-hoch-liste [data-disziplin="U18"] .flyer-hoch-zeile',
+    ) as HTMLElement;
+    expect(u18Zeile.hasAttribute('aria-expanded')).toBe(false);
+    expect(u18Zeile.querySelector('.flyer-hoch-chevron')).toBeNull();
+    u18Zeile.click();
+    fixture.detectChanges();
+    expect(
+      el.querySelector('.flyer-hoch-liste [data-disziplin="U18"] .flyer-hoch-weitere'),
+    ).toBeNull();
+  });
+
   it('enthält keinen QR-Code-Platzhalter', () => {
     const element = fixture.nativeElement as HTMLElement;
     expect(element.querySelector('.qr-code')).toBeNull();

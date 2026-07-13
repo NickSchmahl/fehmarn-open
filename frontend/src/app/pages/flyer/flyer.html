@@ -134,11 +134,39 @@
         <span role="columnheader">1. Platz</span>
       </div>
       @for (zeile of zeilen; track zeile.value) {
-        <div class="flyer-hoch-zeile" role="row">
-          <span class="flyer-hoch-name" role="cell">{{ zeile.label }}</span>
-          <span role="cell">{{ zeile.tag }}</span>
-          <span role="cell">{{ zeile.turnierbeginn }}</span>
-          <span class="flyer-hoch-preis" role="cell">{{ zeile.ersterPlatz }}</span>
+        <div
+          class="flyer-hoch-item"
+          [class.flyer-hoch-item--offen]="istOffen(zeile)"
+          [attr.data-disziplin]="zeile.value"
+        >
+          <div
+            class="flyer-hoch-zeile"
+            [class.flyer-hoch-zeile--klickbar]="zeile.weiterePlaetze.length"
+            role="row"
+            [attr.tabindex]="zeile.weiterePlaetze.length ? 0 : null"
+            [attr.aria-expanded]="zeile.weiterePlaetze.length ? istOffen(zeile) : null"
+            (click)="umschalten(zeile)"
+            (keydown.enter)="umschalten(zeile); $event.preventDefault()"
+            (keydown.space)="umschalten(zeile); $event.preventDefault()"
+          >
+            <span class="flyer-hoch-name" role="cell">{{ zeile.label }}</span>
+            <span role="cell">{{ zeile.tag }}</span>
+            <span role="cell">{{ zeile.turnierbeginn }}</span>
+            <span class="flyer-hoch-preis" role="cell">{{ zeile.ersterPlatz }}</span>
+            @if (zeile.weiterePlaetze.length) {
+              <span class="flyer-hoch-chevron" aria-hidden="true">⌄</span>
+            }
+          </div>
+          @if (istOffen(zeile)) {
+            <div class="flyer-hoch-weitere">
+              @for (platz of zeile.weiterePlaetze; track platz.label) {
+                <div class="flyer-hoch-weitere-zeile">
+                  <span>{{ platz.label }} Platz</span>
+                  <span class="flyer-hoch-weitere-wert">{{ platz.wert }}</span>
+                </div>
+              }
+            </div>
+          }
         </div>
       }
     </div>

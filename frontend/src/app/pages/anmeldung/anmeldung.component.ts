@@ -434,20 +434,17 @@ export class AnmeldungComponent implements OnInit {
     if (this.form.invalid) return;
 
     const disziplinen = this.disziplinenArray.controls
-      .map((ctrl, i) => ({ i, ctrl, meta: DISZIPLINEN[i] }))
+      .map((ctrl, i) => ({ ctrl, meta: DISZIPLINEN[i] }))
       .filter(({ ctrl }) => ctrl.get('selected')?.value === true)
-      .map(({ i, meta }) => {
-        // Aktuell genau eine Meldung je Disziplin (Feature „weitere Meldung" folgt in Task 6) –
-        // das gesendete DTO bleibt daher flach: ein Eintrag je gewählter Disziplin.
-        const meldung = this.meldungGroup(i, 0);
-        return {
+      .flatMap(({ ctrl, meta }) =>
+        (ctrl.get('meldungen') as FormArray).controls.map((meldung) => ({
           disziplin: meta.value,
           teamName: normalisiereTeamname(stringWert(meldung, 'teamName')),
           spieler: (meldung.get('spieler') as FormArray).controls.map((s) =>
             this.toSpielerPayload(s),
           ),
-        };
-      });
+        })),
+      );
 
     const body = { disziplinen };
 

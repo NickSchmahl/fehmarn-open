@@ -66,6 +66,16 @@
           <span class="flyer-tabelle-zelle" role="cell">{{ zeile.ersterPlatz }}</span>
         }
       </div>
+      @for (label of weitereLabels; track label) {
+        <div class="flyer-tabelle-zeile" role="row">
+          <span class="flyer-tabelle-zelle flyer-tabelle-label" role="rowheader"
+            >{{ label }} Platz</span
+          >
+          @for (zeile of zeilen; track zeile.value) {
+            <span class="flyer-tabelle-zelle" role="cell">{{ preisFuer(zeile, label) }}</span>
+          }
+        </div>
+      }
       <div class="flyer-tabelle-zeile" role="row">
         <span class="flyer-tabelle-zelle flyer-tabelle-label" role="rowheader"
           >Startgeld p. P.</span

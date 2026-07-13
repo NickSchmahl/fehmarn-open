@@ -58,6 +58,18 @@ describe('Flyer', () => {
     });
   });
 
+  it('zeigt im Querformat je weiterer Platzierung eine Tabellenzeile mit Werten', () => {
+    const quer = (fixture.nativeElement as HTMLElement).querySelector('.flyer-quer') as HTMLElement;
+    const rowheader = Array.from(quer.querySelectorAll('.flyer-tabelle-label')).map((el) =>
+      el.textContent?.trim(),
+    );
+    expect(rowheader).toContain('2. Platz');
+    expect(rowheader).toContain('13./16. Platz');
+    // Team = 700 € auf Platz 2, Herreneinzel = 40 € auf Platz 13./16.
+    expect(quer.textContent).toContain('700 €');
+    expect(quer.textContent).toContain('40 €');
+  });
+
   it('liefert Werte weiterer Platzierungen über preisFuer und leer bei fehlenden', () => {
     const team = component.zeilen.find((z) => z.value === 'TEAMWETTBEWERB')!;
     expect(component.preisFuer(team, '2.')).toBe('700 €');

@@ -59,26 +59,30 @@ describe('Flyer', () => {
   });
 
   it('zeigt im Querformat je weiterer Platzierung eine Tabellenzeile mit Werten', () => {
-    const quer = (fixture.nativeElement as HTMLElement).querySelector('.flyer-quer') as HTMLElement;
-    const rowheader = Array.from(quer.querySelectorAll('.flyer-tabelle-label')).map((el) =>
-      el.textContent?.trim(),
+    const root = fixture.nativeElement as HTMLElement;
+    const rowheader = Array.from(root.querySelectorAll('.flyer-quer .flyer-tabelle-label')).map(
+      (el) => el.textContent,
     );
     expect(rowheader).toContain('2. Platz');
     expect(rowheader).toContain('13./16. Platz');
     // Team = 700 € auf Platz 2, Herreneinzel = 40 € auf Platz 13./16.
-    expect(quer.textContent).toContain('700 €');
-    expect(quer.textContent).toContain('40 €');
+    const querText = root.querySelector('.flyer-quer')?.textContent;
+    expect(querText).toContain('700 €');
+    expect(querText).toContain('40 €');
   });
 
   it('liefert Werte weiterer Platzierungen über preisFuer und leer bei fehlenden', () => {
-    const team = component.zeilen.find((z) => z.value === 'TEAMWETTBEWERB')!;
+    const team = component.zeilen[0]; // Reihenfolge = DISZIPLINEN, Teamwettbewerb zuerst
+    expect(team.value).toBe('TEAMWETTBEWERB');
     expect(component.preisFuer(team, '2.')).toBe('700 €');
     expect(component.preisFuer(team, '13./16.')).toBe(''); // Team hat keinen 13./16.
   });
 
   it('umschalten öffnet und schließt eine Disziplin unabhängig', () => {
-    const team = component.zeilen.find((z) => z.value === 'TEAMWETTBEWERB')!;
-    const herren = component.zeilen.find((z) => z.value === 'HERRENEINZEL')!;
+    const team = component.zeilen[0];
+    const herren = component.zeilen[1];
+    expect(team.value).toBe('TEAMWETTBEWERB');
+    expect(herren.value).toBe('HERRENEINZEL');
     expect(component.istOffen(team)).toBe(false);
     component.umschalten(team);
     expect(component.istOffen(team)).toBe(true);
@@ -88,49 +92,50 @@ describe('Flyer', () => {
   });
 
   it('umschalten ist wirkungslos für Disziplinen ohne weitere Plätze', () => {
-    const u18 = component.zeilen.find((z) => z.value === 'U18')!;
+    const u18 = component.zeilen[3];
+    expect(u18.value).toBe('U18');
     component.umschalten(u18);
     expect(component.istOffen(u18)).toBe(false);
   });
 
   it('klappt eine Hochformat-Zeile per Klick auf und wieder zu', () => {
-    const el = fixture.nativeElement as HTMLElement;
-    const teamZeile = el.querySelector(
+    const root = fixture.nativeElement as HTMLElement;
+    const teamZeile = root.querySelector<HTMLElement>(
       '.flyer-hoch-liste [data-disziplin="TEAMWETTBEWERB"] .flyer-hoch-zeile',
-    ) as HTMLElement;
-    const container = el.querySelector(
+    );
+    const container = root.querySelector<HTMLElement>(
       '.flyer-hoch-liste [data-disziplin="TEAMWETTBEWERB"]',
-    ) as HTMLElement;
+    );
 
     // eingeklappt: keine weiteren Plätze im DOM, aria-expanded=false
-    expect(container.querySelector('.flyer-hoch-weitere')).toBeNull();
-    expect(teamZeile.getAttribute('aria-expanded')).toBe('false');
+    expect(container?.querySelector('.flyer-hoch-weitere')).toBeNull();
+    expect(teamZeile?.getAttribute('aria-expanded')).toBe('false');
 
-    teamZeile.click();
+    teamZeile?.click();
     fixture.detectChanges();
-    const weitere = container.querySelector('.flyer-hoch-weitere') as HTMLElement;
+    const weitere = container?.querySelector<HTMLElement>('.flyer-hoch-weitere');
     expect(weitere).not.toBeNull();
-    expect(weitere.textContent).toContain('2. Platz');
-    expect(weitere.textContent).toContain('700 €');
-    expect(teamZeile.getAttribute('aria-expanded')).toBe('true');
+    expect(weitere?.textContent).toContain('2. Platz');
+    expect(weitere?.textContent).toContain('700 €');
+    expect(teamZeile?.getAttribute('aria-expanded')).toBe('true');
 
-    teamZeile.click();
+    teamZeile?.click();
     fixture.detectChanges();
-    expect(container.querySelector('.flyer-hoch-weitere')).toBeNull();
-    expect(teamZeile.getAttribute('aria-expanded')).toBe('false');
+    expect(container?.querySelector('.flyer-hoch-weitere')).toBeNull();
+    expect(teamZeile?.getAttribute('aria-expanded')).toBe('false');
   });
 
   it('macht Disziplinen ohne weitere Plätze nicht klickbar (U18)', () => {
-    const el = fixture.nativeElement as HTMLElement;
-    const u18Zeile = el.querySelector(
+    const root = fixture.nativeElement as HTMLElement;
+    const u18Zeile = root.querySelector<HTMLElement>(
       '.flyer-hoch-liste [data-disziplin="U18"] .flyer-hoch-zeile',
-    ) as HTMLElement;
-    expect(u18Zeile.hasAttribute('aria-expanded')).toBe(false);
-    expect(u18Zeile.querySelector('.flyer-hoch-chevron')).toBeNull();
-    u18Zeile.click();
+    );
+    expect(u18Zeile?.hasAttribute('aria-expanded')).toBe(false);
+    expect(u18Zeile?.querySelector('.flyer-hoch-chevron')).toBeNull();
+    u18Zeile?.click();
     fixture.detectChanges();
     expect(
-      el.querySelector('.flyer-hoch-liste [data-disziplin="U18"] .flyer-hoch-weitere'),
+      root.querySelector('.flyer-hoch-liste [data-disziplin="U18"] .flyer-hoch-weitere'),
     ).toBeNull();
   });
 

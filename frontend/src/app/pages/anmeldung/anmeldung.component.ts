@@ -240,9 +240,10 @@ export class AnmeldungComponent implements OnInit {
   });
 
   /**
-   * Aufschlüsselung je Meldung (eine Position pro Meldung): jede erfasste Person kostet das
-   * disziplin-abhängige Startgeld (`meta.preisProSpieler`), der Betrag richtet sich also nach
-   * der Spielerzahl je Meldung. Kostenlose Disziplinen (z. B. U18) tragen 0 € bei.
+   * Aufschlüsselung je Disziplin (eine Position pro Disziplin, unabhängig von der Anzahl
+   * Meldungen): jede erfasste Person kostet das disziplin-abhängige Startgeld
+   * (`meta.preisProSpieler`), der Betrag richtet sich also nach der Spielerzahl über alle
+   * Meldungen dieser Disziplin hinweg. Kostenlose Disziplinen (z. B. U18) tragen 0 € bei.
    */
   preisPosten = computed<PreisPosten[]>(() => {
     const disziplinen = this._formValue().disziplinen as {
@@ -252,17 +253,18 @@ export class AnmeldungComponent implements OnInit {
     return disziplinen
       .map((disziplin, i) => ({ disziplin, meta: DISZIPLINEN[i] }))
       .filter(({ disziplin }) => disziplin.selected === true)
-      .flatMap(({ disziplin, meta }) =>
-        disziplin.meldungen.map((meldung) => {
-          const spielerAnzahl = meldung.spieler.length;
-          return {
-            label: meta.label,
-            spielerAnzahl,
-            preisProSpieler: meta.preisProSpieler,
-            betrag: spielerAnzahl * meta.preisProSpieler,
-          };
-        }),
-      );
+      .map(({ disziplin, meta }) => {
+        const spielerAnzahl = disziplin.meldungen.reduce(
+          (summe, meldung) => summe + meldung.spieler.length,
+          0,
+        );
+        return {
+          label: meta.label,
+          spielerAnzahl,
+          preisProSpieler: meta.preisProSpieler,
+          betrag: spielerAnzahl * meta.preisProSpieler,
+        };
+      });
   });
 
   gesamtpreis = computed(() =>

@@ -18,4 +18,9 @@ public enum Disziplin {
     public String getLabel() {
         return label;
     }
+
+    /** Einzel-Disziplinen (ohne Teamname): genau ein Spieler je Meldung. Für die Spieler-Eindeutigkeit (#170). */
+    public boolean istEinzel() {
+        return this == HERRENEINZEL || this == DAMENEINZEL || this == U18;
+    }
 }

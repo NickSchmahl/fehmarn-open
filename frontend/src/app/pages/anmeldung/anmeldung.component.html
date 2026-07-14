@@ -2,7 +2,7 @@
   <div class="anmeldung-card">
     <!-- ── Header ──────────────────────────────────────────────────────── -->
     <header class="anmeldung-header">
-      <app-brand-icon class="brand-logo"/>
+      <app-brand-icon class="brand-logo" />
       <h1 class="anmeldung-title">Turnieranmeldung</h1>
     </header>
 
@@ -10,7 +10,7 @@
     @if (successMsg()) {
       <div class="alert-success" role="status">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-          <circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.5"/>
+          <circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.5" />
           <path
             d="M5 8l2 2 4-4"
             stroke="currentColor"
@@ -34,12 +34,11 @@
             <p>
               Jede teilnehmende Person benötigt eine Radikal-ID – Format:
               <strong
-              >erster Buchstabe des Vornamens&nbsp;+&nbsp;erster Buchstabe des
+                >erster Buchstabe des Vornamens&nbsp;+&nbsp;erster Buchstabe des
                 Nachnamens&nbsp;+&nbsp;Geburtsdatum</strong
               >.
             </p>
-            <p>
-              <strong>Schon vorhanden?</strong> Bitte genau in diesem Format eintragen.</p>
+            <p><strong>Schon vorhanden?</strong> Bitte genau in diesem Format eintragen.</p>
             <p>
               <strong>Noch keine ID?</strong> Trage einfach dieselbe Kombination ein – das System
               erstellt deine ID daraus automatisch.
@@ -80,7 +79,7 @@
                     <span class="disziplin-name">{{ disziplin.label }}</span>
                     @if (disziplin.preisProSpieler > 0) {
                       <span class="disziplin-price"
-                      >{{ disziplin.preisProSpieler }}&nbsp;€ / Spieler</span
+                        >{{ disziplin.preisProSpieler }}&nbsp;€ / Spieler</span
                       >
                     } @else {
                       <span class="disziplin-price">kostenlos</span>
@@ -92,9 +91,11 @@
                 <!-- Meldungen dieser Disziplin (Teamname + Spielerzeilen je Meldung) -->
                 @if (isDisziplinSelected(i)) {
                   <div class="meldungen-block" formArrayName="meldungen">
-                    @for (meldungCtrl of meldungenArray(i).controls;
+                    @for (
+                      meldungCtrl of meldungenArray(i).controls;
                       track meldungCtrl;
-                      let k = $index) {
+                      let k = $index
+                    ) {
                       <div class="meldung-card" [formGroupName]="k">
                         @if (canRemoveMeldung(i)) {
                           <button
@@ -124,13 +125,13 @@
                             }
                             @if (teamNameLaengeFehler(i, k)) {
                               <span class="field-error"
-                              >Teamname darf höchstens {{ teamnameMaxLaenge }} Zeichen
+                                >Teamname darf höchstens {{ teamnameMaxLaenge }} Zeichen
                                 haben.</span
                               >
                             }
                             @if (teamNameZeichenFehler(i, k)) {
                               <span class="field-error"
-                              >Bitte einen gültigen Teamnamen eingeben – z. B. „Die Bären“ oder
+                                >Bitte einen gültigen Teamnamen eingeben – z. B. „Die Bären“ oder
                                 „Team 42“.</span
                               >
                             }
@@ -141,9 +142,11 @@
                         }
 
                         <div class="spieler-block" formArrayName="spieler">
-                          @for (spielerCtrl of spielerArray(i, k).controls;
+                          @for (
+                            spielerCtrl of spielerArray(i, k).controls;
                             track spielerCtrl;
-                            let j = $index) {
+                            let j = $index
+                          ) {
                             <div class="spieler-row" [formGroupName]="j">
                               <div class="spieler-row-head">
                                 <span class="spieler-nr">Spieler {{ j + 1 }}</span>
@@ -196,7 +199,7 @@
                                   }
                                   @if (spielerFeldHatFehler(i, k, j, 'vorname', 'zeichen')) {
                                     <span class="field-error"
-                                    >Bitte einen gültigen Namen eingeben – z. B. „Anna“, „Anna
+                                      >Bitte einen gültigen Namen eingeben – z. B. „Anna“, „Anna
                                       Lena“ oder „Anna-Lena“.</span
                                     >
                                   }
@@ -225,7 +228,7 @@
                                   }
                                   @if (spielerFeldHatFehler(i, k, j, 'nachname', 'zeichen')) {
                                     <span class="field-error"
-                                    >Bitte einen gültigen Namen eingeben – z. B. „Anna“, „Anna
+                                      >Bitte einen gültigen Namen eingeben – z. B. „Anna“, „Anna
                                       Lena“ oder „Anna-Lena“.</span
                                     >
                                   }
@@ -293,24 +296,28 @@
                                         spielerFeldInvalid(i, k, j, 'geburtsdatum')
                                       "
                                     />
-                                    @if (spielerFeldHatFehler(
-                                      i,
-                                      k,
-                                      j,
-                                      'geburtsdatum',
-                                      'geburtsdatumUngueltig'
-                                    )) {
+                                    @if (
+                                      spielerFeldHatFehler(
+                                        i,
+                                        k,
+                                        j,
+                                        'geburtsdatum',
+                                        'geburtsdatumUngueltig'
+                                      )
+                                    ) {
                                       <span class="field-error">
                                         Bitte ein gültiges Datum mit vierstelligem Jahr eingeben.
                                       </span>
                                     }
-                                    @if (spielerFeldHatFehler(
-                                      i,
-                                      k,
-                                      j,
-                                      'geburtsdatum',
-                                      'geburtsdatumInZukunft'
-                                    )) {
+                                    @if (
+                                      spielerFeldHatFehler(
+                                        i,
+                                        k,
+                                        j,
+                                        'geburtsdatum',
+                                        'geburtsdatumInZukunft'
+                                      )
+                                    ) {
                                       <span class="field-error">
                                         Das Geburtsdatum darf nicht in der Zukunft liegen.
                                       </span>
@@ -366,7 +373,7 @@
                   <span class="price-amount">{{ posten.betrag }}&nbsp;€</span>
                 } @else {
                   <span class="price-label"
-                  >{{ posten.label }} · {{ posten.spielerAnzahl }} Spieler</span
+                    >{{ posten.label }} · {{ posten.spielerAnzahl }} Spieler</span
                   >
                   <span class="price-amount">kostenlos</span>
                 }
@@ -389,7 +396,7 @@
             aria-hidden="true"
             class="hint-icon"
           >
-            <circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.5"/>
+            <circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.5" />
             <path
               d="M8 7v5M8 5v.5"
               stroke="currentColor"

@@ -173,7 +173,12 @@
 /* ── Disziplin-Cards ────────────────────────────────────── */
 .disziplin-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  /* „RAM"-Pattern: so viele Spalten, wie mit je >= 280px Platz haben, sonst
+     automatisch einspaltig. Bei max. Card-Innenbreite (~816px) bleibt es bei
+     zwei Spalten (wie zuvor); unter ~666px Viewport bricht es auf eine Spalte,
+     sodass die Preis-Badge im Bereich 480–620px nicht mehr aus der Kachel läuft.
+     min(280px, 100%) verhindert Überlauf auf sehr schmalen Viewports. */
+  grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
   gap: 0.625rem;
   align-items: start;
 
@@ -181,13 +186,12 @@
   .disziplin-card--selected {
     grid-column: 1 / -1;
   }
-
-  @media (max-width: 480px) {
-    grid-template-columns: 1fr;
-  }
 }
 
 .disziplin-card {
+  /* Query-Container: die inneren Spielerfelder richten sich nach der echten
+     Kachelbreite statt nach der Viewportbreite (siehe @container weiter unten). */
+  container: disziplin / inline-size;
   background: var(--surface-2);
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -348,14 +352,18 @@
   grid-template-columns: 1fr 1fr minmax(90px, 0.5fr) minmax(150px, 0.85fr);
 }
 
-@media (max-width: 760px) {
+/* Zwei Felder pro Zeile, sobald die Kachel schmaler als ~660px wird
+   (entspricht ~760px Viewport minus Page-/Card-Padding). */
+@container disziplin (max-width: 660px) {
   .spieler-felder,
   .spieler-felder--split {
     grid-template-columns: 1fr 1fr;
   }
 }
 
-@media (max-width: 520px) {
+/* Ein Feld pro Zeile, sobald die Kachel schmaler als ~420px wird
+   (entspricht ~520px Viewport minus Page-/Card-Padding). */
+@container disziplin (max-width: 420px) {
   .spieler-felder,
   .spieler-felder--split {
     grid-template-columns: 1fr;

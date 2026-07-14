@@ -131,17 +131,20 @@ describe('AnmeldungComponent', () => {
     );
   });
 
-  it('erklärt die Radikal ID zentral: Format, Herkunft und Pfad ohne bestehende ID', () => {
+  it('erklärt die Radikal ID zentral: Format, Beispiel und Pfad ohne bestehende ID', () => {
     fixture.detectChanges();
     const text = host()
       .querySelector('.radikal-hinweis')
       ?.textContent.replace(/\u00a0/g, ' ');
-    expect(text).toContain('jeder teilnehmenden Person');
-    expect(text).toContain('Initialen + Geburtsdatum');
+    expect(text).toContain('Radikal-ID für die Anmeldung');
+    expect(text).toContain('Jede teilnehmende Person benötigt eine Radikal-ID');
+    expect(text).toContain('erster Buchstabe des Vornamens');
+    expect(text).toContain('erster Buchstabe des Nachnamens');
+    expect(text).toContain('Geburtsdatum');
     expect(text).toContain('MM01011990');
     expect(text).toContain('geboren am 01.01.1990');
-    expect(text).toContain('Name und Geburtsdatum');
-    expect(text).toContain('noch keine Radikal ID');
+    expect(text).toContain('Noch keine ID?');
+    expect(text).toContain('das System erstellt deine ID daraus automatisch');
     expect(text).not.toContain('Initialen + Nummer');
     expect(text).not.toContain('MM-1234');
   });

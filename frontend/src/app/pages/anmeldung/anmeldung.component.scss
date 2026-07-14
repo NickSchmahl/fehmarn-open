@@ -485,6 +485,22 @@
   margin-bottom: 1rem;
   font-size: 0.8125rem;
 
+  p {
+    margin: 0;
+  }
+
+  /* Dezente Abstände zwischen Titel und den einzelnen Hinweis-Zeilen. */
+  > * + * {
+    margin-top: 0.4rem;
+  }
+
+  .radikal-hinweis__title {
+    /* Überschrift des Kastens: eigene Zeile, etwas kräftiger als der Fliesstext. */
+    display: block;
+    color: var(--text-soft);
+    font-size: 0.875rem;
+  }
+
   strong {
     /* Betonung dezent: heller als der Fliesstext, aber weit weg vom harten Weiss. */
     color: var(--text-soft);

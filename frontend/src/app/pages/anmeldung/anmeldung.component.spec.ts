@@ -164,15 +164,15 @@ describe('AnmeldungComponent', () => {
 
   // ── Spielerzeilen je Disziplin ────────────────────────────────────────────
 
-  it('listet die 7 Disziplinen in Flyer-Reihenfolge mit U18 an vierter Stelle', () => {
+  it('listet die 7 Disziplinen in der Reihenfolge Einzel → Doppel → Triple Mix → Team → U18', () => {
     expect(DISZIPLINEN.map((d) => d.value)).toEqual([
-      'TEAMWETTBEWERB',
       'HERRENEINZEL',
       'DAMENEINZEL',
-      'U18',
-      'TRIPLE_MIX',
       'HERRENDOPPEL',
       'DAMENDOPPEL',
+      'TRIPLE_MIX',
+      'TEAMWETTBEWERB',
+      'U18',
     ]);
   });
 

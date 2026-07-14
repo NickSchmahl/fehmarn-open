@@ -139,18 +139,20 @@ export interface FlyerZeile extends DisziplinMeta {
   weiterePlaetze: Preisplatzierung[];
 }
 
-const ZEITPLAN_NACH_DISZIPLIN = new Map<Disziplin, FlyerZeitplanEintrag>(
-  FLYER_ZEITPLAN.map((eintrag) => [eintrag.disziplin, eintrag]),
+const META_NACH_DISZIPLIN = new Map<Disziplin, DisziplinMeta>(
+  DISZIPLINEN.map((disziplin) => [disziplin.value, disziplin]),
 );
 
 // Kombiniert DISZIPLINEN (Preise/Spieleranzahl) mit dem Zeitplan zu vollständigen
-// Flyer-Zeilen, in der bestehenden chronologischen Reihenfolge von DISZIPLINEN.
+// Flyer-Zeilen. Reihenfolge folgt FLYER_ZEITPLAN (chronologisch nach Turnierzeitpunkt)
+// und ist bewusst von der DISZIPLINEN-Reihenfolge entkoppelt, damit der Flyer den
+// realen Ablaufplan (Fr → Sa → So) abbildet.
 export function flyerZeilen(): FlyerZeile[] {
-  return DISZIPLINEN.map((disziplin) => {
-    const zeitplan = ZEITPLAN_NACH_DISZIPLIN.get(disziplin.value);
-    if (!zeitplan) {
-      throw new Error(`Kein Flyer-Zeitplan für Disziplin ${disziplin.value} hinterlegt.`);
+  return FLYER_ZEITPLAN.map((zeitplan) => {
+    const meta = META_NACH_DISZIPLIN.get(zeitplan.disziplin);
+    if (!meta) {
+      throw new Error(`Keine Disziplin-Metadaten für ${zeitplan.disziplin} hinterlegt.`);
     }
-    return { ...disziplin, ...zeitplan };
+    return { ...meta, ...zeitplan };
   });
 }

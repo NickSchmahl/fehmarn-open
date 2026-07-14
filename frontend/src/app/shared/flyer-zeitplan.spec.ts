@@ -23,9 +23,11 @@ describe('flyerZeitplan', () => {
     });
   });
 
-  it('behält die Reihenfolge von DISZIPLINEN bei (chronologisch nach Turnierzeitpunkt)', () => {
+  it('folgt der chronologischen FLYER_ZEITPLAN-Reihenfolge, unabhängig von DISZIPLINEN', () => {
     const zeilen = flyerZeilen();
-    expect(zeilen.map((zeile) => zeile.value)).toEqual(DISZIPLINEN.map((d) => d.value));
+    expect(zeilen.map((zeile) => zeile.value)).toEqual(
+      FLYER_ZEITPLAN.map((eintrag) => eintrag.disziplin),
+    );
   });
 
   it('enthält die zentralen Turnier-Eckdaten', () => {

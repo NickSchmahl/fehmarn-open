@@ -85,9 +85,44 @@
                   <span class="disziplin-subtitle">{{ disziplin.subtitle }}</span>
                 </label>
 
-                <!-- Meldungen dieser Disziplin (Teamname + Spielerzeilen je Meldung) -->
+                <!-- Ein-/Ausklapp-Leiste für den Detailbereich (#184) -->
                 @if (isDisziplinSelected(i)) {
-                  <div class="meldungen-block" formArrayName="meldungen">
+                  <button
+                    type="button"
+                    class="disziplin-collapse-toggle"
+                    [class.disziplin-collapse-toggle--collapsed]="isCollapsed(i)"
+                    (click)="toggleCollapse(i)"
+                    [attr.aria-expanded]="!isCollapsed(i)"
+                    [attr.aria-controls]="'disziplin-detail-' + i"
+                  >
+                    <span class="collapse-chevron" aria-hidden="true">
+                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                        <path
+                          d="M3 4.5L6 7.5L9 4.5"
+                          stroke="currentColor"
+                          stroke-width="1.5"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        />
+                      </svg>
+                    </span>
+                    <span class="collapse-label">
+                      @if (isCollapsed(i)) {
+                        Details anzeigen · {{ spielerGesamt(i) }} Spieler
+                      } @else {
+                        Details einklappen
+                      }
+                    </span>
+                  </button>
+                }
+
+                <!-- Meldungen dieser Disziplin (Teamname + Spielerzeilen je Meldung) -->
+                @if (isDisziplinSelected(i) && !isCollapsed(i)) {
+                  <div
+                    class="meldungen-block"
+                    [id]="'disziplin-detail-' + i"
+                    formArrayName="meldungen"
+                  >
                     @for (
                       meldungCtrl of meldungenArray(i).controls;
                       track meldungCtrl;

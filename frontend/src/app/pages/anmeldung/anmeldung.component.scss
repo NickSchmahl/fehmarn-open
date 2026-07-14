@@ -415,6 +415,46 @@
 }
 
 /* ── Meldungen (mehrere Meldungen je Disziplin, #169) ───────────────── */
+// Ein-/Ausklapp-Leiste des Detailbereichs (#184).
+.disziplin-collapse-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  margin-top: 0.75rem;
+  padding: 0.5rem 0.25rem;
+  background: none;
+  border: none;
+  border-top: 1px solid var(--border);
+  color: var(--text-soft);
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--accent);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--border-focus);
+    outline-offset: 2px;
+    border-radius: 3px;
+  }
+}
+
+.collapse-chevron {
+  display: inline-flex;
+  color: var(--text-muted);
+  transition: transform 0.2s ease;
+
+  // Aufgeklappt zeigt das Chevron nach oben, eingeklappt nach unten (Standardausrichtung des SVG).
+  .disziplin-collapse-toggle:not(.disziplin-collapse-toggle--collapsed) & {
+    transform: rotate(180deg);
+  }
+}
+
 .meldungen-block {
   display: flex;
   flex-direction: column;

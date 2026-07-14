@@ -793,4 +793,103 @@ describe('AnmeldungComponent', () => {
       expect((info as HTMLElement).textContent).toContain('28.02.2027');
     });
   });
+
+  // ── Einklappbarer Detailbereich der Disziplin-Karte (#184) ──────────────────
+
+  describe('Einklappbarer Detailbereich (#184)', () => {
+    /** Klickt die (bei genau einer gewählten Disziplin eindeutige) Klapp-Leiste. */
+    function klickeCollapseToggle(): void {
+      const btn = host().querySelector('.disziplin-collapse-toggle');
+      (btn as HTMLButtonElement | null)?.click();
+      fixture.detectChanges();
+    }
+
+    function collapseToggle(): HTMLElement | null {
+      return host().querySelector('.disziplin-collapse-toggle');
+    }
+
+    /** Klickt die Auswahl-Checkbox einer Disziplin über echtes DOM (nicht per setValue). */
+    function klickeCheckbox(i: number): void {
+      const cb = host().querySelector(`#disziplin-${DISZIPLINEN[i].value}`);
+      (cb as HTMLInputElement | null)?.click();
+      fixture.detectChanges();
+    }
+
+    function detailBereich(i: number): HTMLElement | null {
+      return host().querySelector(`#disziplin-detail-${i}`);
+    }
+
+    it('rendert eine ausgewählte Disziplin zunächst aufgeklappt', () => {
+      waehleDisziplin(HERRENDOPPEL);
+
+      expect(detailBereich(HERRENDOPPEL)).not.toBeNull();
+      expect(collapseToggle()?.getAttribute('aria-expanded')).toBe('true');
+    });
+
+    it('klappt den Detailbereich per Klick ein und zeigt die Spieleranzahl', () => {
+      waehleDisziplin(HERRENDOPPEL);
+
+      klickeCollapseToggle();
+
+      expect(detailBereich(HERRENDOPPEL)).toBeNull();
+      expect(collapseToggle()?.getAttribute('aria-expanded')).toBe('false');
+      expect(collapseToggle()?.textContent).toContain('2 Spieler');
+      // Keine Eingabefelder mehr sichtbar, aber Karte bleibt ausgewählt.
+      expect(host().querySelector('.spieler-row')).toBeNull();
+      expect(component.isDisziplinSelected(HERRENDOPPEL)).toBe(true);
+    });
+
+    it('klappt per erneutem Klick wieder auf', () => {
+      waehleDisziplin(HERRENDOPPEL);
+      klickeCollapseToggle();
+      expect(detailBereich(HERRENDOPPEL)).toBeNull();
+
+      klickeCollapseToggle();
+
+      expect(detailBereich(HERRENDOPPEL)).not.toBeNull();
+      expect(collapseToggle()?.getAttribute('aria-expanded')).toBe('true');
+    });
+
+    it('lässt die Checkbox im eingeklappten Zustand bedienbar; Wiederauswahl startet aufgeklappt', () => {
+      klickeCheckbox(HERRENDOPPEL);
+      expect(component.isDisziplinSelected(HERRENDOPPEL)).toBe(true);
+      klickeCollapseToggle();
+      expect(detailBereich(HERRENDOPPEL)).toBeNull();
+
+      // Abwählen per Checkbox trotz eingeklappter Karte.
+      klickeCheckbox(HERRENDOPPEL);
+      expect(component.isDisziplinSelected(HERRENDOPPEL)).toBe(false);
+      expect(collapseToggle()).toBeNull();
+
+      // Erneut anwählen: Detailbereich ist wieder offen.
+      klickeCheckbox(HERRENDOPPEL);
+      expect(component.isDisziplinSelected(HERRENDOPPEL)).toBe(true);
+      expect(detailBereich(HERRENDOPPEL)).not.toBeNull();
+      expect(collapseToggle()?.getAttribute('aria-expanded')).toBe('true');
+    });
+
+    it('klappt eine eingeklappte Karte mit Validierungsfehler beim Absenden automatisch auf', () => {
+      waehleDisziplin(HERRENDOPPEL); // Pflichtfelder leer → ungültig
+      klickeCollapseToggle();
+      expect(detailBereich(HERRENDOPPEL)).toBeNull();
+
+      const submitBtn = host().querySelector('.submit-btn');
+      (submitBtn as HTMLButtonElement | null)?.click();
+      fixture.detectChanges();
+
+      expect(component.form.invalid).toBe(true);
+      expect(detailBereich(HERRENDOPPEL)).not.toBeNull();
+      expect(collapseToggle()?.getAttribute('aria-expanded')).toBe('true');
+      httpMock.expectNone('/api/anmeldung');
+    });
+
+    it('aktualisiert die Spieleranzahl der Zusammenfassung nach Hinzufügen eines Spielers', () => {
+      waehleDisziplin(TEAMWETTBEWERB); // 4 Pflichtzeilen
+      klickeSpielerHinzufuegen(); // → 5
+
+      klickeCollapseToggle();
+
+      expect(collapseToggle()?.textContent).toContain('5 Spieler');
+    });
+  });
 });

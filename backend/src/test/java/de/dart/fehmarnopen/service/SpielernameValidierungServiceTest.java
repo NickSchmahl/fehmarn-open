@@ -100,4 +100,26 @@ class SpielernameValidierungServiceTest {
                     .isEmpty();
         }
     }
+
+    @Nested
+    class NormalisiereTest {
+
+        private final SpielernameValidierungService service = new SpielernameValidierungService();
+
+        @Test
+        void entferntRandLeerzeichenUndFasstZusammen() {
+            assertThat(service.normalisiere("  Anna   Lena ")).isEqualTo("Anna Lena");
+        }
+
+        @Test
+        void nullErgibtLeerenString() {
+            assertThat(service.normalisiere(null)).isEmpty();
+        }
+
+        @Test
+        void prueftDenZeichensatzNicht() {
+            // normalisiere() wirft nicht bei Sonderzeichen – die Zeichensatzprüfung bleibt normalisiereUndPruefe.
+            assertThat(service.normalisiere("Anna1")).isEqualTo("Anna1");
+        }
+    }
 }

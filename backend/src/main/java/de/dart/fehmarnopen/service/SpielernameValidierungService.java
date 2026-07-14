@@ -30,8 +30,17 @@ public class SpielernameValidierungService {
      *
      * @param feldbezeichnung „Vorname" bzw. „Nachname" für eine sprechende Fehlermeldung.
      */
+    /**
+     * Normalisiert den Namen (Trim + Whitespace-Zusammenfassung) ohne Zeichensatzprüfung. {@code null}
+     * ergibt {@code ""}. Wird sowohl vom Speicherpfad ({@link #normalisiereUndPruefe}) als auch von der
+     * Spieler-Eindeutigkeit ({@link DoppelteSpielerService}) genutzt, damit beide gleich vergleichen.
+     */
+    public String normalisiere(String name) {
+        return name == null ? "" : name.strip().replaceAll("\\s+", " ");
+    }
+
     public String normalisiereUndPruefe(String name, String feldbezeichnung) {
-        String normalisiert = name == null ? "" : name.strip().replaceAll("\\s+", " ");
+        String normalisiert = normalisiere(name);
         if (normalisiert.isEmpty()) {
             return normalisiert;
         }

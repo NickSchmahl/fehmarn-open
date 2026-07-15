@@ -574,6 +574,35 @@ describe('AnmeldungComponent', () => {
     expect(component.errorMessage()).toBeNull();
   });
 
+  it('zeigt eine Spieler-Dublette (409) an den Namensfeldern der richtigen Einzel-Meldung', () => {
+    waehleDisziplin(HERRENEINZEL);
+    component.addMeldung(HERRENEINZEL);
+    fixture.detectChanges();
+    setzeMitRadikalId(HERRENEINZEL, 0, 0, 'Max', 'Mustermann');
+    setzeMitRadikalId(HERRENEINZEL, 1, 0, 'Max', 'Mustermann');
+
+    component.onSubmit();
+
+    const req = httpMock.expectOne('/api/anmeldung');
+    req.flush(
+      {
+        status: 409,
+        message: 'Max Mustermann ist in dieser Disziplin bereits gemeldet.',
+        errors: [
+          {
+            field: 'HERRENEINZEL:1',
+            message: 'Max Mustermann ist in dieser Disziplin bereits gemeldet.',
+          },
+        ],
+      },
+      { status: 409, statusText: 'Conflict' },
+    );
+
+    expect(component.spielerDuplikatText(HERRENEINZEL, 1, 0)).toContain('bereits gemeldet');
+    expect(component.spielerDuplikatText(HERRENEINZEL, 0, 0)).toBeNull();
+    expect(component.errorMessage()).toBeNull();
+  });
+
   it('sendet für zwei Herreneinzel-Meldungen zwei flache Disziplin-Einträge', () => {
     waehleDisziplin(HERRENEINZEL);
     component.addMeldung(HERRENEINZEL);

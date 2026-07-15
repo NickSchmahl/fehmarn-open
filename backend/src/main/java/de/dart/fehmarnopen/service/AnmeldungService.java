@@ -31,6 +31,7 @@ public class AnmeldungService {
     private final SpielerValidierungService spielerValidierungService;
     private final SpielernameValidierungService spielernameValidierungService;
     private final TeamnameValidierungService teamnameValidierungService;
+    private final DoppelteSpielerService doppelteSpielerService;
     private final UebersichtMapper uebersichtMapper;
     private final AnmeldeschlussService anmeldeschlussService;
 
@@ -39,6 +40,7 @@ public class AnmeldungService {
         anmeldeschlussService.pruefeAnmeldungOffen();
         pruefeKeineDoppeltenTeamnamenImRequest(request);
         pruefeKeineDoppeltenRadikalIdsImRequest(request);
+        doppelteSpielerService.pruefe(request);
         return request.disziplinen().stream().map(this::anmeldenFuerDisziplin).toList();
     }
 
@@ -87,10 +89,11 @@ public class AnmeldungService {
     @Transactional
     public void reaktivieren(Long anmeldungId) {
         Anmeldung anmeldung = findeOderWirf(anmeldungId);
-        // Beim Reaktivieren erneut auf Teamname-Dubletten prüfen: der Name könnte inzwischen von einer
-        // anderen aktiven Anmeldung der Disziplin belegt sein (eigene ID ausgeschlossen).
+        // Beim Reaktivieren erneut auf Dubletten prüfen: Team über Teamname, Einzel über die Spieler –
+        // beide könnten inzwischen von einer anderen aktiven Anmeldung der Disziplin belegt sein.
         teamnameValidierungService.normalisiereUndPruefe(
                 anmeldung.getDisziplin(), anmeldung.getTeamName(), anmeldungId);
+        doppelteSpielerService.pruefeReaktivierung(anmeldung);
         anmeldung.setAbgemeldet(false);
         anmeldung.setAbgemeldetAm(null);
         anmeldungRepository.save(anmeldung);
@@ -130,6 +133,9 @@ public class AnmeldungService {
     private void pruefeKeineDoppeltenRadikalIdsImRequest(AnmeldungRequest request) {
         Map<Disziplin, Set<String>> gesehenJeDisziplin = new EnumMap<>(Disziplin.class);
         for (AnmeldungRequest.DisziplinAnmeldung eingabe : request.disziplinen()) {
+            if (eingabe.disziplin().istEinzel()) {
+                continue; // Einzel-Radikal-Dubletten prüft der DoppelteSpielerService (#170).
+            }
             Set<String> bereitsGesehen =
                     gesehenJeDisziplin.computeIfAbsent(eingabe.disziplin(), disziplin -> new HashSet<>());
             for (SpielerRequest spielerRequest : eingabe.spieler()) {

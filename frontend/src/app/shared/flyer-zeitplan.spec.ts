@@ -32,7 +32,7 @@ describe('flyerZeitplan', () => {
 
   it('enthält die zentralen Turnier-Eckdaten', () => {
     expect(FLYER_TURNIER.termin).toBe('05.–07. März 2027');
-    expect(FLYER_TURNIER.ort).toBe('Teestube · Gahlendorfer Weg 25 · 23769 Fehmarn');
+    expect(FLYER_TURNIER.ort).toBe('Großsporthalle · Gahlendorfer Weg 25 · 23769 Fehmarn');
     expect(FLYER_TURNIER.anmeldeschlussDatum).toBe('28. Februar 2027');
     expect(FLYER_TURNIER.gesamtPreisgeld).toBe('über 13.000 €');
   });

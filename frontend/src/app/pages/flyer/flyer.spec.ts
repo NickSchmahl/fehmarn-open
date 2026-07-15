@@ -38,7 +38,7 @@ describe('Flyer', () => {
     expect(text).toContain('Dartverein Fehmarn e.V.');
     expect(text).toContain('12. Fehmarn Open');
     expect(text).toContain('05.–07. März 2027');
-    expect(text).toContain('Teestube · Gahlendorfer Weg 25 · 23769 Fehmarn');
+    expect(text).toContain('Großsporthalle · Gahlendorfer Weg 25 · 23769 Fehmarn');
   });
 
   it('zeigt jede Disziplin mit Tag und 1.-Platz-Preisgeld', () => {

@@ -105,6 +105,47 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
+    void spielerDublette_gleicheRadikalId_shouldReturn409WithFieldIndex() throws Exception {
+        // Zwei Herreneinzel im selben Request mit gleicher Radikal ID → 409, Feldkennung zeigt auf die 2. Meldung.
+        String body =
+                """
+                {"disziplinen":[
+                  {"disziplin":"HERRENEINZEL","teamName":null,"spieler":[
+                    {"vorname":"Max","nachname":"Mustermann","radikalId":"MM01011990","initialen":null,"geburtsdatum":null}]},
+                  {"disziplin":"HERRENEINZEL","teamName":null,"spieler":[
+                    {"vorname":"Tom","nachname":"Test","radikalId":"MM01011990","initialen":null,"geburtsdatum":null}]}
+                ]}""";
+
+        mockMvc.perform(post("/api/anmeldung")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.status").value(409))
+                .andExpect(jsonPath("$.errors[0].field").value("HERRENEINZEL:1"))
+                .andExpect(jsonPath("$.errors[0].message").isNotEmpty());
+    }
+
+    @Test
+    void spielerDublette_gleicherName_shouldReturn409() throws Exception {
+        // Gleicher Name (case-insensitiv), unterschiedliche Radikal ID → 409 über die Namensregel.
+        String body =
+                """
+                {"disziplinen":[
+                  {"disziplin":"HERRENEINZEL","teamName":null,"spieler":[
+                    {"vorname":"Max","nachname":"Mustermann","radikalId":"MM01011990","initialen":null,"geburtsdatum":null}]},
+                  {"disziplin":"HERRENEINZEL","teamName":null,"spieler":[
+                    {"vorname":"max","nachname":"mustermann","radikalId":"TT02021992","initialen":null,"geburtsdatum":null}]}
+                ]}""";
+
+        mockMvc.perform(post("/api/anmeldung")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.status").value(409))
+                .andExpect(jsonPath("$.errors[0].field").value("HERRENEINZEL:1"));
+    }
+
+    @Test
     void ungueltigeAnmeldung_falscheSpielerzahl_shouldReturn400WithMessage() throws Exception {
         // Herreneinzel mit zwei Spielern → fachlich ungültig (kein Feldfehler, sondern 400-Message)
         String body =

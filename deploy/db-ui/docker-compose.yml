@@ -1,0 +1,22 @@
+# Adminer als DB-UI für die SQLite-Datenbanken (test/prod).
+# NUR über SSH-Tunnel erreichbar (Bind an 127.0.0.1) — kein öffentliches DNS, kein Caddy-Block.
+# Zugriff:  ssh -L 8090:127.0.0.1:8090 root@hetzner  →  http://localhost:8090
+# Start:    docker compose -f deploy/db-ui/docker-compose.yml up -d
+# Setup + Betriebsregeln: docs/deployment.md → Abschnitt „DB-UI (Adminer via SSH-Tunnel)".
+services:
+  adminer:
+    image: adminer:5          # feste Major-Version gepinnt; für Updates bewusst anheben
+    container_name: fehmarnopen-db-ui
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8090:8080" # NUR localhost — von außen unerreichbar
+    # Als Service-User laufen, dem die DB-Dateien gehören (sonst keine Schreibrechte).
+    # UID:GID von 'fehmarnopen' auf dem Server ermitteln:  id fehmarnopen
+    # und hier eintragen, z.B. "998:998".
+    user: "<uid>:<gid>"
+    volumes:
+      # NUR die db/-Verzeichnisse mounten — keine Secrets/JAR im Container.
+      # Verzeichnis (nicht Einzeldatei!), damit SQLite seine WAL-Sidecars
+      # (-wal/-shm) daneben anlegt und die App dieselben Dateien sieht.
+      - /opt/fehmarnopen/test/db:/opt/fehmarnopen/test/db
+      - /opt/fehmarnopen/prod/db:/opt/fehmarnopen/prod/db

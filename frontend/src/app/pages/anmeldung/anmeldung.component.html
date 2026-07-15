@@ -54,67 +54,72 @@
                 [class.disziplin-card--selected]="isDisziplinSelected(i)"
                 [formGroupName]="i"
               >
-                <label class="disziplin-label">
-                  <div class="disziplin-check-row">
-                    <input
-                      type="checkbox"
-                      formControlName="selected"
-                      class="disziplin-checkbox"
-                      [id]="'disziplin-' + disziplin.value"
-                    />
-                    <span class="disziplin-custom-check" aria-hidden="true">
-                      <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                        <path
-                          d="M2 5l2.5 2.5L8 3"
-                          stroke="currentColor"
-                          stroke-width="1.5"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                        />
-                      </svg>
-                    </span>
-                    <span class="disziplin-name">{{ disziplin.label }}</span>
-                    @if (disziplin.preisProSpieler > 0) {
-                      <span class="disziplin-price"
-                        >{{ disziplin.preisProSpieler }}&nbsp;€ / Spieler</span
-                      >
-                    } @else {
-                      <span class="disziplin-price">kostenlos</span>
-                    }
-                  </div>
-                  <span class="disziplin-subtitle">{{ disziplin.subtitle }}</span>
-                </label>
-
-                <!-- Ein-/Ausklapp-Leiste für den Detailbereich (#184) -->
-                @if (isDisziplinSelected(i)) {
-                  <button
-                    type="button"
-                    class="disziplin-collapse-toggle"
-                    [class.disziplin-collapse-toggle--collapsed]="isCollapsed(i)"
-                    (click)="toggleCollapse(i)"
-                    [attr.aria-expanded]="!isCollapsed(i)"
-                    [attr.aria-controls]="'disziplin-detail-' + i"
-                  >
-                    <span class="collapse-chevron" aria-hidden="true">
-                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                        <path
-                          d="M3 4.5L6 7.5L9 4.5"
-                          stroke="currentColor"
-                          stroke-width="1.5"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                        />
-                      </svg>
-                    </span>
-                    <span class="collapse-label">
-                      @if (isCollapsed(i)) {
-                        Details anzeigen · {{ spielerGesamt(i) }} Spieler
+                <!-- Kopfzeile: Auswahl-Label + (bei Auswahl) Klapp-Toggle (#184) -->
+                <div class="disziplin-head">
+                  <label class="disziplin-label">
+                    <div class="disziplin-check-row">
+                      <input
+                        type="checkbox"
+                        formControlName="selected"
+                        class="disziplin-checkbox"
+                        [id]="'disziplin-' + disziplin.value"
+                      />
+                      <span class="disziplin-custom-check" aria-hidden="true">
+                        <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                          <path
+                            d="M2 5l2.5 2.5L8 3"
+                            stroke="currentColor"
+                            stroke-width="1.5"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          />
+                        </svg>
+                      </span>
+                      <span class="disziplin-name">{{ disziplin.label }}</span>
+                      @if (disziplin.preisProSpieler > 0) {
+                        <span class="disziplin-price"
+                          >{{ disziplin.preisProSpieler }}&nbsp;€ / Spieler</span
+                        >
                       } @else {
-                        Details einklappen
+                        <span class="disziplin-price">kostenlos</span>
                       }
-                    </span>
-                  </button>
-                }
+                    </div>
+                    <span class="disziplin-subtitle">{{ disziplin.subtitle }}</span>
+                  </label>
+
+                  @if (isDisziplinSelected(i)) {
+                    <button
+                      type="button"
+                      class="disziplin-collapse-toggle"
+                      [class.disziplin-collapse-toggle--collapsed]="isCollapsed(i)"
+                      (click)="toggleCollapse(i)"
+                      [attr.aria-expanded]="!isCollapsed(i)"
+                      [attr.aria-controls]="'disziplin-detail-' + i"
+                      [attr.aria-label]="
+                        isCollapsed(i)
+                          ? 'Details anzeigen, ' + spielerGesamt(i) + ' Spieler'
+                          : 'Details einklappen'
+                      "
+                    >
+                      @if (isCollapsed(i)) {
+                        <span class="collapse-count" aria-hidden="true">{{
+                          spielerGesamt(i)
+                        }}</span>
+                      }
+                      <span class="collapse-chevron" aria-hidden="true">
+                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                          <path
+                            d="M3 4.5L6 7.5L9 4.5"
+                            stroke="currentColor"
+                            stroke-width="1.5"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          />
+                        </svg>
+                      </span>
+                    </button>
+                  }
+                </div>
 
                 <!-- Meldungen dieser Disziplin (Teamname + Spielerzeilen je Meldung) -->
                 @if (isDisziplinSelected(i) && !isCollapsed(i)) {

@@ -824,6 +824,8 @@ describe('AnmeldungComponent', () => {
 
       expect(detailBereich(HERRENDOPPEL)).not.toBeNull();
       expect(collapseToggle()?.getAttribute('aria-expanded')).toBe('true');
+      // Aufgeklappt trägt der Toggle nur den Pfeil, keine Zähler-Pill.
+      expect(host().querySelector('.collapse-count')).toBeNull();
     });
 
     it('klappt den Detailbereich per Klick ein und zeigt die Spieleranzahl', () => {
@@ -833,7 +835,9 @@ describe('AnmeldungComponent', () => {
 
       expect(detailBereich(HERRENDOPPEL)).toBeNull();
       expect(collapseToggle()?.getAttribute('aria-expanded')).toBe('false');
-      expect(collapseToggle()?.textContent).toContain('2 Spieler');
+      // Spieleranzahl steckt zugeklappt in der Zähler-Pill und im aria-Label.
+      expect(host().querySelector('.collapse-count')?.textContent.trim()).toBe('2');
+      expect(collapseToggle()?.getAttribute('aria-label')).toContain('2 Spieler');
       // Keine Eingabefelder mehr sichtbar, aber Karte bleibt ausgewählt.
       expect(host().querySelector('.spieler-row')).toBeNull();
       expect(component.isDisziplinSelected(HERRENDOPPEL)).toBe(true);
@@ -889,7 +893,8 @@ describe('AnmeldungComponent', () => {
 
       klickeCollapseToggle();
 
-      expect(collapseToggle()?.textContent).toContain('5 Spieler');
+      expect(host().querySelector('.collapse-count')?.textContent.trim()).toBe('5');
+      expect(collapseToggle()?.getAttribute('aria-label')).toContain('5 Spieler');
     });
   });
 });

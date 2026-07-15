@@ -251,6 +251,74 @@ und `-prod` (via `/etc/sudoers.d/deploy`). Dann `install` ohne `-o` und `restart
 mit `sudo` im Workflow. Grenzt CI-Rechte auf „JAR ablegen + diese zwei Services
 neustarten" ein.
 
+## DB-UI (Adminer via SSH-Tunnel)
+
+Web-Oberfläche für die SQLite-DBs (test/prod), z.B. für DSGVO-Löschanträge (echter
+Hard-Delete, den die App-UI nicht bietet). **Nicht öffentlich** — nur über SSH-Tunnel.
+
+### Voraussetzung: DB liegt unter `db/`
+
+Die App nutzt `jdbc:sqlite:db/fehmarnopen.db` → die DB liegt unter
+`/opt/fehmarnopen/<env>/db/`. So mountet die DB-UI nur dieses Verzeichnis, nicht
+`app.jar`/`config.env`/`secrets.env`. Der Deploy (`ci.yml`) legt `db/` automatisch an.
+
+**Einmalige Migration bestehender Server-DBs** (pro Umgebung, prod mit echten Daten):
+
+```bash
+ENV=prod                      # danach für test wiederholen
+APP_DIR=/opt/fehmarnopen/$ENV
+systemctl stop fehmarnopen-$ENV
+cp "$APP_DIR"/fehmarnopen.db "$APP_DIR"/fehmarnopen.db.bak   # Backup!
+mkdir -p "$APP_DIR/db"
+mv "$APP_DIR"/fehmarnopen.db "$APP_DIR"/fehmarnopen.db-wal \
+   "$APP_DIR"/fehmarnopen.db-shm "$APP_DIR/db"/ 2>/dev/null   # -wal/-shm ggf. nicht vorhanden = ok
+chown -R fehmarnopen:fehmarnopen "$APP_DIR/db"
+systemctl start fehmarnopen-$ENV
+curl -fsS -o /dev/null -w "HTTP %{http_code}\n" http://127.0.0.1:$([ "$ENV" = prod ] && echo 8080 || echo 8081)/api/teilnehmer
+```
+
+Die neue App-Version (mit `db/`-Pfad) muss vor dem Start liegen. Am einfachsten:
+erst den PR mergen → Deploy läuft (legt `db/` an, startet aber gegen leere DB, falls
+noch nicht migriert) — daher **Migration direkt nach dem Merge, vor/statt** dem
+automatischen Start durchführen, oder Service bis zur Migration gestoppt lassen.
+
+### Docker installieren (einmalig, Debian/Ubuntu)
+
+```bash
+apt-get update && apt-get install -y docker.io docker-compose-v2
+systemctl enable --now docker
+```
+
+### Container starten
+
+```bash
+id fehmarnopen                # UID:GID merken, in docker-compose.yml user: eintragen
+# Repo auf den Server bringen/auschecken, dann:
+docker compose -f deploy/db-ui/docker-compose.yml up -d
+docker compose -f deploy/db-ui/docker-compose.yml ps
+ss -tlnp | grep 8090         # muss 127.0.0.1:8090 zeigen, NICHT 0.0.0.0
+```
+
+### Zugriff
+
+```bash
+ssh -L 8090:127.0.0.1:8090 root@hetzner
+```
+Danach lokal `http://localhost:8090` öffnen → System **SQLite** → Datei-Pfad:
+
+- Test: `/opt/fehmarnopen/test/db/fehmarnopen.db`
+- Prod: `/opt/fehmarnopen/prod/db/fehmarnopen.db`
+
+### Betriebsregeln
+
+- **Vor destruktiven Writes auf prod:** Backup —
+  `cp /opt/fehmarnopen/prod/db/fehmarnopen.db{,.bak}`.
+- **Nie öffentlich exponieren:** kein Caddy-Block, kein Port-Freigeben in der Firewall.
+- **Sicherheitsupdates:** `docker compose -f deploy/db-ui/docker-compose.yml pull && \
+  docker compose -f deploy/db-ui/docker-compose.yml up -d`.
+- Ein einzelner manueller `DELETE` ist mit `busy_timeout` unkritisch; **keine**
+  dauerhaft zweite schreibende Anwendung parallel betreiben.
+
 ## Hetzner Cloud Console – Stolpersteine
 
 Der zuverlässige Weg auf den Server, wenn SSH (noch) nicht geht: **Hetzner Cloud

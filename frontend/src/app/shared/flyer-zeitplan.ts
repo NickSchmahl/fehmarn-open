@@ -115,7 +115,7 @@ export const FLYER_TURNIER = {
   titelAkzent: 'Open',
   jahr: '2027',
   termin: '05.–07. März 2027',
-  ort: 'Teestube · Gahlendorfer Weg 25 · 23769 Fehmarn',
+  ort: 'Großsporthalle · Gahlendorfer Weg 25 · 23769 Fehmarn',
   anmeldeschlussDatum: '28. Februar 2027',
   gesamtPreisgeld: 'über 13.000 €',
   automaten: '50 Automaten',

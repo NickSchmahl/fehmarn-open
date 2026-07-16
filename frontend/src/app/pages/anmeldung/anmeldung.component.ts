@@ -1,6 +1,5 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
 import { DISZIPLINEN } from '../../shared/disziplin';
 import { formatiereIsoDatum, heuteAlsIso } from '../../shared/datum';
 import { extrahiereFehlermeldung } from '../../shared/http-fehler';
@@ -28,6 +27,7 @@ import {
 } from './logik/preisberechnung';
 import { erstelleAnmeldungRequest } from './logik/anmeldung-payload';
 import { parseSpielerDuplikat, parseTeamnameDuplikat } from './logik/duplikat-fehler';
+import { AnmeldungApiService } from './services/anmeldung-api.service';
 
 // ── Component ────────────────────────────────────────────────────────────────
 
@@ -40,7 +40,7 @@ import { parseSpielerDuplikat, parseTeamnameDuplikat } from './logik/duplikat-fe
 })
 export class AnmeldungComponent implements OnInit {
   private formBuilder = inject(FormBuilder);
-  private httpClient = inject(HttpClient);
+  private api = inject(AnmeldungApiService);
 
   // Öffentliche Metadaten für das Template
   readonly disziplinen = DISZIPLINEN;
@@ -64,8 +64,8 @@ export class AnmeldungComponent implements OnInit {
   private collapsed = signal(new Set<number>());
 
   ngOnInit(): void {
-    this.httpClient.get<AnmeldeschlussStatus>('/api/anmeldung/status').subscribe({
-      next: (status) => {
+    this.api.ladeStatus().subscribe({
+      next: (status: AnmeldeschlussStatus) => {
         this.anmeldungOffen.set(status.anmeldungOffen);
         this.anmeldeschlussAnzeige.set(formatiereIsoDatum(status.anmeldeschluss));
       },
@@ -371,7 +371,7 @@ export class AnmeldungComponent implements OnInit {
     this.errorMessage.set(null);
     this.successMsg.set(null);
 
-    this.httpClient.post('/api/anmeldung', body).subscribe({
+    this.api.sendeAnmeldung(body).subscribe({
       next: () => {
         this.loading.set(false);
         this.successMsg.set('Anmeldung erfolgreich! Wir sehen uns beim Turnier.');

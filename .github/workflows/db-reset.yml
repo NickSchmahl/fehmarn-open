@@ -65,10 +65,13 @@ jobs:
             systemctl stop fehmarnopen-$ENV
 
             echo "== DB-Dateien vor dem Löschen =="
-            ls -la "$APP_DIR"/fehmarnopen.db* 2>/dev/null || echo "(keine DB-Datei gefunden)"
+            ls -la "$APP_DIR"/db/fehmarnopen.db* 2>/dev/null || echo "(keine DB-Datei gefunden)"
 
             # SQLite-Hauptdatei plus WAL/SHM-Begleitdateien entfernen.
-            rm -f "$APP_DIR"/fehmarnopen.db "$APP_DIR"/fehmarnopen.db-wal "$APP_DIR"/fehmarnopen.db-shm
+            rm -f "$APP_DIR"/db/fehmarnopen.db "$APP_DIR"/db/fehmarnopen.db-wal "$APP_DIR"/db/fehmarnopen.db-shm
+            # Verzeichnis muss existieren, bevor der Service die DB neu aufbaut.
+            mkdir -p "$APP_DIR/db"
+            chown fehmarnopen:fehmarnopen "$APP_DIR/db"
 
             echo "== Service starten =="
             systemctl start fehmarnopen-$ENV

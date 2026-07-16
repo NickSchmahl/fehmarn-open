@@ -13,7 +13,7 @@ spring:
     name: fehmarnopen
 
   datasource:
-    url: jdbc:sqlite:fehmarnopen.db
+    url: jdbc:sqlite:db/fehmarnopen.db
     driver-class-name: org.sqlite.JDBC
     hikari:
       # SQLite erlaubt nur einen Schreiber gleichzeitig -> Pool auf 1, damit sich

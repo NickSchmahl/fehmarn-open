@@ -216,6 +216,12 @@ jobs:
             chown fehmarnopen:fehmarnopen /opt/fehmarnopen/$ENV/secrets.env
             chmod 600 /opt/fehmarnopen/$ENV/secrets.env
 
+            # DB liegt in einem eigenen Unterverzeichnis (db/), damit die DB-UI nur dieses
+            # mounten kann - ohne app.jar/config.env/secrets.env. Das Verzeichnis muss vor
+            # dem Start existieren; der SQLite-JDBC-Treiber legt fehlende Parent-Dirs nicht an.
+            mkdir -p /opt/fehmarnopen/$ENV/db
+            chown fehmarnopen:fehmarnopen /opt/fehmarnopen/$ENV/db
+
             systemctl restart fehmarnopen-$ENV
 
             # Readiness-Polling statt festem Sleep: 'systemctl is-active' meldet "active",

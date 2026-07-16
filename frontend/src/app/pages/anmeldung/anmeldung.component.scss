@@ -593,16 +593,15 @@ button.disziplin-headline {
   }
 
   .radikal-hinweis__title {
-    /* Überschrift des Kastens: eigene Zeile, durch Größe/Gewicht abgesetzt.
-       Farbe einheitlich --text-soft wie der Bezahl-Hinweis (gemuteter Ton). */
+    /* Überschrift des Kastens: eigene Zeile, kräftig hervorgehoben. */
     display: block;
-    color: var(--text-soft);
+    color: var(--text);
     font-size: 0.875rem;
   }
 
   strong {
-    /* Betonung durch Gewicht, Farbe einheitlich --text-soft (wie Bezahl-Hinweis). */
-    color: var(--text-soft);
+    /* Betonung klar über dem Fliesstext: volles --text. */
+    color: var(--text);
     font-weight: 600;
   }
 

@@ -268,7 +268,7 @@ docker compose -f deploy/db-ui/docker-compose.local.yml up -d
 ```
 
 `http://localhost:8090` öffnen → System **SQLite**, Username beliebig,
-**Password `local-test`**, Datei-Pfad `/db/fehmarnopen.db`.
+**Password `test`**, Datei-Pfad `/db/fehmarnopen.db`.
 Danach `docker compose -f deploy/db-ui/docker-compose.local.yml down`.
 
 **Nicht für den Server verwenden** — die eigentliche Server-Variante ist
@@ -287,12 +287,11 @@ beim Login eingegebene Passwort damit überein, reicht Adminer intern ein leeres
 Passwort an SQLite durch (das SQLite akzeptiert) — sonst schlägt der Login fehl.
 Dieses Gate-Passwort ist **zusätzlich** zum SSH-Tunnel, nicht dessen Ersatz.
 
-Für beide Varianten ist das bereits fertig eingerichtet: lokal Gate-Passwort
-`local-test` (`deploy/db-ui/plugins-enabled-local/`), Server Gate-Passwort `test`
-(`deploy/db-ui/plugins-enabled/`) — der eigentliche Zugriffsschutz ist der
-SSH-Tunnel, das Passwort hier nur die technische Notwendigkeit für Adminer+SQLite.
-Wer ein anderes Passwort will: Hash erzeugen (siehe „Container starten") und in der
-jeweiligen `login-password-less.php` ersetzen.
+Ein gemeinsamer Ordner (`deploy/db-ui/plugins-enabled/`) für lokal und Server,
+Gate-Passwort **`test`** — der eigentliche Zugriffsschutz ist der SSH-Tunnel, das
+Passwort hier nur die technische Notwendigkeit für Adminer+SQLite. Wer ein anderes
+Passwort will: Hash erzeugen (siehe „Container starten") und in
+`login-password-less.php` ersetzen (gilt dann für beide Varianten gleichermaßen).
 
 ### Voraussetzung: DB liegt unter `db/`
 

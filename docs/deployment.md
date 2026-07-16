@@ -256,6 +256,23 @@ neustarten" ein.
 Web-Oberfläche für die SQLite-DBs (test/prod), z.B. für DSGVO-Löschanträge (echter
 Hard-Delete, den die App-UI nicht bietet). **Nicht öffentlich** — nur über SSH-Tunnel.
 
+### Lokal ausprobieren (ohne Server)
+
+Für einen ersten Eindruck, ganz ohne Hetzner-Zugriff:
+[`deploy/db-ui/docker-compose.local.yml`](../deploy/db-ui/docker-compose.local.yml)
+mountet die lokale Dev-DB (`backend/db/`, entsteht beim Start via
+`./mvnw spring-boot:run`) statt der Server-Pfade unter `/opt/fehmarnopen`.
+
+```bash
+docker compose -f deploy/db-ui/docker-compose.local.yml up -d
+```
+
+`http://localhost:8090` öffnen → System **SQLite** → Datei-Pfad `/db/fehmarnopen.db`.
+Danach `docker compose -f deploy/db-ui/docker-compose.local.yml down`.
+
+**Nicht für den Server verwenden** — die eigentliche Server-Variante ist
+`docker-compose.yml` (siehe unten), mit den echten `/opt/fehmarnopen/*`-Pfaden.
+
 ### Voraussetzung: DB liegt unter `db/`
 
 Die App nutzt `jdbc:sqlite:db/fehmarnopen.db` → die DB liegt unter

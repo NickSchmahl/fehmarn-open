@@ -1,0 +1,19 @@
+# DB-UI lokal ausprobieren (NICHT für den Server — dafür docker-compose.yml).
+# Mountet die lokale Dev-DB (backend/db/, entsteht beim Start via ./mvnw spring-boot:run)
+# statt der Server-Pfade unter /opt/fehmarnopen.
+#
+# Start (aus dem Repo-Root):
+#   docker compose -f deploy/db-ui/docker-compose.local.yml up -d
+# Zugriff: http://localhost:8090 → System SQLite → Datei-Pfad: /db/fehmarnopen.db
+# Stoppen: docker compose -f deploy/db-ui/docker-compose.local.yml down
+services:
+  adminer:
+    image: adminer:5
+    container_name: fehmarnopen-db-ui-local
+    ports:
+      - "127.0.0.1:8090:8080"
+    volumes:
+      # Pfad relativ zu dieser Datei (deploy/db-ui/) -> backend/db im Repo-Root.
+      # Kein 'user:' nötig: Docker Desktop mappt Bind-Mounts auf macOS transparent.
+      # Bei Permission-Fehlern (z.B. Linux-Docker): user: "1000:1000" ergänzen.
+      - ../../backend/db:/db

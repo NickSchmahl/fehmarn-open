@@ -554,6 +554,9 @@ export class AnmeldungComponent implements OnInit {
         this.form.reset();
         this.submitted.set(false);
         this._formValue.set(this.form.getRawValue());
+        // Nach dem Absenden zum Erfolgs-Banner am Seitenanfang hochscrollen, damit die
+        // Bestätigung nicht unbemerkt oberhalb des Sichtbereichs bleibt.
+        this.scrollToTop();
       },
       error: (err: unknown) => {
         this.loading.set(false);
@@ -563,6 +566,15 @@ export class AnmeldungComponent implements OnInit {
         this.errorMessage.set(`Fehler bei der Anmeldung: ${extractFehlermeldung(err)}`);
       },
     });
+  }
+
+  /**
+   * Scrollt sanft an den Seitenanfang, wo das Erfolgs-Banner erscheint. Läuft nur im Browser
+   * (kein `window` beim serverseitigen Rendern).
+   */
+  private scrollToTop(): void {
+    if (typeof window === 'undefined') return;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   /**

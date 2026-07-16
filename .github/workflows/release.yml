@@ -1,0 +1,69 @@
+name: Release (Bump-PR)
+
+# Manuell gestartet: hebt die Version in pom + package.json und oeffnet einen PR
+# nach main. Der Tag + das GitHub Release entstehen erst nach dem Merge
+# (siehe release-publish.yml). Kein Direktpush auf die geschuetzte main noetig.
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release-Version (SemVer, z. B. 1.0.0 oder 1.1.0-rc1)'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+
+      - name: Version validieren (SemVer)
+        run: |
+          if ! printf '%s' "${{ inputs.version }}" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$'; then
+            echo "FEHLER: '${{ inputs.version }}' ist keine gueltige SemVer-Version (erwartet z. B. 1.0.0 oder 1.1.0-rc1)." >&2
+            exit 1
+          fi
+
+      - name: Java 25 aufsetzen
+        uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Node aufsetzen
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+
+      - name: Version in pom.xml setzen
+        working-directory: backend
+        run: |
+          ./mvnw -B -q versions:set -DnewVersion=${{ inputs.version }} -DgenerateBackupPoms=false
+          ./mvnw -B -q spotless:apply
+
+      - name: Version in package.json setzen
+        working-directory: frontend
+        run: npm version ${{ inputs.version }} --no-git-tag-version
+
+      - name: Branch, Commit, Push, PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          BRANCH="release/v${{ inputs.version }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH"
+          git add backend/pom.xml frontend/package.json frontend/package-lock.json
+          git commit -m "#202 Release v${{ inputs.version }}"
+          git push origin "$BRANCH"
+          gh pr create --base main --head "$BRANCH" \
+            --title "Release v${{ inputs.version }}" \
+            --body "Automatischer Versions-Bump auf **${{ inputs.version }}**. Nach dem Merge erstellt \`release-publish.yml\` automatisch Tag \`v${{ inputs.version }}\` + ein GitHub Release mit dem JAR."

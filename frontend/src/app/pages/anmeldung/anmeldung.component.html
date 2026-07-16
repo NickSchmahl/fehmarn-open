@@ -153,21 +153,23 @@
                       let k = $index
                     ) {
                       <div class="meldung-card" [formGroupName]="k">
-                        @if (canRemoveMeldung(i)) {
-                          <button
-                            type="button"
-                            class="meldung-remove"
-                            (click)="removeMeldung(i, k)"
-                            [attr.aria-label]="'Meldung ' + (k + 1) + ' entfernen'"
-                          >
-                            Meldung entfernen
-                          </button>
-                        }
                         @if (needsTeamName(i)) {
                           <div class="teamname-field">
-                            <label [for]="'teamname-' + i + '-' + k" class="field-label">
-                              Teamname <span class="required">*</span>
-                            </label>
+                            <div class="teamname-field-head">
+                              <label [for]="'teamname-' + i + '-' + k" class="field-label">
+                                Teamname <span class="required">*</span>
+                              </label>
+                              @if (canRemoveMeldung(i)) {
+                                <button
+                                  type="button"
+                                  class="meldung-remove"
+                                  (click)="removeMeldung(i, k)"
+                                  [attr.aria-label]="'Meldung ' + (k + 1) + ' entfernen'"
+                                >
+                                  Meldung entfernen
+                                </button>
+                              }
+                            </div>
                             <input
                               [id]="'teamname-' + i + '-' + k"
                               type="text"
@@ -223,6 +225,16 @@
                                       [attr.aria-label]="'Spieler ' + (j + 1) + ' entfernen'"
                                     >
                                       Entfernen
+                                    </button>
+                                  }
+                                  @if (!needsTeamName(i) && j === 0 && canRemoveMeldung(i)) {
+                                    <button
+                                      type="button"
+                                      class="meldung-remove"
+                                      (click)="removeMeldung(i, k)"
+                                      [attr.aria-label]="'Meldung ' + (k + 1) + ' entfernen'"
+                                    >
+                                      Meldung entfernen
                                     </button>
                                   }
                                 </div>

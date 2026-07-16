@@ -287,11 +287,12 @@ beim Login eingegebene Passwort damit überein, reicht Adminer intern ein leeres
 Passwort an SQLite durch (das SQLite akzeptiert) — sonst schlägt der Login fehl.
 Dieses Gate-Passwort ist **zusätzlich** zum SSH-Tunnel, nicht dessen Ersatz.
 
-Für den lokalen Testaufbau ist das bereits fertig eingerichtet
-(`deploy/db-ui/plugins-enabled-local/`, Gate-Passwort `local-test`, nur lokal
-relevant). Für den Server: eigenes Passwort wählen, Hash erzeugen und in
-`deploy/db-ui/plugins-enabled/login-password-less.php` eintragen (siehe unten,
-Abschnitt „Container starten").
+Für beide Varianten ist das bereits fertig eingerichtet: lokal Gate-Passwort
+`local-test` (`deploy/db-ui/plugins-enabled-local/`), Server Gate-Passwort `test`
+(`deploy/db-ui/plugins-enabled/`) — der eigentliche Zugriffsschutz ist der
+SSH-Tunnel, das Passwort hier nur die technische Notwendigkeit für Adminer+SQLite.
+Wer ein anderes Passwort will: Hash erzeugen (siehe „Container starten") und in der
+jeweiligen `login-password-less.php` ersetzen.
 
 ### Voraussetzung: DB liegt unter `db/`
 
@@ -331,10 +332,9 @@ systemctl enable --now docker
 ```bash
 id fehmarnopen                # UID:GID merken, in docker-compose.yml user: eintragen
 
-# Gate-Passwort für den Adminer-Login festlegen (siehe Stolperstein oben):
-docker run --rm adminer:5 php -r "echo password_hash('IHR-PASSWORT', PASSWORD_DEFAULT);"
-# Den ausgegebenen Hash in deploy/db-ui/plugins-enabled/login-password-less.php
-# anstelle von '<bcrypt-hash-hier-einsetzen>' eintragen.
+# Gate-Passwort ist bereits auf "test" voreingestellt (deploy/db-ui/plugins-enabled/
+# login-password-less.php). Für ein anderes Passwort: Hash erzeugen und dort ersetzen:
+#   docker run --rm adminer:5 php -r "echo password_hash('IHR-PASSWORT', PASSWORD_DEFAULT);"
 
 # Repo auf den Server bringen/auschecken, dann:
 docker compose -f deploy/db-ui/docker-compose.yml up -d
@@ -348,7 +348,7 @@ ss -tlnp | grep 8090         # muss 127.0.0.1:8090 zeigen, NICHT 0.0.0.0
 ssh -L 8090:127.0.0.1:8090 root@hetzner
 ```
 Danach lokal `http://localhost:8090` öffnen → System **SQLite**, Username beliebig,
-Password = das oben gewählte Gate-Passwort, Datei-Pfad:
+**Password `test`**, Datei-Pfad:
 
 - Test: `/opt/fehmarnopen/test/db/fehmarnopen.db`
 - Prod: `/opt/fehmarnopen/prod/db/fehmarnopen.db`

@@ -797,15 +797,23 @@ describe('AnmeldungComponent', () => {
   // ── Einklappbarer Detailbereich der Disziplin-Karte (#184) ──────────────────
 
   describe('Einklappbarer Detailbereich (#184)', () => {
-    /** Klickt die (bei genau einer gewählten Disziplin eindeutige) Klapp-Leiste. */
-    function klickeCollapseToggle(): void {
-      const btn = host().querySelector('.disziplin-collapse-toggle');
-      (btn as HTMLButtonElement | null)?.click();
+    /** Klickt die Titelzeile der gewählten Disziplin – klappt den Detailbereich ein/aus. */
+    function klickeTitelzeile(): void {
+      const btn = host().querySelector('.disziplin-card--selected .disziplin-headline');
+      (btn as HTMLElement | null)?.click();
       fixture.detectChanges();
     }
 
-    function collapseToggle(): HTMLElement | null {
-      return host().querySelector('.disziplin-collapse-toggle');
+    /** Die Titelzeile (Klapp-Button) der gewählten Disziplin. */
+    function titelzeile(): HTMLElement | null {
+      return host().querySelector('.disziplin-card--selected .disziplin-headline');
+    }
+
+    /** Klickt „+ Weitere Meldung" der (einzigen) gewählten Disziplin. */
+    function klickeWeitereMeldung(): void {
+      const btn = host().querySelector('.meldung-add');
+      (btn as HTMLButtonElement | null)?.click();
+      fixture.detectChanges();
     }
 
     /** Klickt die Auswahl-Checkbox einer Disziplin über echtes DOM (nicht per setValue). */
@@ -823,58 +831,68 @@ describe('AnmeldungComponent', () => {
       waehleDisziplin(HERRENDOPPEL);
 
       expect(detailBereich(HERRENDOPPEL)).not.toBeNull();
-      expect(collapseToggle()?.getAttribute('aria-expanded')).toBe('true');
-      // Aufgeklappt trägt der Toggle nur den Pfeil, keine Zähler-Pill.
+      expect(titelzeile()?.getAttribute('aria-expanded')).toBe('true');
+      // Aufgeklappt trägt die Titelzeile nur den Pfeil, keine Zähler-Pill.
       expect(host().querySelector('.collapse-count')).toBeNull();
     });
 
-    it('klappt den Detailbereich per Klick ein und zeigt die Spieleranzahl', () => {
+    it('klappt den Detailbereich per Klick auf die Titelzeile ein und zeigt die Meldungsanzahl', () => {
       waehleDisziplin(HERRENDOPPEL);
 
-      klickeCollapseToggle();
+      klickeTitelzeile();
 
       expect(detailBereich(HERRENDOPPEL)).toBeNull();
-      expect(collapseToggle()?.getAttribute('aria-expanded')).toBe('false');
-      // Spieleranzahl steckt zugeklappt in der Zähler-Pill und im aria-Label.
-      expect(host().querySelector('.collapse-count')?.textContent.trim()).toBe('2');
-      expect(collapseToggle()?.getAttribute('aria-label')).toContain('2 Spieler');
+      expect(titelzeile()?.getAttribute('aria-expanded')).toBe('false');
+      // Ein Team = eine Meldung → die Pill zeigt 1 (nicht die Spieleranzahl).
+      expect(host().querySelector('.collapse-count')?.textContent.trim()).toBe('1');
       // Keine Eingabefelder mehr sichtbar, aber Karte bleibt ausgewählt.
       expect(host().querySelector('.spieler-row')).toBeNull();
       expect(component.isDisziplinSelected(HERRENDOPPEL)).toBe(true);
     });
 
-    it('klappt per erneutem Klick wieder auf', () => {
+    it('klappt per erneutem Klick auf die Titelzeile wieder auf', () => {
       waehleDisziplin(HERRENDOPPEL);
-      klickeCollapseToggle();
+      klickeTitelzeile();
       expect(detailBereich(HERRENDOPPEL)).toBeNull();
 
-      klickeCollapseToggle();
+      klickeTitelzeile();
 
       expect(detailBereich(HERRENDOPPEL)).not.toBeNull();
-      expect(collapseToggle()?.getAttribute('aria-expanded')).toBe('true');
+      expect(titelzeile()?.getAttribute('aria-expanded')).toBe('true');
     });
 
-    it('lässt die Checkbox im eingeklappten Zustand bedienbar; Wiederauswahl startet aufgeklappt', () => {
+    it('klappt beim Klick auf die Titelzeile nur ein, wählt aber nicht ab', () => {
+      waehleDisziplin(HERRENDOPPEL);
+
+      klickeTitelzeile();
+
+      // Zugeklappt, aber weiterhin ausgewählt – nur die Checkbox darf abwählen.
+      expect(component.isDisziplinSelected(HERRENDOPPEL)).toBe(true);
+      expect(detailBereich(HERRENDOPPEL)).toBeNull();
+      expect(titelzeile()).not.toBeNull();
+    });
+
+    it('lässt die Checkbox im eingeklappten Zustand abwählen; Wiederauswahl startet aufgeklappt', () => {
       klickeCheckbox(HERRENDOPPEL);
       expect(component.isDisziplinSelected(HERRENDOPPEL)).toBe(true);
-      klickeCollapseToggle();
+      klickeTitelzeile();
       expect(detailBereich(HERRENDOPPEL)).toBeNull();
 
       // Abwählen per Checkbox trotz eingeklappter Karte.
       klickeCheckbox(HERRENDOPPEL);
       expect(component.isDisziplinSelected(HERRENDOPPEL)).toBe(false);
-      expect(collapseToggle()).toBeNull();
+      expect(titelzeile()).toBeNull();
 
       // Erneut anwählen: Detailbereich ist wieder offen.
       klickeCheckbox(HERRENDOPPEL);
       expect(component.isDisziplinSelected(HERRENDOPPEL)).toBe(true);
       expect(detailBereich(HERRENDOPPEL)).not.toBeNull();
-      expect(collapseToggle()?.getAttribute('aria-expanded')).toBe('true');
+      expect(titelzeile()?.getAttribute('aria-expanded')).toBe('true');
     });
 
     it('klappt eine eingeklappte Karte mit Validierungsfehler beim Absenden automatisch auf', () => {
       waehleDisziplin(HERRENDOPPEL); // Pflichtfelder leer → ungültig
-      klickeCollapseToggle();
+      klickeTitelzeile();
       expect(detailBereich(HERRENDOPPEL)).toBeNull();
 
       const submitBtn = host().querySelector('.submit-btn');
@@ -883,18 +901,17 @@ describe('AnmeldungComponent', () => {
 
       expect(component.form.invalid).toBe(true);
       expect(detailBereich(HERRENDOPPEL)).not.toBeNull();
-      expect(collapseToggle()?.getAttribute('aria-expanded')).toBe('true');
+      expect(titelzeile()?.getAttribute('aria-expanded')).toBe('true');
       httpMock.expectNone('/api/anmeldung');
     });
 
-    it('aktualisiert die Spieleranzahl der Zusammenfassung nach Hinzufügen eines Spielers', () => {
-      waehleDisziplin(TEAMWETTBEWERB); // 4 Pflichtzeilen
-      klickeSpielerHinzufuegen(); // → 5
+    it('aktualisiert die Meldungsanzahl der Zusammenfassung nach „+ Weitere Meldung"', () => {
+      waehleDisziplin(HERRENDOPPEL); // 1 Meldung
+      klickeWeitereMeldung(); // → 2 Meldungen
 
-      klickeCollapseToggle();
+      klickeTitelzeile();
 
-      expect(host().querySelector('.collapse-count')?.textContent.trim()).toBe('5');
-      expect(collapseToggle()?.getAttribute('aria-label')).toContain('5 Spieler');
+      expect(host().querySelector('.collapse-count')?.textContent.trim()).toBe('2');
     });
   });
 });

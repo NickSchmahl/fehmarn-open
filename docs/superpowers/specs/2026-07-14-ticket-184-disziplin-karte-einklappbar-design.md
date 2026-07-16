@@ -18,13 +18,14 @@ weiterzuarbeiten, ohne die Auswahl zu verlieren.
 
 - **Startzustand:** Eine neu angehakte Disziplin startet **aufgeklappt** (bestehendes Verhalten).
   Zuklappen ist immer eine manuelle Aktion – kein automatisches Zuklappen.
-- **Bedienelement:** Ein **reiner Icon-Button (Chevron)** rechts in der Kartenkopfzeile, neben dem
-  Preis – kein eigener Balken, kein Textlabel. Die Auswahl-Checkbox bleibt davon getrennt und
-  unabhängig bedienbar.
-- **Zusammenfassung (zugeklappt):** **nur die Spieleranzahl** über alle Meldungen der Disziplin,
-  als kompakte Zähler-Pill links neben dem Chevron (z. B. „2"); die volle Angabe („2 Spieler")
-  steckt im `aria-label`. Aufgeklappt trägt der Button nur den Pfeil. Kein Teamname, keine
-  Namensliste.
+- **Bedienelement:** Die **gesamte Titelzeile** (Name + Preis + Chevron) ist bei gewählter Disziplin
+  ein Klapp-Button, der den Detailbereich ein-/ausklappt – ein Klick darauf klappt zu (statt
+  abzuwählen), was natürlicher ist. Die **Auswahl-Checkbox** ist ein davon getrenntes Control links
+  daneben und **hakt als Einzige wirklich ab**. Nicht gewählt ist die Titelzeile stattdessen ein
+  `<label>`, dessen Klick die Disziplin auswählt.
+- **Zusammenfassung (zugeklappt):** **die Anzahl der Meldungen** der Disziplin (nicht der Spieler –
+  ein 4er-Team ist eine Meldung ⇒ „1"), als kompakte Zähler-Pill links neben dem Chevron. Aufgeklappt
+  trägt die Titelzeile nur den Pfeil, keine Pill. Kein Teamname, keine Namensliste.
 - **Zustandshaltung:** Reiner UI-State als Component-Signal (`Set<number>` der eingeklappten
   Disziplin-Indizes), **nicht** im Reactive-Form-Modell – der Klapp-Zustand darf das POST-DTO und
   die Validierung nicht beeinflussen.
@@ -40,7 +41,7 @@ Neu:
 - `isCollapsed(i): boolean` – ist `i` in der Menge?
 - `toggleCollapse(i): void` – Index umschalten; erzeugt eine **neue** `Set`-Instanz
   (Signal-Immutabilität).
-- `spielerGesamt(i): number` – Summe der Spielerzeilen über alle Meldungen der Disziplin `i`.
+- `meldungGesamt(i): number` – Anzahl der Meldungen (`meldungenArray(i).length`) der Disziplin `i`.
 - `disziplinHatFehler(i): boolean` – ist der `meldungen`-FormArray der Disziplin `i` ungültig?
 
 Änderungen:
@@ -55,70 +56,69 @@ Kein Einfluss auf `toSpielerPayload` / das POST-Body.
 
 ### Template (`anmeldung.component.html`)
 
-Auswahl-Label und Klapp-Toggle liegen in einer gemeinsamen Kopfzeile `.disziplin-head`
-(Flex-Row). Der Toggle wird nur bei `isDisziplinSelected(i)` gerendert und sitzt rechts neben dem
-Preis:
+Kopfzeile `.disziplin-head` (Flex-Row) mit zwei getrennten Elementen: links die **Auswahl-Checkbox**
+(eigenes `<label>` mit verstecktem Input + Custom-Check), rechts die **Titelzeile** `.disziplin-headline`.
+Die Titelzeile ist zustandsabhängig:
+
+- **gewählt** → ein `<button>`, dessen Klick `toggleCollapse(i)` auslöst (aria-expanded /
+  aria-controls). Enthält Name + Subtitle, Preis, zugeklappt die Zähler-Pill `meldungGesamt(i)` und
+  den Chevron.
+- **nicht gewählt** → ein `<label [for]="'disziplin-' + value">`, dessen Klick die Disziplin nativ
+  auswählt.
 
 ```html
 <div class="disziplin-head">
-  <label class="disziplin-label"><!-- Checkbox + Name + Preis + Subtitle --></label>
+  <label class="disziplin-checkbox">
+    <input type="checkbox" formControlName="selected" [id]="'disziplin-' + disziplin.value" … />
+    <span class="disziplin-custom-check" aria-hidden="true"><!-- SVG-Haken --></span>
+  </label>
 
   @if (isDisziplinSelected(i)) {
-    <button
-      type="button"
-      class="disziplin-collapse-toggle"
-      [class.disziplin-collapse-toggle--collapsed]="isCollapsed(i)"
-      (click)="toggleCollapse(i)"
-      [attr.aria-expanded]="!isCollapsed(i)"
-      [attr.aria-controls]="'disziplin-detail-' + i"
-      [attr.aria-label]="
-        isCollapsed(i) ? 'Details anzeigen, ' + spielerGesamt(i) + ' Spieler' : 'Details einklappen'
-      "
-    >
-      @if (isCollapsed(i)) {
-        <span class="collapse-count" aria-hidden="true">{{ spielerGesamt(i) }}</span>
-      }
+    <button type="button" class="disziplin-headline"
+      [class.disziplin-headline--collapsed]="isCollapsed(i)" (click)="toggleCollapse(i)"
+      [attr.aria-expanded]="!isCollapsed(i)" [attr.aria-controls]="'disziplin-detail-' + i">
+      <span class="disziplin-headline-text">…Name + Subtitle…</span>
+      <span class="disziplin-price">…</span>
+      @if (isCollapsed(i)) { <span class="collapse-count" aria-hidden="true">{{ meldungGesamt(i) }}</span> }
       <span class="collapse-chevron" aria-hidden="true"><!-- SVG-Chevron --></span>
     </button>
+  } @else {
+    <label class="disziplin-headline" [for]="'disziplin-' + disziplin.value">…Name + Preis…</label>
   }
 </div>
 ```
 
 - `meldungen-block` erhält `[id]="'disziplin-detail-' + i"` und wird nur bei `!isCollapsed(i)`
-  gerendert (`@if (isDisziplinSelected(i) && !isCollapsed(i))`). Das `@if`-Entfernen lässt die
-  FormArray-Controls und damit die Validität bestehen ⇒ Auto-Aufklappen bei Fehler funktioniert.
-- Die Auswahl-Checkbox bleibt im `.disziplin-label` und ist – da der Toggle ein **Geschwister**
-  außerhalb des Labels ist – unabhängig bedienbar.
-- Da der Button icon-only ist, trägt er einen dynamischen `aria-label` als zugängliche
-  Beschriftung; Tastatur (Enter/Space) und Fokus liefert das `<button>` nativ.
+  gerendert. Das `@if`-Entfernen lässt die FormArray-Controls und damit die Validität bestehen ⇒
+  Auto-Aufklappen bei Fehler funktioniert.
+- Nur die Checkbox wählt wirklich ab; die Titelzeile klappt (gewählt) bzw. wählt aus (nicht gewählt).
+- Der Chevron/Pill sind `aria-hidden`; der Klapp-Button trägt Name + Preis als zugängliche
+  Beschriftung, `aria-expanded` meldet den Zustand. Tastatur/Fokus liefert `<button>`/`<label>` nativ.
 
 ### Styling (`anmeldung.component.scss`)
 
-- `.disziplin-head`: Flex-Row (`align-items: center`); `.disziplin-label` bekommt `flex: 1`.
-- `.disziplin-collapse-toggle`: kompakter Icon-Button ohne Rahmen/Hintergrund, `color:
-  var(--text-soft)`, Hover `var(--accent)`, sichtbarer `:focus-visible`-Ring.
-- `.collapse-count`: kleine Pill (`border-radius: 999px`, `var(--surface)` auf `var(--border)`),
-  nur im zugeklappten Zustand gerendert.
-- `.collapse-chevron`: 22px-Kreis; per Transform rotiert – zugeklappt Pfeil nach unten (Standard),
-  aufgeklappt nach oben (`:not(--collapsed)` → `rotate(180deg)`).
-- Additiv; einzige Strukturänderung: Label + Toggle in `.disziplin-head` gruppiert.
+- `.disziplin-head`: Flex-Row (`align-items: center`).
+- `.disziplin-checkbox`: eigenes Control links, `flex-shrink: 0`; versteckter Input als
+  `.disziplin-checkbox-input`, sichtbarer `.disziplin-custom-check`.
+- `.disziplin-headline`: `flex: 1`, Flex-Row; als `button` mit Reset (kein Rahmen/Hintergrund),
+  `:focus-visible`-Ring, Hover tönt den Chevron.
+- `.collapse-count`: kleine Pill (`border-radius: 999px`), nur zugeklappt gerendert.
+- `.collapse-chevron`: 22px-Kreis; zugeklappt Pfeil nach unten (Standard), aufgeklappt nach oben
+  (`.disziplin-headline:not(--collapsed)` → `rotate(180deg)`).
 
 ### Tests (`anmeldung.component.spec.ts`)
 
-Alle über echte DOM-Interaktion (Klick auf `.disziplin-collapse-toggle` bzw. Checkbox / Submit),
-nicht per direktem Methodenaufruf:
+Alle über echte DOM-Interaktion (Klick auf `.disziplin-headline` bzw. Checkbox / Submit / „+ Weitere
+Meldung"), nicht per direktem Methodenaufruf:
 
-1. Ausgewählte Disziplin startet aufgeklappt (Detail `#disziplin-detail-i` sichtbar,
-   `aria-expanded="true"`).
-2. Klick auf den Toggle klappt ein: Detail verschwindet, `aria-expanded="false"`, die Zähler-Pill
-   `.collapse-count` zeigt die korrekte Spieleranzahl und der `aria-label` enthält „N Spieler".
-   Aufgeklappt ist keine Pill vorhanden.
+1. Ausgewählte Disziplin startet aufgeklappt (Detail sichtbar, `aria-expanded="true"`, keine Pill).
+2. Klick auf die Titelzeile klappt ein: Detail verschwindet, `aria-expanded="false"`, die Zähler-Pill
+   `.collapse-count` zeigt die Meldungsanzahl (1 bei einem Team – nicht die Spielerzahl).
 3. Erneuter Klick klappt wieder auf.
-4. Checkbox bleibt im eingeklappten Zustand bedienbar: Abwählen entfernt den Detailbereich, erneutes
-   Anwählen startet wieder aufgeklappt.
-5. Eingeklappte Karte mit Validierungsfehler wird bei `onSubmit` (Klick auf „Jetzt anmelden")
-   automatisch aufgeklappt.
-6. Spieleranzahl in der Zusammenfassung aktualisiert sich nach „+ Spieler hinzufügen".
+4. Klick auf die Titelzeile klappt nur ein, **wählt nicht ab** (Disziplin bleibt gewählt).
+5. Die **Checkbox** wählt auch im eingeklappten Zustand ab; erneutes Anwählen startet aufgeklappt.
+6. Eingeklappte Karte mit Validierungsfehler wird bei Submit automatisch aufgeklappt.
+7. Die Pill-Meldungsanzahl aktualisiert sich nach „+ Weitere Meldung".
 
 ## Akzeptanzkriterien (aus dem Ticket)
 

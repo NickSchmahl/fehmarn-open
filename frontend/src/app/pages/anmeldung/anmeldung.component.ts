@@ -371,12 +371,9 @@ export class AnmeldungComponent implements OnInit {
     this.collapsed.set(next);
   }
 
-  /** Gesamtzahl der Spielerzeilen über alle Meldungen der Disziplin {@link i} (für die Zusammenfassung). */
-  spielerGesamt(i: number): number {
-    return this.meldungenArray(i).controls.reduce(
-      (summe, meldung) => summe + (meldung.get('spieler') as FormArray).length,
-      0,
-    );
+  /** Anzahl der Meldungen der Disziplin {@link i} (für die Zähler-Pill im zugeklappten Zustand). */
+  meldungGesamt(i: number): number {
+    return this.meldungenArray(i).length;
   }
 
   /** Trägt der Meldungs-Block der Disziplin {@link i} einen Validierungsfehler? (fürs Auto-Aufklappen). */

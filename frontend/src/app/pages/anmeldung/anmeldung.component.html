@@ -207,7 +207,13 @@
                           ) {
                             <div class="spieler-row" [formGroupName]="j">
                               <div class="spieler-row-head">
-                                <span class="spieler-nr">Spieler {{ j + 1 }}</span>
+                                <span class="spieler-nr">
+                                  @if (needsTeamName(i)) {
+                                    Spieler {{ j + 1 }}
+                                  } @else {
+                                    Meldung {{ k + 1 }}
+                                  }
+                                </span>
                                 <div class="spieler-row-head-right">
                                   <label class="radikal-toggle">
                                     <input

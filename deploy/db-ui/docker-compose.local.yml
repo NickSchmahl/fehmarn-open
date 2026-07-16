@@ -4,7 +4,8 @@
 #
 # Start (aus dem Repo-Root):
 #   docker compose -f deploy/db-ui/docker-compose.local.yml up -d
-# Zugriff: http://localhost:8090 → System SQLite → Datei-Pfad: /db/fehmarnopen.db
+# Login: System SQLite, Username beliebig, Password "local-test" (siehe
+# plugins-enabled-local/, nur für diesen lokalen Testaufbau), Database /db/fehmarnopen.db
 # Stoppen: docker compose -f deploy/db-ui/docker-compose.local.yml down
 services:
   adminer:
@@ -17,3 +18,7 @@ services:
       # Kein 'user:' nötig: Docker Desktop mappt Bind-Mounts auf macOS transparent.
       # Bei Permission-Fehlern (z.B. Linux-Docker): user: "1000:1000" ergänzen.
       - ../../backend/db:/db
+      # Adminer verweigert bei SQLite sonst JEDEN Login (mit UND ohne Passwort,
+      # siehe docs/deployment.md). Das Plugin ist bereits im Image enthalten,
+      # dieser Wrapper aktiviert es nur mit einem Gate-Passwort.
+      - ./plugins-enabled-local:/var/www/html/plugins-enabled:ro

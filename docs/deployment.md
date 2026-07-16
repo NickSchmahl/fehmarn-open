@@ -267,11 +267,31 @@ mountet die lokale Dev-DB (`backend/db/`, entsteht beim Start via
 docker compose -f deploy/db-ui/docker-compose.local.yml up -d
 ```
 
-`http://localhost:8090` öffnen → System **SQLite** → Datei-Pfad `/db/fehmarnopen.db`.
+`http://localhost:8090` öffnen → System **SQLite**, Username beliebig,
+**Password `local-test`**, Datei-Pfad `/db/fehmarnopen.db`.
 Danach `docker compose -f deploy/db-ui/docker-compose.local.yml down`.
 
 **Nicht für den Server verwenden** — die eigentliche Server-Variante ist
 `docker-compose.yml` (siehe unten), mit den echten `/opt/fehmarnopen/*`-Pfaden.
+
+### Stolperstein: Adminer + SQLite verweigert jeden Login
+
+Adminer blockt bei SQLite **beide** Varianten: kein Passwort →
+„Adminer does not support accessing a database without a password"; irgendein
+Passwort → „Database does not support password" (SQLite kennt keine Passwörter).
+Der offizielle Ausweg ist das `login-password-less`-Plugin — es ist **bereits im
+Image enthalten**, muss nur über `/var/www/html/plugins-enabled/` aktiviert werden
+(siehe [Adminer-Docker-Doku](https://github.com/docker-library/docs/blob/master/adminer/content.md#loading-plugins)).
+Es erwartet einen Bcrypt-Hash eines selbst gewählten **Gate-Passworts**: stimmt das
+beim Login eingegebene Passwort damit überein, reicht Adminer intern ein leeres
+Passwort an SQLite durch (das SQLite akzeptiert) — sonst schlägt der Login fehl.
+Dieses Gate-Passwort ist **zusätzlich** zum SSH-Tunnel, nicht dessen Ersatz.
+
+Für den lokalen Testaufbau ist das bereits fertig eingerichtet
+(`deploy/db-ui/plugins-enabled-local/`, Gate-Passwort `local-test`, nur lokal
+relevant). Für den Server: eigenes Passwort wählen, Hash erzeugen und in
+`deploy/db-ui/plugins-enabled/login-password-less.php` eintragen (siehe unten,
+Abschnitt „Container starten").
 
 ### Voraussetzung: DB liegt unter `db/`
 
@@ -310,6 +330,12 @@ systemctl enable --now docker
 
 ```bash
 id fehmarnopen                # UID:GID merken, in docker-compose.yml user: eintragen
+
+# Gate-Passwort für den Adminer-Login festlegen (siehe Stolperstein oben):
+docker run --rm adminer:5 php -r "echo password_hash('IHR-PASSWORT', PASSWORD_DEFAULT);"
+# Den ausgegebenen Hash in deploy/db-ui/plugins-enabled/login-password-less.php
+# anstelle von '<bcrypt-hash-hier-einsetzen>' eintragen.
+
 # Repo auf den Server bringen/auschecken, dann:
 docker compose -f deploy/db-ui/docker-compose.yml up -d
 docker compose -f deploy/db-ui/docker-compose.yml ps
@@ -321,7 +347,8 @@ ss -tlnp | grep 8090         # muss 127.0.0.1:8090 zeigen, NICHT 0.0.0.0
 ```bash
 ssh -L 8090:127.0.0.1:8090 root@hetzner
 ```
-Danach lokal `http://localhost:8090` öffnen → System **SQLite** → Datei-Pfad:
+Danach lokal `http://localhost:8090` öffnen → System **SQLite**, Username beliebig,
+Password = das oben gewählte Gate-Passwort, Datei-Pfad:
 
 - Test: `/opt/fehmarnopen/test/db/fehmarnopen.db`
 - Prod: `/opt/fehmarnopen/prod/db/fehmarnopen.db`

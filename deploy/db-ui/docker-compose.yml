@@ -20,3 +20,7 @@ services:
       # (-wal/-shm) daneben anlegt und die App dieselben Dateien sieht.
       - /opt/fehmarnopen/test/db:/opt/fehmarnopen/test/db
       - /opt/fehmarnopen/prod/db:/opt/fehmarnopen/prod/db
+      # Adminer verweigert bei SQLite sonst JEDEN Login (mit UND ohne Passwort).
+      # Bcrypt-Hash in plugins-enabled/login-password-less.php VOR dem Start
+      # ersetzen (siehe docs/deployment.md).
+      - ./plugins-enabled:/var/www/html/plugins-enabled:ro

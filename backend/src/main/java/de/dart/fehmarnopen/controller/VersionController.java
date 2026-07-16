@@ -1,5 +1,6 @@
 package de.dart.fehmarnopen.controller;
 
+import java.time.Instant;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.lang.Nullable;
@@ -22,8 +23,8 @@ public class VersionController {
         if (buildProperties == null) {
             return new VersionResponse("dev", null);
         }
-        String buildTime =
-                buildProperties.getTime() != null ? buildProperties.getTime().toString() : null;
+        Instant time = buildProperties.getTime();
+        String buildTime = time != null ? time.toString() : null;
         return new VersionResponse(buildProperties.getVersion(), buildTime);
     }
 

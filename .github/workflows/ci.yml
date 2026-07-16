@@ -124,7 +124,7 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
-          source: backend/target/fehmarnopen-0.0.1-SNAPSHOT.jar
+          source: backend/target/fehmarnopen.jar
           target: /tmp/
           strip_components: 2
 
@@ -197,7 +197,7 @@ jobs:
             echo "Caddy-Config validiert und neu geladen."
 
             install -o fehmarnopen -g fehmarnopen \
-              /tmp/fehmarnopen-0.0.1-SNAPSHOT.jar \
+              /tmp/fehmarnopen.jar \
               /opt/fehmarnopen/$ENV/app.jar
 
             # Nicht-geheime Laufzeit-Config ausrollen (versioniert unter deploy/env/).

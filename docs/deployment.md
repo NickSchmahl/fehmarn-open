@@ -295,8 +295,13 @@ tückisch (QWERTZ): dafür die Taste drücken, auf der `z` steht.
 ### Release erstellen
 1. **Actions → „Release (Bump-PR)" → Run workflow**, Version eingeben (z. B. `1.0.0`).
    Es entsteht ein PR `Release v1.0.0` mit gebumpter Version in `pom.xml` + `package.json`.
-2. PR reviewen und **mergen** (die CI-Checks `backend`/`frontend` müssen grün sein).
-3. Nach dem Merge läuft `release-publish.yml` automatisch: Tag `v1.0.0` + GitHub Release
+2. **Einmal manuell anstoßen:** Der PR wird vom automatischen `GITHUB_TOKEN` erstellt –
+   GitHub löst dadurch bewusst **keine** neuen Workflow-Läufe aus (Anti-Rekursions-Schutz),
+   die Pflicht-Checks `backend`/`frontend` starten also nicht von selbst. Einmal den PR
+   **schließen und sofort wieder öffnen** (oder einen leeren Commit pushen) – das reicht,
+   weil die Aktion dann von dir als echtem Nutzer kommt statt vom Bot-Token.
+3. PR reviewen und **mergen** (die CI-Checks `backend`/`frontend` müssen grün sein).
+4. Nach dem Merge läuft `release-publish.yml` automatisch: Tag `v1.0.0` + GitHub Release
    mit angehängtem `fehmarnopen.jar` entstehen. `main` bleibt auf `1.0.0`, bis das
    nächste Release eine neue Nummer setzt.
 

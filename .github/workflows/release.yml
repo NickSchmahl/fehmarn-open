@@ -66,4 +66,6 @@ jobs:
           git push origin "$BRANCH"
           gh pr create --base main --head "$BRANCH" \
             --title "Release v${{ inputs.version }}" \
-            --body "Automatischer Versions-Bump auf **${{ inputs.version }}**. Nach dem Merge erstellt \`release-publish.yml\` automatisch Tag \`v${{ inputs.version }}\` + ein GitHub Release mit dem JAR."
+            --body "Automatischer Versions-Bump auf **${{ inputs.version }}**. Nach dem Merge erstellt \`release-publish.yml\` automatisch Tag \`v${{ inputs.version }}\` + ein GitHub Release mit dem JAR.
+
+          ⚠️ **Vor dem Mergen:** Diesen PR einmal schließen und sofort wieder öffnen (oder einen leeren Commit pushen), damit die Pflicht-Checks \`backend\`/\`frontend\` starten – ein PR, der vom \`GITHUB_TOKEN\` erstellt wurde, löst sie nicht automatisch aus (GitHub-Anti-Rekursions-Schutz)."

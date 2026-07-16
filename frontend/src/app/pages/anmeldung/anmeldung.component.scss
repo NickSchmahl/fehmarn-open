@@ -575,10 +575,13 @@ button.disziplin-headline {
   font-style: italic;
 }
 
-/* Basis-Kasten + dezente Schrift kommen aus der globalen .hinweis-Klasse. */
+/* Basis-Kasten kommt aus der globalen .hinweis-Klasse; der Fliesstext wird hier
+   aber angehoben, weil der warme --accent-dim-Hintergrund den gedämpften
+   --text-muted zu weich erscheinen lässt (nur ~4.7:1). */
 .radikal-hinweis {
   margin-bottom: 1rem;
   font-size: 0.8125rem;
+  color: var(--text-soft);
 
   p {
     margin: 0;
@@ -590,14 +593,15 @@ button.disziplin-headline {
   }
 
   .radikal-hinweis__title {
-    /* Überschrift des Kastens: eigene Zeile, etwas kräftiger als der Fliesstext. */
+    /* Überschrift des Kastens: eigene Zeile, durch Größe/Gewicht abgesetzt.
+       Farbe einheitlich --text-soft wie der Bezahl-Hinweis (gemuteter Ton). */
     display: block;
     color: var(--text-soft);
     font-size: 0.875rem;
   }
 
   strong {
-    /* Betonung dezent: heller als der Fliesstext, aber weit weg vom harten Weiss. */
+    /* Betonung durch Gewicht, Farbe einheitlich --text-soft (wie Bezahl-Hinweis). */
     color: var(--text-soft);
     font-weight: 600;
   }

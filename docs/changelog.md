@@ -5,6 +5,9 @@ die feingranulare Git-Historie um **Kontext und Begründung** über einzelne PRs
 hinweg. Architekturentscheidungen liegen als [ADR](adr/), Ticket-Status in
 [tickets/quality-roadmap.md](tickets/quality-roadmap.md).
 
+> **Release-Konvention:** Pro Release ein datierter Abschnitt hier; das zugehörige
+> [GitHub Release](../../releases) (Tag `vX.Y.Z`) verlinkt auf diesen Changelog.
+
 ## 2026-07-11 — Anmeldeschluss 28.02.2027 (#153)
 
 Nach dem Anmeldeschluss sind keine Online-Anmeldungen mehr möglich, damit Finn planen kann.

@@ -289,3 +289,65 @@ tückisch (QWERTZ): dafür die Taste drücken, auf der `z` steht.
 - Dateiinhalt in die Zwischenablage: `pbcopy < datei` (bzw. `cat datei | pbcopy`)
 - Zwischenablage ausgeben: `pbpaste`
 - Datei seitenweise lesen statt `cat`: `less datei` (Leertaste = weiter, `q` = raus)
+
+## Releases & Rollback
+
+### Release erstellen
+1. **Actions → „Release (Bump-PR)" → Run workflow**, Version eingeben (z. B. `1.0.0`).
+   Es entsteht ein PR `Release v1.0.0` mit gebumpter Version in `pom.xml` + `package.json`.
+2. **Einmal manuell anstoßen:** Der PR wird vom automatischen `GITHUB_TOKEN` erstellt –
+   GitHub löst dadurch bewusst **keine** neuen Workflow-Läufe aus (Anti-Rekursions-Schutz),
+   die Pflicht-Checks `backend`/`frontend` starten also nicht von selbst. Einmal den PR
+   **schließen und sofort wieder öffnen** (oder einen leeren Commit pushen) – das reicht,
+   weil die Aktion dann von dir als echtem Nutzer kommt statt vom Bot-Token.
+3. PR reviewen und **mergen** (die CI-Checks `backend`/`frontend` müssen grün sein).
+4. Nach dem Merge läuft `release-publish.yml` automatisch: Tag `v1.0.0` + GitHub Release
+   mit angehängtem `fehmarnopen.jar` entstehen. `main` bleibt auf `1.0.0`, bis das
+   nächste Release eine neue Nummer setzt.
+
+### Welcher Stand läuft?
+`GET /api/version` (öffentlich) liefert die laufende Version, z. B.
+`{"version":"1.0.0","buildTime":"..."}`. Für prod: `https://<prod-host>/api/version`.
+
+### Rollback auf eine ältere Version
+1. **Falls sich das DB-Schema seit der Zielversion geändert hat:** siehe
+   [Datenbank-Rollback](#datenbank-rollback-bei-schema-aenderungen) unten – **vorher**
+   ein Backup ziehen, ein App-Rollback allein rollt das Schema **nicht** zurück.
+2. **Actions → „CI/CD" → Run workflow**.
+3. Bei **„Use workflow from"** den Tag `vX.Y.Z` wählen, **Zielumgebung** = `prod`.
+4. Die CI baut exakt den getaggten Quellstand und deployed ihn. Danach
+   `GET /api/version` gegen prod prüfen.
+
+### Datenbank-Rollback bei Schema-Aenderungen
+
+Liquibase-Changesets in diesem Projekt sind **plain SQL** (kein Formatted-SQL mit
+`--rollback`-Kommentaren, siehe [datenbank-schema-aendern.md](datenbank-schema-aendern.md)) –
+`liquibase rollback` funktioniert damit **nicht** automatisch. Da die DB ohnehin nur eine
+einzelne SQLite-Datei ist, ist **Datei-Backup/Restore** der praktikable Weg, nicht das
+Zurückdrehen einzelner Changesets.
+
+**Backup ziehen (vor jedem Release mit Schema-Änderung, auf dem Server, `ssh` auf hetzner):**
+```bash
+ENV=prod   # oder test
+APP_DIR=/opt/fehmarnopen/$ENV
+systemctl stop fehmarnopen-$ENV
+cp "$APP_DIR/fehmarnopen.db" "$APP_DIR/fehmarnopen.db.backup-$(date +%Y%m%d-%H%M%S)"
+systemctl start fehmarnopen-$ENV
+```
+(`-wal`/`-shm`-Begleitdateien nicht separat sichern – nach `systemctl stop` ist die DB
+sauber gecheckpointed, die Hauptdatei allein reicht.)
+
+**Backup wiederherstellen (nach einem App-Rollback, falls das neue Schema nicht mehr passt):**
+```bash
+ENV=prod
+APP_DIR=/opt/fehmarnopen/$ENV
+systemctl stop fehmarnopen-$ENV
+ls -la "$APP_DIR"/fehmarnopen.db.backup-*        # passendes Backup auswählen
+cp "$APP_DIR/fehmarnopen.db.backup-<timestamp>" "$APP_DIR/fehmarnopen.db"
+rm -f "$APP_DIR"/fehmarnopen.db-wal "$APP_DIR"/fehmarnopen.db-shm
+systemctl start fehmarnopen-$ENV
+```
+
+> **Kein automatisiertes Backup vor jedem Deploy.** Für dieses Projekt bewusst manuell
+> gehalten (Vereinsturnier, seltene Schema-Änderungen) – bei Bedarf später als eigener
+> CI-Schritt automatisierbar.

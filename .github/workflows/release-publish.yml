@@ -1,0 +1,70 @@
+name: Release veroeffentlichen
+
+# Laeuft bei jedem Push auf main. Taggt + released NUR, wenn die pom-Version eine
+# Release-Version ist (kein -SNAPSHOT) und der Tag noch nicht existiert. Dadurch
+# loesen normale Feature-Merges nichts aus, ein gemergter Release-Bump-PR aber schon.
+on:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0   # volle Historie + Tags fuer die Existenzpruefung
+
+      - name: Java 25 aufsetzen
+        uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Release-Entscheidung treffen
+        id: decide
+        working-directory: backend
+        run: |
+          VERSION=$(./mvnw -q -DforceStdout help:evaluate -Dexpression=project.version)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          if printf '%s' "$VERSION" | grep -q 'SNAPSHOT'; then
+            echo "SNAPSHOT-Version ($VERSION) -> kein Release."
+            echo "release=false" >> "$GITHUB_OUTPUT"
+          elif git rev-parse "v$VERSION" >/dev/null 2>&1; then
+            echo "Tag v$VERSION existiert bereits -> kein Release."
+            echo "release=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "Release-Version $VERSION ohne bestehenden Tag -> Release."
+            echo "release=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build (JAR inkl. Frontend)
+        if: steps.decide.outputs.release == 'true'
+        working-directory: backend
+        run: ./mvnw -B clean package
+
+      - name: Tag erstellen und pushen
+        if: steps.decide.outputs.release == 'true'
+        run: |
+          set -e
+          VERSION=${{ steps.decide.outputs.version }}
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "v$VERSION" -m "Release v$VERSION"
+          git push origin "v$VERSION"
+
+      - name: GitHub Release erstellen
+        if: steps.decide.outputs.release == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION=${{ steps.decide.outputs.version }}
+          gh release create "v$VERSION" \
+            backend/target/fehmarnopen.jar \
+            --title "v$VERSION" \
+            --generate-notes \
+            --notes "Details siehe [docs/changelog.md](../blob/main/docs/changelog.md)."

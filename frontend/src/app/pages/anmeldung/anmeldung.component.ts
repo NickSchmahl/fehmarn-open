@@ -187,6 +187,11 @@ export class AnmeldungComponent implements OnInit {
   anmeldungOffen = signal(true);
   anmeldeschlussAnzeige = signal<string | null>(null);
 
+  // Reiner UI-State: Indizes der Disziplinen, deren Detailbereich eingeklappt ist. Bewusst NICHT im
+  // Formularmodell, damit der Klapp-Zustand weder das POST-DTO noch die Validierung beeinflusst.
+  // Nicht enthalten = aufgeklappt (Default). Siehe #184.
+  private collapsed = signal(new Set<number>());
+
   ngOnInit(): void {
     this.httpClient.get<AnmeldeschlussStatus>('/api/anmeldung/status').subscribe({
       next: (status) => {
@@ -338,7 +343,42 @@ export class AnmeldungComponent implements OnInit {
       }
     } else {
       meldungen.clear();
+      // Klapp-Zustand zurücksetzen, damit eine erneute Auswahl wieder aufgeklappt startet.
+      this.setCollapsed(i, false);
     }
+  }
+
+  // ── Ein-/Ausklappen des Detailbereichs (#184) ──────────────────────────────
+
+  /** Ist der Detailbereich der Disziplin {@link i} eingeklappt? Default (nicht enthalten) = offen. */
+  isCollapsed(i: number): boolean {
+    return this.collapsed().has(i);
+  }
+
+  /** Schaltet den Klapp-Zustand der Disziplin {@link i} um (per Klick/Tastatur im Template). */
+  toggleCollapse(i: number): void {
+    this.setCollapsed(i, !this.isCollapsed(i));
+  }
+
+  /** Setzt den Klapp-Zustand explizit; erzeugt eine neue Set-Instanz (Signal-Immutabilität). */
+  private setCollapsed(i: number, collapsed: boolean): void {
+    const next = new Set(this.collapsed());
+    if (collapsed) {
+      next.add(i);
+    } else {
+      next.delete(i);
+    }
+    this.collapsed.set(next);
+  }
+
+  /** Anzahl der Meldungen der Disziplin {@link i} (für die Zähler-Pill im zugeklappten Zustand). */
+  meldungGesamt(i: number): number {
+    return this.meldungenArray(i).length;
+  }
+
+  /** Trägt der Meldungs-Block der Disziplin {@link i} einen Validierungsfehler? (fürs Auto-Aufklappen). */
+  disziplinHatFehler(i: number): boolean {
+    return this.meldungenArray(i).invalid;
   }
 
   addMeldung(i: number): void {
@@ -483,6 +523,8 @@ export class AnmeldungComponent implements OnInit {
     this.clearTeamnameDuplikatFehler();
     this.submitted.set(true);
     this.form.markAllAsTouched();
+    // Eingeklappte Karten mit Fehler wieder aufklappen, damit kein Validierungsfehler verdeckt bleibt.
+    this.klappeFehlerhafteKartenAuf();
     if (this.form.invalid) return;
 
     const disziplinen = this.disziplinenArray.controls
@@ -518,6 +560,18 @@ export class AnmeldungComponent implements OnInit {
         if (this.zeigeTeamnameDuplikatAmFeld(err)) return;
         this.errorMessage.set(`Fehler bei der Anmeldung: ${extractFehlermeldung(err)}`);
       },
+    });
+  }
+
+  /**
+   * Klappt jede ausgewählte, eingeklappte Disziplin mit Validierungsfehler wieder auf, damit beim
+   * Absende-Versuch kein Fehler hinter einer zugeklappten Karte verborgen bleibt (#184).
+   */
+  private klappeFehlerhafteKartenAuf(): void {
+    this.disziplinenArray.controls.forEach((_, i) => {
+      if (this.isDisziplinSelected(i) && this.isCollapsed(i) && this.disziplinHatFehler(i)) {
+        this.setCollapsed(i, false);
+      }
     });
   }
 

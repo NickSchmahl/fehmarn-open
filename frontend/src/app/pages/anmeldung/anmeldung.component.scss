@@ -216,21 +216,23 @@
   }
 }
 
-.disziplin-label {
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.disziplin-check-row {
+// Kopfzeile der Karte: Auswahl-Checkbox + Titelzeile (#184).
+.disziplin-head {
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
 
-/* Nativer Checkbox versteckt, Custom-Check stattdessen */
+// Auswahl-Checkbox als eigenes Control – hakt an/ab, unabhängig vom Klapp-Zustand.
 .disziplin-checkbox {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+/* Nativer Checkbox versteckt, Custom-Check stattdessen */
+.disziplin-checkbox-input {
   position: absolute;
   opacity: 0;
   width: 0;
@@ -259,11 +261,48 @@
   }
 }
 
+// Titelzeile: als <label> (Auswahl) oder – bei gewählter Disziplin – als Klapp-<button>.
+.disziplin-headline {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+button.disziplin-headline {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+
+  &:focus-visible {
+    outline: 2px solid var(--border-focus);
+    outline-offset: 2px;
+    border-radius: var(--radius);
+  }
+
+  &:hover .collapse-chevron {
+    color: var(--accent);
+  }
+}
+
+.disziplin-headline-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
 .disziplin-name {
   font-size: 0.9rem;
   font-weight: 600;
   color: var(--text);
-  flex: 1;
 }
 
 .disziplin-price {
@@ -278,7 +317,6 @@
   font-size: 0.7rem;
   color: var(--text-muted);
   letter-spacing: 0.04em;
-  padding-left: 1.5rem; // bündig mit dem Checkmark
 }
 
 .teamname-field {
@@ -415,6 +453,36 @@
 }
 
 /* ── Meldungen (mehrere Meldungen je Disziplin, #169) ───────────────── */
+// Zähler-Pill (nur zugeklappt): zeigt die Anzahl der Meldungen kompakt neben dem Chevron.
+.collapse-count {
+  flex-shrink: 0;
+  font-size: 0.65rem;
+  font-weight: 700;
+  line-height: 1.5;
+  color: var(--text-soft);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.0625rem 0.4375rem;
+}
+
+.collapse-chevron {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: var(--text-soft);
+  transition: transform 0.2s ease;
+
+  // Zugeklappt zeigt das Chevron nach unten (Standard), aufgeklappt nach oben.
+  .disziplin-headline:not(.disziplin-headline--collapsed) & {
+    transform: rotate(180deg);
+  }
+}
+
 .meldungen-block {
   display: flex;
   flex-direction: column;

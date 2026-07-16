@@ -793,4 +793,125 @@ describe('AnmeldungComponent', () => {
       expect((info as HTMLElement).textContent).toContain('28.02.2027');
     });
   });
+
+  // ── Einklappbarer Detailbereich der Disziplin-Karte (#184) ──────────────────
+
+  describe('Einklappbarer Detailbereich (#184)', () => {
+    /** Klickt die Titelzeile der gewählten Disziplin – klappt den Detailbereich ein/aus. */
+    function klickeTitelzeile(): void {
+      const btn = host().querySelector('.disziplin-card--selected .disziplin-headline');
+      (btn as HTMLElement | null)?.click();
+      fixture.detectChanges();
+    }
+
+    /** Die Titelzeile (Klapp-Button) der gewählten Disziplin. */
+    function titelzeile(): HTMLElement | null {
+      return host().querySelector('.disziplin-card--selected .disziplin-headline');
+    }
+
+    /** Klickt „+ Weitere Meldung" der (einzigen) gewählten Disziplin. */
+    function klickeWeitereMeldung(): void {
+      const btn = host().querySelector('.meldung-add');
+      (btn as HTMLButtonElement | null)?.click();
+      fixture.detectChanges();
+    }
+
+    /** Klickt die Auswahl-Checkbox einer Disziplin über echtes DOM (nicht per setValue). */
+    function klickeCheckbox(i: number): void {
+      const cb = host().querySelector(`#disziplin-${DISZIPLINEN[i].value}`);
+      (cb as HTMLInputElement | null)?.click();
+      fixture.detectChanges();
+    }
+
+    function detailBereich(i: number): HTMLElement | null {
+      return host().querySelector(`#disziplin-detail-${i}`);
+    }
+
+    it('rendert eine ausgewählte Disziplin zunächst aufgeklappt', () => {
+      waehleDisziplin(HERRENDOPPEL);
+
+      expect(detailBereich(HERRENDOPPEL)).not.toBeNull();
+      expect(titelzeile()?.getAttribute('aria-expanded')).toBe('true');
+      // Aufgeklappt trägt die Titelzeile nur den Pfeil, keine Zähler-Pill.
+      expect(host().querySelector('.collapse-count')).toBeNull();
+    });
+
+    it('klappt den Detailbereich per Klick auf die Titelzeile ein und zeigt die Meldungsanzahl', () => {
+      waehleDisziplin(HERRENDOPPEL);
+
+      klickeTitelzeile();
+
+      expect(detailBereich(HERRENDOPPEL)).toBeNull();
+      expect(titelzeile()?.getAttribute('aria-expanded')).toBe('false');
+      // Ein Team = eine Meldung → die Pill zeigt 1 (nicht die Spieleranzahl).
+      expect(host().querySelector('.collapse-count')?.textContent.trim()).toBe('1');
+      // Keine Eingabefelder mehr sichtbar, aber Karte bleibt ausgewählt.
+      expect(host().querySelector('.spieler-row')).toBeNull();
+      expect(component.isDisziplinSelected(HERRENDOPPEL)).toBe(true);
+    });
+
+    it('klappt per erneutem Klick auf die Titelzeile wieder auf', () => {
+      waehleDisziplin(HERRENDOPPEL);
+      klickeTitelzeile();
+      expect(detailBereich(HERRENDOPPEL)).toBeNull();
+
+      klickeTitelzeile();
+
+      expect(detailBereich(HERRENDOPPEL)).not.toBeNull();
+      expect(titelzeile()?.getAttribute('aria-expanded')).toBe('true');
+    });
+
+    it('klappt beim Klick auf die Titelzeile nur ein, wählt aber nicht ab', () => {
+      waehleDisziplin(HERRENDOPPEL);
+
+      klickeTitelzeile();
+
+      // Zugeklappt, aber weiterhin ausgewählt – nur die Checkbox darf abwählen.
+      expect(component.isDisziplinSelected(HERRENDOPPEL)).toBe(true);
+      expect(detailBereich(HERRENDOPPEL)).toBeNull();
+      expect(titelzeile()).not.toBeNull();
+    });
+
+    it('lässt die Checkbox im eingeklappten Zustand abwählen; Wiederauswahl startet aufgeklappt', () => {
+      klickeCheckbox(HERRENDOPPEL);
+      expect(component.isDisziplinSelected(HERRENDOPPEL)).toBe(true);
+      klickeTitelzeile();
+      expect(detailBereich(HERRENDOPPEL)).toBeNull();
+
+      // Abwählen per Checkbox trotz eingeklappter Karte.
+      klickeCheckbox(HERRENDOPPEL);
+      expect(component.isDisziplinSelected(HERRENDOPPEL)).toBe(false);
+      expect(titelzeile()).toBeNull();
+
+      // Erneut anwählen: Detailbereich ist wieder offen.
+      klickeCheckbox(HERRENDOPPEL);
+      expect(component.isDisziplinSelected(HERRENDOPPEL)).toBe(true);
+      expect(detailBereich(HERRENDOPPEL)).not.toBeNull();
+      expect(titelzeile()?.getAttribute('aria-expanded')).toBe('true');
+    });
+
+    it('klappt eine eingeklappte Karte mit Validierungsfehler beim Absenden automatisch auf', () => {
+      waehleDisziplin(HERRENDOPPEL); // Pflichtfelder leer → ungültig
+      klickeTitelzeile();
+      expect(detailBereich(HERRENDOPPEL)).toBeNull();
+
+      const submitBtn = host().querySelector('.submit-btn');
+      (submitBtn as HTMLButtonElement | null)?.click();
+      fixture.detectChanges();
+
+      expect(component.form.invalid).toBe(true);
+      expect(detailBereich(HERRENDOPPEL)).not.toBeNull();
+      expect(titelzeile()?.getAttribute('aria-expanded')).toBe('true');
+      httpMock.expectNone('/api/anmeldung');
+    });
+
+    it('aktualisiert die Meldungsanzahl der Zusammenfassung nach „+ Weitere Meldung"', () => {
+      waehleDisziplin(HERRENDOPPEL); // 1 Meldung
+      klickeWeitereMeldung(); // → 2 Meldungen
+
+      klickeTitelzeile();
+
+      expect(host().querySelector('.collapse-count')?.textContent.trim()).toBe('2');
+    });
+  });
 });

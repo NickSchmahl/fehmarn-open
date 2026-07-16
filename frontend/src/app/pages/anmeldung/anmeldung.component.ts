@@ -10,6 +10,13 @@ import {
 } from '@angular/forms';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { DISZIPLINEN } from '../../shared/disziplin';
+import {
+  formatiereIsoDatum,
+  heuteAlsIso,
+  istGueltigesIsoDatum,
+  liegtInZukunft,
+} from '../../shared/datum';
+import { extrahiereFehlermeldung } from '../../shared/http-fehler';
 import { BrandIconComponent } from '../../ui/brand-icon/brand-icon.component';
 
 // ── Typen ────────────────────────────────────────────────────────────────────
@@ -26,30 +33,6 @@ interface PreisPosten {
 interface AnmeldeschlussStatus {
   anmeldungOffen: boolean;
   anmeldeschluss: string; // ISO YYYY-MM-DD
-}
-
-/** Formatiert ein ISO-Datum (YYYY-MM-DD) als deutsches Datum (TT.MM.JJJJ) für die Anzeige. */
-function formatiereDatum(isoDatum: string): string {
-  const teile = isoDatum.split('-');
-  if (teile.length !== 3) return isoDatum;
-  const [jahr, monat, tag] = teile;
-  return `${tag}.${monat}.${jahr}`;
-}
-
-/** Extrahiert typsicher eine Fehlermeldung aus einem unbekannten Fehlerobjekt. */
-function extractFehlermeldung(err: unknown): string {
-  if (typeof err === 'object' && err !== null) {
-    const backendError = (err as { error?: unknown }).error;
-    if (typeof backendError === 'object' && backendError !== null && 'message' in backendError) {
-      const message = backendError.message;
-      if (typeof message === 'string') return message;
-    }
-    if ('message' in err) {
-      const message = err.message;
-      if (typeof message === 'string') return message;
-    }
-  }
-  return 'Unbekannter Fehler';
 }
 
 /** Liest den Wert eines Controls typsicher als String (dynamisches `.value` ist sonst `any`). */
@@ -135,12 +118,8 @@ function geburtsdatumValidator(control: AbstractControl): ValidationErrors | nul
   if (!parent || parent.get('hatKeineRadikalId')?.value !== true) return null;
   const value: unknown = control.value;
   if (typeof value !== 'string' || value === '') return null;
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return { geburtsdatumUngueltig: true };
-  const datum = new Date(`${value}T00:00:00`);
-  if (Number.isNaN(datum.getTime())) return { geburtsdatumUngueltig: true };
-  const heute = new Date();
-  heute.setHours(0, 0, 0, 0);
-  if (datum.getTime() > heute.getTime()) return { geburtsdatumInZukunft: true };
+  if (!istGueltigesIsoDatum(value)) return { geburtsdatumUngueltig: true };
+  if (liegtInZukunft(value)) return { geburtsdatumInZukunft: true };
   return null;
 }
 
@@ -196,7 +175,7 @@ export class AnmeldungComponent implements OnInit {
     this.httpClient.get<AnmeldeschlussStatus>('/api/anmeldung/status').subscribe({
       next: (status) => {
         this.anmeldungOffen.set(status.anmeldungOffen);
-        this.anmeldeschlussAnzeige.set(formatiereDatum(status.anmeldeschluss));
+        this.anmeldeschlussAnzeige.set(formatiereIsoDatum(status.anmeldeschluss));
       },
       // Defensiv: bei Ladefehler das Formular zeigen; das Backend sperrt späte POSTs ohnehin (403).
       error: () => {
@@ -495,7 +474,7 @@ export class AnmeldungComponent implements OnInit {
   }
 
   /** Heutiges Datum als `YYYY-MM-DD` – als `max` fürs Geburtsdatum-Feld (keine Zukunft). */
-  readonly heuteIso = new Date().toISOString().slice(0, 10);
+  readonly heuteIso = heuteAlsIso();
 
   radikalAngabeInvalid(i: number, k: number, j: number): boolean {
     const group = this.spielerGroup(i, k, j);
@@ -563,7 +542,7 @@ export class AnmeldungComponent implements OnInit {
         // Teamname-Dublette (409 mit Disziplin-Feldkennung) direkt am Feld anzeigen; sonst Banner.
         if (this.zeigeTeamnameDuplikatAmFeld(err)) return;
         if (this.zeigeSpielerDuplikatAmFeld(err)) return;
-        this.errorMessage.set(`Fehler bei der Anmeldung: ${extractFehlermeldung(err)}`);
+        this.errorMessage.set(`Fehler bei der Anmeldung: ${extrahiereFehlermeldung(err)}`);
       },
     });
   }

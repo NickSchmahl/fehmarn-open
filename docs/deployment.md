@@ -289,3 +289,28 @@ tückisch (QWERTZ): dafür die Taste drücken, auf der `z` steht.
 - Dateiinhalt in die Zwischenablage: `pbcopy < datei` (bzw. `cat datei | pbcopy`)
 - Zwischenablage ausgeben: `pbpaste`
 - Datei seitenweise lesen statt `cat`: `less datei` (Leertaste = weiter, `q` = raus)
+
+## Releases & Rollback
+
+### Release erstellen
+1. **Actions → „Release (Bump-PR)" → Run workflow**, Version eingeben (z. B. `1.0.0`).
+   Es entsteht ein PR `Release v1.0.0` mit gebumpter Version in `pom.xml` + `package.json`.
+2. PR reviewen und **mergen** (die CI-Checks `backend`/`frontend` müssen grün sein).
+3. Nach dem Merge läuft `release-publish.yml` automatisch: Tag `v1.0.0` + GitHub Release
+   mit angehängtem `fehmarnopen.jar` entstehen. `main` bleibt auf `1.0.0`, bis das
+   nächste Release eine neue Nummer setzt.
+
+### Welcher Stand läuft?
+`GET /api/version` (öffentlich) liefert die laufende Version, z. B.
+`{"version":"1.0.0","buildTime":"..."}`. Für prod: `https://<prod-host>/api/version`.
+
+### Rollback auf eine ältere Version
+1. **Actions → „CI/CD" → Run workflow**.
+2. Bei **„Use workflow from"** den Tag `vX.Y.Z` wählen, **Zielumgebung** = `prod`.
+3. Die CI baut exakt den getaggten Quellstand und deployed ihn. Danach
+   `GET /api/version` gegen prod prüfen.
+
+> **Achtung Datenbank:** Liquibase-Schema-Änderungen rollen **nicht** automatisch
+> zurück. Wenn sich das Schema zwischen den Versionen geändert hat, vorher
+> [docs/datenbank-schema-aendern.md](datenbank-schema-aendern.md) lesen und ggf.
+> manuell migrieren/Backup einspielen.

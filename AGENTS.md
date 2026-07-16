@@ -110,6 +110,8 @@ npm install && ng serve       # http://localhost:4200, /api proxied
     grünen Tests. Push auf `main` → Test (Port 8081), `workflow_dispatch` →
     test/prod (Port 8080, Tests laufen zuerst), PR → nur Tests. SSH/SCP auf Server,
     `systemctl restart fehmarnopen-<env>`, Healthcheck auf `/api/teilnehmer`.
+- **Releases:** Version wird per „Release (Bump-PR)"-Workflow gebumpt (SemVer, pom + package.json),
+  nach dem Merge entsteht automatisch Tag + GitHub Release. Rollback + Details: `docs/deployment.md`.
 
 ## Konventionen
 

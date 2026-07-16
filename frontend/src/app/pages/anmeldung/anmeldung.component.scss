@@ -680,11 +680,7 @@ button.disziplin-headline {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  background: linear-gradient(
-    135deg,
-    rgba(76, 175, 130, 0.18),
-    rgba(76, 175, 130, 0.08)
-  );
+  background: linear-gradient(135deg, rgba(76, 175, 130, 0.18), rgba(76, 175, 130, 0.08));
   border: 1px solid rgba(76, 175, 130, 0.45);
   border-radius: var(--radius-lg);
   padding: 1rem 1.125rem;

@@ -328,18 +328,28 @@ systemctl enable --now docker
 
 ### Container starten
 
-```bash
-id fehmarnopen                # UID:GID merken, in docker-compose.yml user: eintragen
+`docker-compose.yml` braucht den Ordner `plugins-enabled/` daneben (nicht nur die
+YAML-Datei selbst) — deshalb reicht ein einzelnes `scp` nicht, das ganze Repo muss
+auf den Server (einmalig, öffentliches Repo, kein Auth nötig):
 
-# Gate-Passwort ist bereits auf "test" voreingestellt (deploy/db-ui/plugins-enabled/
+```bash
+git clone https://github.com/NickSchmahl/fehmarn-open.git /opt/fehmarn-open-repo
+cd /opt/fehmarn-open-repo/deploy/db-ui
+
+id fehmarnopen                # UID:GID merken
+sed -i "s/<uid>:<gid>/$(id -u fehmarnopen):$(id -g fehmarnopen)/" docker-compose.yml
+
+# Gate-Passwort ist bereits auf "test" voreingestellt (plugins-enabled/
 # login-password-less.php). Für ein anderes Passwort: Hash erzeugen und dort ersetzen:
 #   docker run --rm adminer:5 php -r "echo password_hash('IHR-PASSWORT', PASSWORD_DEFAULT);"
 
-# Repo auf den Server bringen/auschecken, dann:
-docker compose -f deploy/db-ui/docker-compose.yml up -d
-docker compose -f deploy/db-ui/docker-compose.yml ps
+docker compose -f docker-compose.yml up -d
+docker compose -f docker-compose.yml ps
 ss -tlnp | grep 8090         # muss 127.0.0.1:8090 zeigen, NICHT 0.0.0.0
 ```
+
+**Bei künftigen Änderungen an `deploy/db-ui/`:** `git -C /opt/fehmarn-open-repo pull`,
+dann `docker compose -f docker-compose.yml up -d` erneut (übernimmt Änderungen).
 
 ### Zugriff
 

@@ -49,6 +49,14 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(ErrorResponse.of(409, ex.getMessage(), List.of(feld)));
     }
 
+    @ExceptionHandler(DoppelterSpielerException.class)
+    public ResponseEntity<ErrorResponse> handleDoppelterSpieler(DoppelterSpielerException ex) {
+        // Feldkennung "<DISZIPLIN>:<meldungIndex>", damit das Frontend den Fehler der genauen Einzel-Meldung
+        // zuordnen kann (siehe ADR 0011).
+        FieldError feld = new FieldError(ex.getDisziplin().name() + ":" + ex.getMeldungIndex(), ex.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(ErrorResponse.of(409, ex.getMessage(), List.of(feld)));
+    }
+
     @ExceptionHandler(NichtGefundenException.class)
     public ResponseEntity<ErrorResponse> handleNichtGefunden(NichtGefundenException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ErrorResponse.of(404, ex.getMessage()));
@@ -61,7 +69,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(DoppelteRadikalIdException.class)
     public ResponseEntity<ErrorResponse> handleDoppelteRadikalId(DoppelteRadikalIdException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ErrorResponse.of(400, ex.getMessage()));
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(ErrorResponse.of(409, ex.getMessage()));
     }
 
     @ExceptionHandler(Exception.class)

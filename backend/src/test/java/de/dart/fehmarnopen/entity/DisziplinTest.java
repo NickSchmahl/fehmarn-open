@@ -16,4 +16,15 @@ class DisziplinTest {
     void katalog_enthaeltKeinMixedDoppel() {
         assertThat(Arrays.stream(Disziplin.values()).map(Enum::name)).doesNotContain("MIXED_DOPPEL");
     }
+
+    @Test
+    void istEinzel_nurFuerEinzelDisziplinen() {
+        assertThat(Disziplin.HERRENEINZEL.istEinzel()).isTrue();
+        assertThat(Disziplin.DAMENEINZEL.istEinzel()).isTrue();
+        assertThat(Disziplin.U18.istEinzel()).isTrue();
+        assertThat(Disziplin.HERRENDOPPEL.istEinzel()).isFalse();
+        assertThat(Disziplin.DAMENDOPPEL.istEinzel()).isFalse();
+        assertThat(Disziplin.TRIPLE_MIX.istEinzel()).isFalse();
+        assertThat(Disziplin.TEAMWETTBEWERB.istEinzel()).isFalse();
+    }
 }

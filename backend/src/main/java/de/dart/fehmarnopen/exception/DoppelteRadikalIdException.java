@@ -2,7 +2,7 @@ package de.dart.fehmarnopen.exception;
 
 /**
  * Fachlicher Konflikt: Dieselbe Radikal ID wurde innerhalb einer Disziplin mehrfach im selben
- * Anmeldevorgang gemeldet (#169/#D). Wird auf HTTP 400 gemappt.
+ * Anmeldevorgang gemeldet (#169/#D). Wird auf HTTP 409 gemappt.
  */
 public class DoppelteRadikalIdException extends RuntimeException {
 

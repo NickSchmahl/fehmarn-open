@@ -382,6 +382,10 @@
                                 }
                               </div>
 
+                              @if (spielerDuplikatText(i, k, j); as duplikatMeldung) {
+                                <span class="field-error">{{ duplikatMeldung }}</span>
+                              }
+
                               @if (radikalAngabeInvalid(i, k, j)) {
                                 <span class="field-error">
                                   Bitte Radikal ID angeben – oder Initialen und Geburtsdatum, damit

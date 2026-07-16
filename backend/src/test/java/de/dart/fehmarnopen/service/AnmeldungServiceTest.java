@@ -18,6 +18,7 @@ import de.dart.fehmarnopen.entity.Disziplin;
 import de.dart.fehmarnopen.entity.Spieler;
 import de.dart.fehmarnopen.exception.AnmeldungGesperrtException;
 import de.dart.fehmarnopen.exception.DoppelteRadikalIdException;
+import de.dart.fehmarnopen.exception.DoppelterSpielerException;
 import de.dart.fehmarnopen.exception.DoppelterTeamnameException;
 import de.dart.fehmarnopen.exception.NichtGefundenException;
 import de.dart.fehmarnopen.exception.UngueltigeAnmeldungException;
@@ -46,6 +47,10 @@ class AnmeldungServiceTest {
     // Blackbox: die Teamname-Regeln selbst sind in TeamnameValidierungServiceTest abgedeckt.
     @Mock
     private TeamnameValidierungService teamnameValidierungService;
+
+    // Blackbox: die Einzel-Dubletten-Regeln selbst sind in DoppelteSpielerServiceTest abgedeckt.
+    @Mock
+    private DoppelteSpielerService doppelteSpielerService;
 
     // Blackbox: die Namensregeln selbst sind in SpielernameValidierungServiceTest abgedeckt.
     @Mock
@@ -332,13 +337,42 @@ class AnmeldungServiceTest {
     }
 
     @Test
-    void anmelden_gleicheRadikalIdZweimalImSelbenEinzel_wirftDoppelteRadikalId() {
+    void anmelden_beiEinzelSpielerDublette_speichertNichts() {
+        doThrow(new DoppelterSpielerException(Disziplin.HERRENEINZEL, 1, "dublette"))
+                .when(doppelteSpielerService)
+                .pruefe(any());
         AnmeldungRequest request = new AnmeldungRequest(List.of(
                 new DisziplinAnmeldung(Disziplin.HERRENEINZEL, null, List.of(spieler("Max", "M"))),
                 new DisziplinAnmeldung(Disziplin.HERRENEINZEL, null, List.of(spieler("Max", "M")))));
 
+        assertThatThrownBy(() -> anmeldungService.anmelden(request)).isInstanceOf(DoppelterSpielerException.class);
+
+        verify(anmeldungRepository, never()).save(any());
+    }
+
+    @Test
+    void anmelden_gleicheRadikalIdZweimalImSelbenDoppel_wirftDoppelteRadikalId() {
+        // Team-Disziplin: die Radikal-ID-im-Request-Prüfung bleibt im AnmeldungService und wirft weiterhin.
+        AnmeldungRequest request = new AnmeldungRequest(List.of(new DisziplinAnmeldung(
+                Disziplin.HERRENDOPPEL, "Team", List.of(spieler("Max", "M", "RAD-1"), spieler("Tim", "T", "RAD-1")))));
+
         assertThatThrownBy(() -> anmeldungService.anmelden(request)).isInstanceOf(DoppelteRadikalIdException.class);
 
+        verify(anmeldungRepository, never()).save(any());
+    }
+
+    @Test
+    void reaktivieren_beiSpielerDublette_wirftUndSpeichertNicht() {
+        Anmeldung anmeldung = anmeldung(Disziplin.HERRENEINZEL, null, spielerEntity("Max", "M"));
+        anmeldung.setAbgemeldet(true);
+        when(anmeldungRepository.findById(7L)).thenReturn(Optional.of(anmeldung));
+        doThrow(new DoppelterSpielerException(Disziplin.HERRENEINZEL, 0, "dublette"))
+                .when(doppelteSpielerService)
+                .pruefeReaktivierung(anmeldung);
+
+        assertThatThrownBy(() -> anmeldungService.reaktivieren(7L)).isInstanceOf(DoppelterSpielerException.class);
+
+        assertThat(anmeldung.isAbgemeldet()).isTrue();
         verify(anmeldungRepository, never()).save(any());
     }
 }

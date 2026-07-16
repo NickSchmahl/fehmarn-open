@@ -521,6 +521,7 @@ export class AnmeldungComponent implements OnInit {
     // Alte Teamname-Dubletten-Fehler (vom Server gesetzt) zurücksetzen, damit sie das erneute
     // Absenden nicht blockieren.
     this.clearTeamnameDuplikatFehler();
+    this.clearSpielerDuplikatFehler();
     this.submitted.set(true);
     this.form.markAllAsTouched();
     // Eingeklappte Karten mit Fehler wieder aufklappen, damit kein Validierungsfehler verdeckt bleibt.
@@ -558,6 +559,7 @@ export class AnmeldungComponent implements OnInit {
         this.loading.set(false);
         // Teamname-Dublette (409 mit Disziplin-Feldkennung) direkt am Feld anzeigen; sonst Banner.
         if (this.zeigeTeamnameDuplikatAmFeld(err)) return;
+        if (this.zeigeSpielerDuplikatAmFeld(err)) return;
         this.errorMessage.set(`Fehler bei der Anmeldung: ${extractFehlermeldung(err)}`);
       },
     });
@@ -607,6 +609,52 @@ export class AnmeldungComponent implements OnInit {
     });
     ctrl.markAsTouched();
     return true;
+  }
+
+  /** Entfernt an allen Spieler-Namensfeldern den serverseitig gesetzten `duplikat`-Fehler. */
+  private clearSpielerDuplikatFehler(): void {
+    this.disziplinenArray.controls.forEach((_, i) => {
+      this.meldungenArray(i).controls.forEach((_, k) => {
+        for (const spieler of this.spielerArray(i, k).controls) {
+          for (const feld of ['vorname', 'nachname']) {
+            const ctrl = spieler.get(feld);
+            if (ctrl?.hasError('duplikat')) {
+              ctrl.setErrors(null);
+              ctrl.updateValueAndValidity();
+            }
+          }
+        }
+      });
+    });
+  }
+
+  /**
+   * Wertet einen 409 mit Feldkennung `"<DISZIPLIN>:<index>"` (Einzel-Spieler-Dublette, #170) aus und setzt
+   * den Fehler an Vor-/Nachname der betroffenen Meldung. Gibt true zurück, wenn feldgenau behandelt.
+   */
+  private zeigeSpielerDuplikatAmFeld(err: unknown): boolean {
+    if (!(err instanceof HttpErrorResponse) || err.status !== 409) return false;
+    const feld = (err.error as { errors?: { field?: string; message?: string }[] } | null)
+      ?.errors?.[0];
+    if (!feld?.field?.includes(':')) return false;
+    const [disziplin, indexText] = feld.field.split(':');
+    const i = DISZIPLINEN.findIndex((d) => d.value === disziplin);
+    const k = Number(indexText);
+    if (i < 0 || Number.isNaN(k) || k < 0 || k >= this.meldungenArray(i).length) return false;
+    const spieler = this.spielerGroup(i, k, 0); // Einzel: genau ein Spieler je Meldung
+    const nachricht = feld.message ?? 'Diese Person ist in dieser Disziplin bereits gemeldet.';
+    for (const name of ['vorname', 'nachname']) {
+      const ctrl = spieler.get(name);
+      ctrl?.setErrors({ duplikat: nachricht });
+      ctrl?.markAsTouched();
+    }
+    return true;
+  }
+
+  /** Serverseitig gesetzte Spieler-Dublette (409) für die Anzeige unter den Namensfeldern. */
+  spielerDuplikatText(i: number, k: number, j: number): string | null {
+    const fehler: unknown = this.spielerGroup(i, k, j).get('vorname')?.errors?.['duplikat'];
+    return typeof fehler === 'string' ? fehler : null;
   }
 
   /** Baut das Spieler-DTO; je nach Umschalter wird Radikal ID oder Initialen+Geburtsdatum gesendet. */

@@ -441,28 +441,7 @@
 
         <!-- ── Preisübersicht ─────────────────────────────────────────────── -->
         @if (preisPosten().length > 0) {
-          <div class="price-summary">
-            @for (posten of preisPosten(); track $index) {
-              <div class="price-row price-line">
-                @if (posten.preisProSpieler > 0) {
-                  <span class="price-label">
-                    {{ posten.label }} · {{ posten.spielerAnzahl }} Spieler ×
-                    {{ posten.preisProSpieler }}&nbsp;€
-                  </span>
-                  <span class="price-amount">{{ posten.betrag }}&nbsp;€</span>
-                } @else {
-                  <span class="price-label"
-                    >{{ posten.label }} · {{ posten.spielerAnzahl }} Spieler</span
-                  >
-                  <span class="price-amount">kostenlos</span>
-                }
-              </div>
-            }
-            <div class="price-row price-summary-total">
-              <span class="price-label">Gesamt</span>
-              <span class="price-total">{{ gesamtpreis() }}&nbsp;€</span>
-            </div>
-          </div>
+          <app-preis-uebersicht [posten]="preisPosten()" [gesamt]="gesamtpreis()" />
         }
 
         <!-- ── Bezahl-Hinweis ─────────────────────────────────────────────── -->

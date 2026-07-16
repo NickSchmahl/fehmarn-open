@@ -1,0 +1,57 @@
+/* Der Host verschwindet für das Layout (display: contents), damit .price-summary
+   wie zuvor direktes Flex-Kind des Formulars bleibt. */
+:host {
+  display: contents;
+}
+
+.price-summary {
+  background: var(--accent-dim);
+  border: 1px solid rgba(232, 197, 71, 0.25);
+  border-radius: var(--radius);
+  padding: 0.875rem 1rem;
+  animation: fade-in 0.2s ease both;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.price-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.price-line + .price-line {
+  margin-top: 0.25rem;
+}
+
+.price-amount {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.price-summary-total {
+  margin-top: 0.625rem;
+  padding-top: 0.625rem;
+  border-top: 1px solid rgba(232, 197, 71, 0.25);
+}
+
+.price-label {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.price-total {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.04em;
+}

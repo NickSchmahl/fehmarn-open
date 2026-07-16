@@ -16,6 +16,7 @@ import { parseSpielerDuplikat, parseTeamnameDuplikat } from './logik/duplikat-fe
 import { AnmeldungApiService } from './services/anmeldung-api.service';
 import { AnmeldungFormService } from './services/anmeldung-form.service';
 import { KollapsZustand } from './services/kollaps-zustand';
+import { PreisUebersichtComponent } from './components/preis-uebersicht/preis-uebersicht.component';
 
 /**
  * Container der Anmeldeseite: orchestriert Formular (AnmeldungFormService), HTTP
@@ -26,7 +27,7 @@ import { KollapsZustand } from './services/kollaps-zustand';
 @Component({
   selector: 'app-anmeldung',
   standalone: true,
-  imports: [ReactiveFormsModule, BrandIconComponent],
+  imports: [ReactiveFormsModule, BrandIconComponent, PreisUebersichtComponent],
   providers: [AnmeldungFormService],
   templateUrl: './anmeldung.component.html',
   styleUrl: './anmeldung.component.scss',

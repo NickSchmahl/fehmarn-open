@@ -1,16 +1,11 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormArray, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { DISZIPLINEN } from '../../shared/disziplin';
-import { formatiereIsoDatum, heuteAlsIso } from '../../shared/datum';
+import { formatiereIsoDatum } from '../../shared/datum';
 import { extrahiereFehlermeldung } from '../../shared/http-fehler';
 import { BrandIconComponent } from '../../ui/brand-icon/brand-icon.component';
 import { AnmeldeschlussStatus, PreisPosten } from './model/anmeldung.model';
-import { TEAMNAME_MAX_LAENGE } from './logik/teamname';
-import {
-  berechneGesamtpreis,
-  berechnePreisPosten,
-  zaehleGewaehlteDisziplinen,
-} from './logik/preisberechnung';
+import { berechneGesamtpreis, berechnePreisPosten } from './logik/preisberechnung';
 import { erstelleAnmeldungRequest } from './logik/anmeldung-payload';
 import { parseSpielerDuplikat, parseTeamnameDuplikat } from './logik/duplikat-fehler';
 import { AnmeldungApiService } from './services/anmeldung-api.service';
@@ -22,8 +17,8 @@ import { DisziplinCardComponent } from './components/disziplin-card/disziplin-ca
 /**
  * Container der Anmeldeseite: orchestriert Formular (AnmeldungFormService), HTTP
  * (AnmeldungApiService), Klapp-UI-State (KollapsZustand) und die pure Logik aus `logik/`.
- * Viele Methoden delegieren nur an den FormService – sie bilden die öffentliche API
- * für Template und Tests.
+ * Die „Formular-Fassade" delegiert nur an den FormService – sie ist die öffentliche API
+ * des Integrations-Specs (anmeldung.component.spec.ts).
  */
 @Component({
   selector: 'app-anmeldung',
@@ -44,10 +39,6 @@ export class AnmeldungComponent implements OnInit {
 
   // Öffentliche Metadaten für das Template
   readonly disziplinen = DISZIPLINEN;
-  readonly teamnameMaxLaenge = TEAMNAME_MAX_LAENGE;
-
-  /** Heutiges Datum als `YYYY-MM-DD` – als `max` fürs Geburtsdatum-Feld (keine Zukunft). */
-  readonly heuteIso = heuteAlsIso();
 
   // State
   loading = signal(false);
@@ -68,11 +59,6 @@ export class AnmeldungComponent implements OnInit {
   readonly form = this.formService.form;
 
   // ── Abgeleitete Werte ──────────────────────────────────────────────────────
-
-  /** Wie viele Disziplinen sind aktuell angehakt? */
-  selectedCount = computed(() =>
-    zaehleGewaehlteDisziplinen(this.formService.formWert().disziplinen),
-  );
 
   /** Preisaufschlüsselung je gewählter Disziplin (siehe {@link berechnePreisPosten}). */
   preisPosten = computed<PreisPosten[]>(() =>
@@ -101,11 +87,7 @@ export class AnmeldungComponent implements OnInit {
     });
   }
 
-  // ── Formular-Fassade (delegiert an AnmeldungFormService) ───────────────────
-
-  get disziplinenArray(): FormArray {
-    return this.formService.disziplinenArray;
-  }
+  // ── Formular-Fassade (delegiert an AnmeldungFormService; genutzt vom Spec) ─
 
   disziplinGroup(i: number): FormGroup {
     return this.formService.disziplinGroup(i);
@@ -128,32 +110,15 @@ export class AnmeldungComponent implements OnInit {
   }
 
   addMeldung(i: number): void {
-    const k = this.formService.addMeldung(i);
-    this.fokussiereVornameNachRender(i, k);
-  }
-
-  removeMeldung(i: number, k: number): void {
-    this.formService.removeMeldung(i, k);
+    this.formService.addMeldung(i);
   }
 
   canRemoveMeldung(i: number): boolean {
     return this.formService.canRemoveMeldung(i);
   }
 
-  addSpieler(i: number, k: number): void {
-    this.formService.addSpieler(i, k);
-  }
-
-  removeSpieler(i: number, k: number, j: number): void {
-    this.formService.removeSpieler(i, k, j);
-  }
-
   canAddSpieler(i: number, k: number): boolean {
     return this.formService.canAddSpieler(i, k);
-  }
-
-  canRemoveSpieler(i: number, k: number): boolean {
-    return this.formService.canRemoveSpieler(i, k);
   }
 
   toggleRadikalId(i: number, k: number, j: number): void {
@@ -168,16 +133,6 @@ export class AnmeldungComponent implements OnInit {
     return this.formService.brauchtTeamname(i);
   }
 
-  /** Anzahl der Meldungen der Disziplin {@link i} (für die Zähler-Pill im zugeklappten Zustand). */
-  meldungGesamt(i: number): number {
-    return this.formService.meldungGesamt(i);
-  }
-
-  /** Trägt der Meldungs-Block der Disziplin {@link i} einen Validierungsfehler? (fürs Auto-Aufklappen). */
-  disziplinHatFehler(i: number): boolean {
-    return this.formService.hatDisziplinFehler(i);
-  }
-
   // ── Ein-/Ausklappen des Detailbereichs (#184) ──────────────────────────────
 
   isCollapsed(i: number): boolean {
@@ -188,29 +143,7 @@ export class AnmeldungComponent implements OnInit {
     this.kollaps.umschalten(i);
   }
 
-  /**
-   * Springt nach dem Hinzufügen einer Meldung ins Vorname-Feld ihres ersten Spielers – wichtig für
-   * Tastatur-Bedienung: Enter auf „+ Weitere Meldung" soll direkt in die neue Zeile führen statt
-   * den Fokus auf dem Button zu belassen. `setTimeout` wartet den Render-Zyklus ab, da das Feld erst
-   * nach der Change Detection im DOM existiert.
-   */
-  private fokussiereVornameNachRender(i: number, k: number): void {
-    setTimeout(() => {
-      document.getElementById(`vorname-${i}-${k}-0`)?.focus();
-    });
-  }
-
-  // ── Fehler-Prädikate fürs Template ─────────────────────────────────────────
-
-  teamNameInvalid(i: number, k: number): boolean {
-    const ctrl = this.meldungGroup(i, k).get('teamName');
-    return ctrl !== null && ctrl.invalid && ctrl.touched;
-  }
-
-  teamNameRequiredFehler(i: number, k: number): boolean {
-    const ctrl = this.meldungGroup(i, k).get('teamName');
-    return ctrl !== null && ctrl.hasError('required') && ctrl.touched;
-  }
+  // ── Fehler-Prädikate (für den Spec; die Kindkomponenten haben eigene) ──────
 
   teamNameLaengeFehler(i: number, k: number): boolean {
     const ctrl = this.meldungGroup(i, k).get('teamName');
@@ -228,10 +161,6 @@ export class AnmeldungComponent implements OnInit {
     return typeof fehler === 'string' ? fehler : null;
   }
 
-  hatKeineRadikalId(i: number, k: number, j: number): boolean {
-    return this.spielerGroup(i, k, j).get('hatKeineRadikalId')?.value === true;
-  }
-
   spielerFeldInvalid(i: number, k: number, j: number, feld: string): boolean {
     const ctrl = this.spielerGroup(i, k, j).get(feld);
     return ctrl !== null && ctrl.invalid && ctrl.touched;
@@ -246,11 +175,6 @@ export class AnmeldungComponent implements OnInit {
   radikalAngabeInvalid(i: number, k: number, j: number): boolean {
     const group = this.spielerGroup(i, k, j);
     return group.hasError('radikalIdAngabeFehlt') && group.touched;
-  }
-
-  /** Die (optionale) 4. Zeile bei Triple Mix darf als Ersatz eingetragen werden. */
-  zeigtErsatzHinweis(i: number, k: number, j: number): boolean {
-    return DISZIPLINEN[i].value === 'TRIPLE_MIX' && j === 3;
   }
 
   /** Serverseitig gesetzte Spieler-Dublette (409) für die Anzeige unter den Namensfeldern. */
@@ -313,8 +237,12 @@ export class AnmeldungComponent implements OnInit {
    * Absende-Versuch kein Fehler hinter einer zugeklappten Karte verborgen bleibt (#184).
    */
   private klappeFehlerhafteKartenAuf(): void {
-    this.disziplinenArray.controls.forEach((_, i) => {
-      if (this.isDisziplinSelected(i) && this.isCollapsed(i) && this.disziplinHatFehler(i)) {
+    this.formService.disziplinenArray.controls.forEach((_, i) => {
+      if (
+        this.isDisziplinSelected(i) &&
+        this.isCollapsed(i) &&
+        this.formService.hatDisziplinFehler(i)
+      ) {
         this.kollaps.setzen(i, false);
       }
     });

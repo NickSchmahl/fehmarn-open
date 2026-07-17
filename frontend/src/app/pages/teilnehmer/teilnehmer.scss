@@ -500,16 +500,24 @@
     padding: 2rem 1.25rem 1.5rem;
   }
 
-  /* Schmale Displays: Spalten stapeln, Aktionen rechtsbündig für bessere Übersicht. */
+  /* Schmale Displays: Aktionen rutschen oben rechts in die Kopfzeile neben den Namen,
+     die Radikal-ID steht darunter. */
   .admin-row {
-    grid-template-columns: 1fr;
-    align-items: stretch;
-    gap: 0.6rem;
+    grid-template-columns: 1fr auto;
+    align-items: start;
+    gap: 0.35rem 0.6rem;
+  }
+  .admin-name {
+    grid-column: 1;
+    grid-row: 1;
   }
   .admin-radikal-id {
-    grid-column: auto;
+    grid-column: 1;
+    grid-row: 2;
   }
   .admin-row app-meldung-aktionen {
+    grid-column: 2;
+    grid-row: 1;
     justify-self: end;
   }
 }

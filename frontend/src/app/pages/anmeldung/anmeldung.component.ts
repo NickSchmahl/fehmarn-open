@@ -17,6 +17,7 @@ import { AnmeldungApiService } from './services/anmeldung-api.service';
 import { AnmeldungFormService } from './services/anmeldung-form.service';
 import { KollapsZustand } from './services/kollaps-zustand';
 import { PreisUebersichtComponent } from './components/preis-uebersicht/preis-uebersicht.component';
+import { SpielerZeileComponent } from './components/spieler-zeile/spieler-zeile.component';
 
 /**
  * Container der Anmeldeseite: orchestriert Formular (AnmeldungFormService), HTTP
@@ -27,7 +28,12 @@ import { PreisUebersichtComponent } from './components/preis-uebersicht/preis-ue
 @Component({
   selector: 'app-anmeldung',
   standalone: true,
-  imports: [ReactiveFormsModule, BrandIconComponent, PreisUebersichtComponent],
+  imports: [
+    ReactiveFormsModule,
+    BrandIconComponent,
+    PreisUebersichtComponent,
+    SpielerZeileComponent,
+  ],
   providers: [AnmeldungFormService],
   templateUrl: './anmeldung.component.html',
   styleUrl: './anmeldung.component.scss',

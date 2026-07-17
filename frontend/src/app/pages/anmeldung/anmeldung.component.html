@@ -200,224 +200,27 @@
                           </div>
                         }
 
-                        <div class="spieler-block" formArrayName="spieler">
+                        <div class="spieler-block">
                           @for (
                             spielerCtrl of spielerArray(i, k).controls;
                             track spielerCtrl;
                             let j = $index
                           ) {
-                            <div class="spieler-row" [formGroupName]="j">
-                              <div class="spieler-row-head">
-                                <span class="spieler-nr">
-                                  @if (needsTeamName(i)) {
-                                    Spieler {{ j + 1 }}
-                                  } @else {
-                                    Meldung {{ k + 1 }}
-                                  }
-                                </span>
-                                <div class="spieler-row-head-right">
-                                  <label class="radikal-toggle">
-                                    <input
-                                      type="checkbox"
-                                      formControlName="hatKeineRadikalId"
-                                      (change)="toggleRadikalId(i, k, j)"
-                                    />
-                                    Ich habe noch keine Radikal ID
-                                  </label>
-                                  @if (canRemoveSpieler(i, k)) {
-                                    <button
-                                      type="button"
-                                      class="spieler-remove"
-                                      (click)="removeSpieler(i, k, j)"
-                                      [attr.aria-label]="'Spieler ' + (j + 1) + ' entfernen'"
-                                    >
-                                      Entfernen
-                                    </button>
-                                  }
-                                  @if (!needsTeamName(i) && j === 0 && canRemoveMeldung(i)) {
-                                    <button
-                                      type="button"
-                                      class="meldung-remove"
-                                      (click)="removeMeldung(i, k)"
-                                      [attr.aria-label]="'Meldung ' + (k + 1) + ' entfernen'"
-                                    >
-                                      Meldung entfernen
-                                    </button>
-                                  }
-                                </div>
-                              </div>
-
-                              <div
-                                class="spieler-felder"
-                                [class.spieler-felder--split]="hatKeineRadikalId(i, k, j)"
-                              >
-                                <div class="field-group">
-                                  <label
-                                    [for]="'vorname-' + i + '-' + k + '-' + j"
-                                    class="field-label"
-                                  >
-                                    Vorname <span class="required">*</span>
-                                  </label>
-                                  <input
-                                    [id]="'vorname-' + i + '-' + k + '-' + j"
-                                    type="text"
-                                    formControlName="vorname"
-                                    class="field-input field-input--sm"
-                                    [class.field-input--error]="
-                                      spielerFeldInvalid(i, k, j, 'vorname')
-                                    "
-                                    autocomplete="given-name"
-                                    placeholder="Max"
-                                  />
-                                  @if (spielerFeldHatFehler(i, k, j, 'vorname', 'required')) {
-                                    <span class="field-error">Vorname ist erforderlich.</span>
-                                  }
-                                  @if (spielerFeldHatFehler(i, k, j, 'vorname', 'zeichen')) {
-                                    <span class="field-error"
-                                      >Bitte einen gültigen Namen eingeben – z. B. „Anna“, „Anna
-                                      Lena“ oder „Anna-Lena“.</span
-                                    >
-                                  }
-                                </div>
-
-                                <div class="field-group">
-                                  <label
-                                    [for]="'nachname-' + i + '-' + k + '-' + j"
-                                    class="field-label"
-                                  >
-                                    Nachname <span class="required">*</span>
-                                  </label>
-                                  <input
-                                    [id]="'nachname-' + i + '-' + k + '-' + j"
-                                    type="text"
-                                    formControlName="nachname"
-                                    class="field-input field-input--sm"
-                                    [class.field-input--error]="
-                                      spielerFeldInvalid(i, k, j, 'nachname')
-                                    "
-                                    autocomplete="family-name"
-                                    placeholder="Mustermann"
-                                  />
-                                  @if (spielerFeldHatFehler(i, k, j, 'nachname', 'required')) {
-                                    <span class="field-error">Nachname ist erforderlich.</span>
-                                  }
-                                  @if (spielerFeldHatFehler(i, k, j, 'nachname', 'zeichen')) {
-                                    <span class="field-error"
-                                      >Bitte einen gültigen Namen eingeben – z. B. „Anna“, „Anna
-                                      Lena“ oder „Anna-Lena“.</span
-                                    >
-                                  }
-                                </div>
-
-                                <!-- Radikal-ID-Angabe: entweder Radikal ID oder Initialen + Geburtsdatum -->
-                                @if (!hatKeineRadikalId(i, k, j)) {
-                                  <div class="field-group">
-                                    <label
-                                      [for]="'radikalId-' + i + '-' + k + '-' + j"
-                                      class="field-label"
-                                    >
-                                      Radikal ID <span class="required">*</span>
-                                    </label>
-                                    <input
-                                      [id]="'radikalId-' + i + '-' + k + '-' + j"
-                                      type="text"
-                                      formControlName="radikalId"
-                                      class="field-input field-input--sm"
-                                      [class.field-input--error]="
-                                        radikalAngabeInvalid(i, k, j) ||
-                                        spielerFeldHatFehler(i, k, j, 'radikalId', 'pattern')
-                                      "
-                                      placeholder="MM01011990"
-                                    />
-                                    @if (spielerFeldHatFehler(i, k, j, 'radikalId', 'pattern')) {
-                                      <span class="field-error">
-                                        Format: zwei Buchstaben und achtstelliges Geburtsdatum
-                                        (z.&nbsp;B. MM01011990).
-                                      </span>
-                                    }
-                                  </div>
-                                } @else {
-                                  <div class="field-group">
-                                    <label
-                                      [for]="'initialen-' + i + '-' + k + '-' + j"
-                                      class="field-label"
-                                    >
-                                      Initialen <span class="required">*</span>
-                                    </label>
-                                    <input
-                                      [id]="'initialen-' + i + '-' + k + '-' + j"
-                                      type="text"
-                                      formControlName="initialen"
-                                      class="field-input field-input--sm"
-                                      [class.field-input--error]="radikalAngabeInvalid(i, k, j)"
-                                      placeholder="MM"
-                                    />
-                                  </div>
-                                  <div class="field-group">
-                                    <label
-                                      [for]="'geburtsdatum-' + i + '-' + k + '-' + j"
-                                      class="field-label"
-                                    >
-                                      Geburtsdatum <span class="required">*</span>
-                                    </label>
-                                    <input
-                                      [id]="'geburtsdatum-' + i + '-' + k + '-' + j"
-                                      type="date"
-                                      formControlName="geburtsdatum"
-                                      class="field-input field-input--sm"
-                                      [max]="heuteIso"
-                                      [class.field-input--error]="
-                                        radikalAngabeInvalid(i, k, j) ||
-                                        spielerFeldInvalid(i, k, j, 'geburtsdatum')
-                                      "
-                                    />
-                                    @if (
-                                      spielerFeldHatFehler(
-                                        i,
-                                        k,
-                                        j,
-                                        'geburtsdatum',
-                                        'geburtsdatumUngueltig'
-                                      )
-                                    ) {
-                                      <span class="field-error">
-                                        Bitte ein gültiges Datum mit vierstelligem Jahr eingeben.
-                                      </span>
-                                    }
-                                    @if (
-                                      spielerFeldHatFehler(
-                                        i,
-                                        k,
-                                        j,
-                                        'geburtsdatum',
-                                        'geburtsdatumInZukunft'
-                                      )
-                                    ) {
-                                      <span class="field-error">
-                                        Das Geburtsdatum darf nicht in der Zukunft liegen.
-                                      </span>
-                                    }
-                                  </div>
-                                }
-                              </div>
-
-                              @if (spielerDuplikatText(i, k, j); as duplikatMeldung) {
-                                <span class="field-error">{{ duplikatMeldung }}</span>
-                              }
-
-                              @if (radikalAngabeInvalid(i, k, j)) {
-                                <span class="field-error">
-                                  Bitte Radikal ID angeben – oder Initialen und Geburtsdatum, damit
-                                  eine erstellt werden kann.
-                                </span>
-                              }
-
-                              @if (zeigtErsatzHinweis(i, k, j)) {
-                                <p class="ersatz-hinweis">
-                                  Die vierte Person kann als Ersatz eingetragen werden.
-                                </p>
-                              }
-                            </div>
+                            <app-spieler-zeile
+                              [spielerGroup]="spielerGroup(i, k, j)"
+                              [i]="i"
+                              [k]="k"
+                              [j]="j"
+                              [zeigeSpielerNr]="needsTeamName(i)"
+                              [kannEntfernen]="canRemoveSpieler(i, k)"
+                              [kannMeldungEntfernen]="
+                                !needsTeamName(i) && j === 0 && canRemoveMeldung(i)
+                              "
+                              [istErsatzZeile]="zeigtErsatzHinweis(i, k, j)"
+                              (entfernen)="removeSpieler(i, k, j)"
+                              (meldungEntfernen)="removeMeldung(i, k)"
+                              (radikalIdUmgeschaltet)="toggleRadikalId(i, k, j)"
+                            />
                           }
 
                           @if (canAddSpieler(i, k)) {

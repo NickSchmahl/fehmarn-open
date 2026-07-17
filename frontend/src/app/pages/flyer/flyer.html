@@ -115,8 +115,10 @@
     </header>
 
     <div class="flyer-hoch-titel">
-      <span class="flyer-hoch-titel-klein">{{ turnier.titel }}</span>
-      <span class="flyer-hoch-titel-open">{{ turnier.titelAkzent }}</span>
+      <span class="flyer-hoch-titel-klein"
+        >{{ turnier.titelPraefix }}
+        <span class="flyer-hoch-titel-akzent">{{ turnier.titelAkzent }}</span></span
+      >
       <span class="flyer-hoch-titel-jahr">{{ turnier.jahr }}</span>
     </div>
 

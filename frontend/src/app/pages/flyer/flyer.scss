@@ -349,20 +349,18 @@
 
 .flyer-hoch-titel-klein {
   font-family: 'Anton', 'DM Sans', sans-serif;
-  font-size: clamp(1.1rem, 5vw, 1.6rem);
-  color: var(--text-muted);
+  font-size: clamp(1.8rem, 9vw, 2.6rem);
+  color: var(--text);
 }
 
-.flyer-hoch-titel-open {
-  font-family: 'Anton', 'DM Sans', sans-serif;
-  font-size: clamp(3rem, 16vw, 4.5rem);
+.flyer-hoch-titel-akzent {
   color: var(--accent);
 }
 
 .flyer-hoch-titel-jahr {
   font-family: 'Anton', 'DM Sans', sans-serif;
   font-size: clamp(1.4rem, 7vw, 2.1rem);
-  color: var(--text);
+  color: var(--text-muted);
 }
 
 .flyer-hoch-termin-pill {

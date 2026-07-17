@@ -1,0 +1,19 @@
+<div class="price-summary">
+  @for (p of posten(); track $index) {
+    <div class="price-row price-line">
+      @if (p.preisProSpieler > 0) {
+        <span class="price-label">
+          {{ p.label }} · {{ p.spielerAnzahl }} Spieler × {{ p.preisProSpieler }}&nbsp;€
+        </span>
+        <span class="price-amount">{{ p.betrag }}&nbsp;€</span>
+      } @else {
+        <span class="price-label">{{ p.label }} · {{ p.spielerAnzahl }} Spieler</span>
+        <span class="price-amount">kostenlos</span>
+      }
+    </div>
+  }
+  <div class="price-row price-summary-total">
+    <span class="price-label">Gesamt</span>
+    <span class="price-total">{{ gesamt() }}&nbsp;€</span>
+  </div>
+</div>

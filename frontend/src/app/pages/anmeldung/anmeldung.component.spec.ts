@@ -4,6 +4,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { FormGroup } from '@angular/forms';
 
 import { AnmeldungComponent } from './anmeldung.component';
+import { AnmeldungRequest } from './model/anmeldung.model';
 import { DISZIPLINEN } from '../../shared/disziplin';
 
 // ── Testhilfen ─────────────────────────────────────────────────────────────
@@ -13,24 +14,6 @@ const HERRENDOPPEL = DISZIPLINEN.findIndex((d) => d.value === 'HERRENDOPPEL');
 const TRIPLE_MIX = DISZIPLINEN.findIndex((d) => d.value === 'TRIPLE_MIX');
 const TEAMWETTBEWERB = DISZIPLINEN.findIndex((d) => d.value === 'TEAMWETTBEWERB');
 const U18 = DISZIPLINEN.findIndex((d) => d.value === 'U18');
-
-interface SpielerPayload {
-  vorname: string;
-  nachname: string;
-  radikalId: string | null;
-  initialen: string | null;
-  geburtsdatum: string | null;
-}
-
-interface DisziplinPayload {
-  disziplin: string;
-  teamName: string | null;
-  spieler: SpielerPayload[];
-}
-
-interface AnmeldungPayload {
-  disziplinen: DisziplinPayload[];
-}
 
 describe('AnmeldungComponent', () => {
   let component: AnmeldungComponent;
@@ -364,7 +347,7 @@ describe('AnmeldungComponent', () => {
     component.onSubmit();
 
     const req = httpMock.expectOne('/api/anmeldung');
-    const body = req.request.body as AnmeldungPayload;
+    const body = req.request.body as AnmeldungRequest;
     const spieler0 = body.disziplinen[0].spieler[0];
     expect(spieler0.radikalId).toBeNull();
     expect(spieler0.initialen).toBe('MM');
@@ -510,7 +493,7 @@ describe('AnmeldungComponent', () => {
     component.onSubmit();
 
     const req = httpMock.expectOne('/api/anmeldung');
-    const body = req.request.body as AnmeldungPayload;
+    const body = req.request.body as AnmeldungRequest;
     expect(body.disziplinen.length).toBe(1);
     expect(body.disziplinen[0].disziplin).toBe('HERRENDOPPEL');
     expect(body.disziplinen[0].teamName).toBe('Die Bullseye Boys');
@@ -529,7 +512,7 @@ describe('AnmeldungComponent', () => {
     component.onSubmit();
 
     const req = httpMock.expectOne('/api/anmeldung');
-    const body = req.request.body as AnmeldungPayload;
+    const body = req.request.body as AnmeldungRequest;
     expect(body.disziplinen[0].teamName).toBe('Die Bullseye Boys');
     req.flush({});
   });

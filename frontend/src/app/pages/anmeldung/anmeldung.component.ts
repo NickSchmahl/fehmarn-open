@@ -1,175 +1,41 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
-import {
-  AbstractControl,
-  FormArray,
-  FormBuilder,
-  FormGroup,
-  ReactiveFormsModule,
-  ValidationErrors,
-  Validators,
-} from '@angular/forms';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { FormArray, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { DISZIPLINEN } from '../../shared/disziplin';
+import { formatiereIsoDatum } from '../../shared/datum';
+import { extrahiereFehlermeldung } from '../../shared/http-fehler';
 import { BrandIconComponent } from '../../ui/brand-icon/brand-icon.component';
-
-// ── Typen ────────────────────────────────────────────────────────────────────
-
-/** Eine Zeile der Preisaufschlüsselung: eine gewählte Disziplin mit Spielerzahl und Betrag. */
-interface PreisPosten {
-  label: string;
-  spielerAnzahl: number;
-  preisProSpieler: number; // Startgeld je Spieler dieser Disziplin (0 = kostenlos, z. B. U18)
-  betrag: number;
-}
-
-/** Antwort von GET /api/anmeldung/status. */
-interface AnmeldeschlussStatus {
-  anmeldungOffen: boolean;
-  anmeldeschluss: string; // ISO YYYY-MM-DD
-}
-
-/** Formatiert ein ISO-Datum (YYYY-MM-DD) als deutsches Datum (TT.MM.JJJJ) für die Anzeige. */
-function formatiereDatum(isoDatum: string): string {
-  const teile = isoDatum.split('-');
-  if (teile.length !== 3) return isoDatum;
-  const [jahr, monat, tag] = teile;
-  return `${tag}.${monat}.${jahr}`;
-}
-
-/** Extrahiert typsicher eine Fehlermeldung aus einem unbekannten Fehlerobjekt. */
-function extractFehlermeldung(err: unknown): string {
-  if (typeof err === 'object' && err !== null) {
-    const backendError = (err as { error?: unknown }).error;
-    if (typeof backendError === 'object' && backendError !== null && 'message' in backendError) {
-      const message = backendError.message;
-      if (typeof message === 'string') return message;
-    }
-    if ('message' in err) {
-      const message = err.message;
-      if (typeof message === 'string') return message;
-    }
-  }
-  return 'Unbekannter Fehler';
-}
-
-/** Liest den Wert eines Controls typsicher als String (dynamisches `.value` ist sonst `any`). */
-function stringWert(group: AbstractControl, feld: string): string {
-  const value: unknown = group.get(feld)?.value;
-  return typeof value === 'string' ? value : '';
-}
-
-/** Leere bzw. nur aus Leerzeichen bestehende Eingaben werden zu null (fürs Backend-DTO). */
-function leerZuNull(value: string): string | null {
-  return value.trim() !== '' ? value : null;
-}
-
-/** Maximale Teamname-Länge (Radikal-Software-Limit), gemessen nach Normalisierung. */
-const TEAMNAME_MAX_LAENGE = 20;
+import { AnmeldeschlussStatus, PreisPosten } from './model/anmeldung.model';
+import { berechneGesamtpreis, berechnePreisPosten } from './logik/preisberechnung';
+import { erstelleAnmeldungRequest } from './logik/anmeldung-payload';
+import { parseSpielerDuplikat, parseTeamnameDuplikat } from './logik/duplikat-fehler';
+import { AnmeldungApiService } from './services/anmeldung-api.service';
+import { AnmeldungFormService } from './services/anmeldung-form.service';
+import { KollapsZustand } from './services/kollaps-zustand';
+import { PreisUebersichtComponent } from './components/preis-uebersicht/preis-uebersicht.component';
+import { DisziplinCardComponent } from './components/disziplin-card/disziplin-card.component';
 
 /**
- * Teamname-Normalisierung wie im Backend (siehe TeamnameValidierungService): führende/abschließende
- * Leerzeichen entfernen und interne Mehrfach-Whitespaces zu einem einzelnen zusammenfassen. Leere
- * bzw. reine Whitespace-Eingaben ergeben null.
+ * Container der Anmeldeseite: orchestriert Formular (AnmeldungFormService), HTTP
+ * (AnmeldungApiService), Klapp-UI-State (KollapsZustand) und die pure Logik aus `logik/`.
+ * Die „Formular-Fassade" delegiert nur an den FormService – sie ist die öffentliche API
+ * des Integrations-Specs (anmeldung.component.spec.ts).
  */
-function normalisiereTeamname(value: string): string | null {
-  const normalisiert = value.trim().replace(/\s+/g, ' ');
-  return normalisiert === '' ? null : normalisiert;
-}
-
-/** Feld-Validator: Teamname darf nach Normalisierung höchstens {@link TEAMNAME_MAX_LAENGE} Zeichen haben. */
-function teamnameMaxLaengeValidator(control: AbstractControl): ValidationErrors | null {
-  const value = typeof control.value === 'string' ? control.value : '';
-  const normalisiert = normalisiereTeamname(value);
-  if (normalisiert === null) return null;
-  return normalisiert.length > TEAMNAME_MAX_LAENGE ? { maxlaenge: TEAMNAME_MAX_LAENGE } : null;
-}
-
-/**
- * Zeichensatz wie im Backend (#167): nach Normalisierung nur Buchstaben (inkl. Umlaute), Ziffern und
- * Leerzeichen – Sonderzeichen inkl. Bindestrich sind verboten. Leer bleibt Sache der Pflichtprüfung.
- */
-const TEAMNAME_MUSTER = /^[\p{L}\p{N} ]+$/u;
-function teamnameMusterValidator(control: AbstractControl): ValidationErrors | null {
-  const value = typeof control.value === 'string' ? control.value : '';
-  const normalisiert = normalisiereTeamname(value);
-  if (normalisiert === null) return null;
-  return TEAMNAME_MUSTER.test(normalisiert) ? null : { zeichen: true };
-}
-
-/**
- * Zeichensatz für Personennamen wie im Backend (#167): Buchstaben (inkl. Umlaute), einzelne
- * Leerzeichen und der Bindestrich für Doppelnamen – Letzterer nur zwischen zwei Buchstaben. Leere
- * Eingaben bleiben Sache der Pflichtprüfung ({@link Validators.required}).
- */
-const SPIELERNAME_MUSTER = /^\p{L}+([ -]\p{L}+)*$/u;
-function spielernameMusterValidator(control: AbstractControl): ValidationErrors | null {
-  const value = typeof control.value === 'string' ? control.value : '';
-  const normalisiert = value.trim().replace(/\s+/g, ' ');
-  if (normalisiert === '') return null;
-  return SPIELERNAME_MUSTER.test(normalisiert) ? null : { zeichen: true };
-}
-
-/** Radikal ID: zwei Buchstaben (Initialen) + achtstelliges Geburtsdatum TTMMJJJJ (z. B. MM01011990). */
-const RADIKAL_ID_MUSTER = /^[A-Za-z]{2}\d{8}$/;
-
-/**
- * Feld-Validator für die Radikal ID. Im „keine ID"-Modus ist das Feld ausgeblendet – ein
- * (ggf. unfertiger) Wert bleibt zwar erhalten, wird dann aber nicht gegen das Muster geprüft.
- */
-function radikalIdPatternValidator(control: AbstractControl): ValidationErrors | null {
-  const parent = control.parent;
-  if (parent && parent.get('hatKeineRadikalId')?.value === true) return null;
-  const value = typeof control.value === 'string' ? control.value : '';
-  if (value === '') return null;
-  return RADIKAL_ID_MUSTER.test(value) ? null : { pattern: true };
-}
-
-/**
- * Feld-Validator fürs Geburtsdatum: erlaubt nur ein reales Datum mit vierstelligem Jahr
- * (`YYYY-MM-DD`) und kein Datum in der Zukunft. Nur im „keine ID"-Modus relevant; sonst ist
- * das Feld ausgeblendet und ein Restwert wird nicht geprüft. Leer ist ok – die Pflicht-Logik
- * steckt im Gruppen-Validator {@link radikalIdAngabeValidator}.
- */
-function geburtsdatumValidator(control: AbstractControl): ValidationErrors | null {
-  const parent = control.parent;
-  if (!parent || parent.get('hatKeineRadikalId')?.value !== true) return null;
-  const value: unknown = control.value;
-  if (typeof value !== 'string' || value === '') return null;
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return { geburtsdatumUngueltig: true };
-  const datum = new Date(`${value}T00:00:00`);
-  if (Number.isNaN(datum.getTime())) return { geburtsdatumUngueltig: true };
-  const heute = new Date();
-  heute.setHours(0, 0, 0, 0);
-  if (datum.getTime() > heute.getTime()) return { geburtsdatumInZukunft: true };
-  return null;
-}
-
-/**
- * Validator je Spielerzeile: Es muss entweder eine Radikal ID angegeben sein ODER
- * Initialen + Geburtsdatum, damit eine Radikal ID erstellt werden kann.
- */
-function radikalIdAngabeValidator(group: AbstractControl): ValidationErrors | null {
-  const hatKeine = group.get('hatKeineRadikalId')?.value === true;
-  if (hatKeine) {
-    const initialen = stringWert(group, 'initialen').trim();
-    const geburtsdatum = stringWert(group, 'geburtsdatum');
-    return initialen !== '' && geburtsdatum !== '' ? null : { radikalIdAngabeFehlt: true };
-  }
-  return stringWert(group, 'radikalId').trim() !== '' ? null : { radikalIdAngabeFehlt: true };
-}
-
-// ── Component ────────────────────────────────────────────────────────────────
-
 @Component({
   selector: 'app-anmeldung',
   standalone: true,
-  imports: [ReactiveFormsModule, BrandIconComponent],
+  imports: [
+    ReactiveFormsModule,
+    BrandIconComponent,
+    PreisUebersichtComponent,
+    DisziplinCardComponent,
+  ],
+  providers: [AnmeldungFormService],
   templateUrl: './anmeldung.component.html',
   styleUrl: './anmeldung.component.scss',
 })
 export class AnmeldungComponent implements OnInit {
-  private formBuilder = inject(FormBuilder);
-  private httpClient = inject(HttpClient);
+  private api = inject(AnmeldungApiService);
+  private formService = inject(AnmeldungFormService);
 
   // Öffentliche Metadaten für das Template
   readonly disziplinen = DISZIPLINEN;
@@ -187,16 +53,32 @@ export class AnmeldungComponent implements OnInit {
   anmeldungOffen = signal(true);
   anmeldeschlussAnzeige = signal<string | null>(null);
 
-  // Reiner UI-State: Indizes der Disziplinen, deren Detailbereich eingeklappt ist. Bewusst NICHT im
-  // Formularmodell, damit der Klapp-Zustand weder das POST-DTO noch die Validierung beeinflusst.
-  // Nicht enthalten = aufgeklappt (Default). Siehe #184.
-  private collapsed = signal(new Set<number>());
+  /** Klapp-Zustand der Disziplin-Karten (#184). */
+  private kollaps = new KollapsZustand();
+
+  readonly form = this.formService.form;
+
+  // ── Abgeleitete Werte ──────────────────────────────────────────────────────
+
+  /** Preisaufschlüsselung je gewählter Disziplin (siehe {@link berechnePreisPosten}). */
+  preisPosten = computed<PreisPosten[]>(() =>
+    berechnePreisPosten(this.formService.formWert().disziplinen),
+  );
+
+  gesamtpreis = computed(() => berechneGesamtpreis(this.preisPosten()));
+
+  constructor() {
+    // Klapp-Zustand zurücksetzen, damit eine erneute Auswahl wieder aufgeklappt startet.
+    this.formService.abwahl$.subscribe((i) => {
+      this.kollaps.setzen(i, false);
+    });
+  }
 
   ngOnInit(): void {
-    this.httpClient.get<AnmeldeschlussStatus>('/api/anmeldung/status').subscribe({
-      next: (status) => {
+    this.api.ladeStatus().subscribe({
+      next: (status: AnmeldeschlussStatus) => {
         this.anmeldungOffen.set(status.anmeldungOffen);
-        this.anmeldeschlussAnzeige.set(formatiereDatum(status.anmeldeschluss));
+        this.anmeldeschlussAnzeige.set(formatiereIsoDatum(status.anmeldeschluss));
       },
       // Defensiv: bei Ladefehler das Formular zeigen; das Backend sperrt späte POSTs ohnehin (403).
       error: () => {
@@ -205,255 +87,63 @@ export class AnmeldungComponent implements OnInit {
     });
   }
 
-  // ── Formular ────────────────────────────────────────────────────────────
-  // Es gibt kein Kontaktfeld mehr: Name & Radikal-ID-Angabe leben ausschliesslich in den
-  // Spielerzeilen. Je gewählter Disziplin klappt ein Block mit Spielerzeilen (+ Teamname) auf.
-
-  form = this.formBuilder.group(
-    {
-      disziplinen: this.formBuilder.array(
-        DISZIPLINEN.map(() =>
-          this.formBuilder.group({
-            selected: [false],
-            meldungen: this.formBuilder.array<FormGroup>([]),
-          }),
-        ),
-      ),
-    },
-    { validators: (group: AbstractControl) => this.mindestensEineDisziplinValidator(group) },
-  );
-
-  get disziplinenArray(): FormArray {
-    return this.form.get('disziplinen') as FormArray;
-  }
+  // ── Formular-Fassade (delegiert an AnmeldungFormService; genutzt vom Spec) ─
 
   disziplinGroup(i: number): FormGroup {
-    return this.disziplinenArray.at(i) as FormGroup;
+    return this.formService.disziplinGroup(i);
   }
 
   meldungenArray(i: number): FormArray {
-    return this.disziplinGroup(i).get('meldungen') as FormArray;
+    return this.formService.meldungenArray(i);
   }
 
   meldungGroup(i: number, k: number): FormGroup {
-    return this.meldungenArray(i).at(k) as FormGroup;
+    return this.formService.meldungGroup(i, k);
   }
 
   spielerArray(i: number, k: number): FormArray {
-    return this.meldungGroup(i, k).get('spieler') as FormArray;
+    return this.formService.spielerArray(i, k);
   }
 
   spielerGroup(i: number, k: number, j: number): FormGroup {
-    return this.spielerArray(i, k).at(j) as FormGroup;
+    return this.formService.spielerGroup(i, k, j);
   }
 
-  /** Eine Meldung: (bei Team-Disziplinen) Teamname + auf Pflichtzahl aufgefüllte Spielerzeilen. */
-  private createMeldungGroup(i: number): FormGroup {
-    const meta = DISZIPLINEN[i];
-    const spieler = this.formBuilder.array<FormGroup>([]);
-    while (spieler.length < meta.minSpieler) {
-      spieler.push(this.createSpielerGroup());
-    }
-    const validators = meta.teamName
-      ? [Validators.required, teamnameMaxLaengeValidator, teamnameMusterValidator]
-      : [];
-    return this.formBuilder.group({
-      teamName: ['', validators],
-      spieler,
-    });
+  addMeldung(i: number): void {
+    this.formService.addMeldung(i);
   }
 
-  // ── Computed ─────────────────────────────────────────────────────────────
-
-  /** Signal-Brücke: hält immer den aktuellen Formularwert, damit computed() reagieren kann. */
-  private _formValue = signal(this.form.getRawValue());
-
-  /** Wie viele Disziplinen sind aktuell angehakt? */
-  selectedCount = computed(() => {
-    const disziplinen = this._formValue().disziplinen as { selected: boolean | null }[];
-    return disziplinen.filter((d) => d.selected === true).length;
-  });
-
-  /**
-   * Aufschlüsselung je Disziplin (eine Position pro Disziplin, unabhängig von der Anzahl
-   * Meldungen): jede erfasste Person kostet das disziplin-abhängige Startgeld
-   * (`meta.preisProSpieler`), der Betrag richtet sich also nach der Spielerzahl über alle
-   * Meldungen dieser Disziplin hinweg. Kostenlose Disziplinen (z. B. U18) tragen 0 € bei.
-   */
-  preisPosten = computed<PreisPosten[]>(() => {
-    const disziplinen = this._formValue().disziplinen as {
-      selected: boolean | null;
-      meldungen: { spieler: unknown[] }[];
-    }[];
-    return disziplinen
-      .map((disziplin, i) => ({ disziplin, meta: DISZIPLINEN[i] }))
-      .filter(({ disziplin }) => disziplin.selected === true)
-      .map(({ disziplin, meta }) => {
-        const spielerAnzahl = disziplin.meldungen.reduce(
-          (summe, meldung) => summe + meldung.spieler.length,
-          0,
-        );
-        return {
-          label: meta.label,
-          spielerAnzahl,
-          preisProSpieler: meta.preisProSpieler,
-          betrag: spielerAnzahl * meta.preisProSpieler,
-        };
-      });
-  });
-
-  gesamtpreis = computed(() =>
-    this.preisPosten().reduce((summe, posten) => summe + posten.betrag, 0),
-  );
-
-  constructor() {
-    this.form.valueChanges.subscribe(() => {
-      this._formValue.set(this.form.getRawValue());
-    });
-
-    // Beim An-/Abwählen einer Disziplin Spielerzeilen und Teamname-Pflicht dynamisch setzen.
-    this.disziplinenArray.controls.forEach((ctrl, i) => {
-      ctrl.get('selected')?.valueChanges.subscribe((checked) => {
-        this.onDisziplinToggle(i, checked === true);
-      });
-    });
+  canRemoveMeldung(i: number): boolean {
+    return this.formService.canRemoveMeldung(i);
   }
 
-  // ── Spieler-Verwaltung ─────────────────────────────────────────────────────
-
-  private createSpielerGroup(): FormGroup {
-    return this.formBuilder.group(
-      {
-        vorname: ['', [Validators.required, spielernameMusterValidator]],
-        nachname: ['', [Validators.required, spielernameMusterValidator]],
-        hatKeineRadikalId: [false],
-        radikalId: ['', [radikalIdPatternValidator]],
-        initialen: [''],
-        geburtsdatum: ['', [geburtsdatumValidator]],
-      },
-      { validators: radikalIdAngabeValidator },
-    );
+  canAddSpieler(i: number, k: number): boolean {
+    return this.formService.canAddSpieler(i, k);
   }
 
-  private onDisziplinToggle(i: number, selected: boolean): void {
-    const meldungen = this.meldungenArray(i);
-    if (selected) {
-      if (meldungen.length === 0) {
-        meldungen.push(this.createMeldungGroup(i));
-      }
-    } else {
-      meldungen.clear();
-      // Klapp-Zustand zurücksetzen, damit eine erneute Auswahl wieder aufgeklappt startet.
-      this.setCollapsed(i, false);
-    }
+  toggleRadikalId(i: number, k: number, j: number): void {
+    this.formService.revalidiereRadikalFelder(i, k, j);
+  }
+
+  isDisziplinSelected(i: number): boolean {
+    return this.formService.istDisziplinGewaehlt(i);
+  }
+
+  needsTeamName(i: number): boolean {
+    return this.formService.brauchtTeamname(i);
   }
 
   // ── Ein-/Ausklappen des Detailbereichs (#184) ──────────────────────────────
 
-  /** Ist der Detailbereich der Disziplin {@link i} eingeklappt? Default (nicht enthalten) = offen. */
   isCollapsed(i: number): boolean {
-    return this.collapsed().has(i);
+    return this.kollaps.istEingeklappt(i);
   }
 
-  /** Schaltet den Klapp-Zustand der Disziplin {@link i} um (per Klick/Tastatur im Template). */
   toggleCollapse(i: number): void {
-    this.setCollapsed(i, !this.isCollapsed(i));
+    this.kollaps.umschalten(i);
   }
 
-  /** Setzt den Klapp-Zustand explizit; erzeugt eine neue Set-Instanz (Signal-Immutabilität). */
-  private setCollapsed(i: number, collapsed: boolean): void {
-    const next = new Set(this.collapsed());
-    if (collapsed) {
-      next.add(i);
-    } else {
-      next.delete(i);
-    }
-    this.collapsed.set(next);
-  }
-
-  /** Anzahl der Meldungen der Disziplin {@link i} (für die Zähler-Pill im zugeklappten Zustand). */
-  meldungGesamt(i: number): number {
-    return this.meldungenArray(i).length;
-  }
-
-  /** Trägt der Meldungs-Block der Disziplin {@link i} einen Validierungsfehler? (fürs Auto-Aufklappen). */
-  disziplinHatFehler(i: number): boolean {
-    return this.meldungenArray(i).invalid;
-  }
-
-  addMeldung(i: number): void {
-    const meldungen = this.meldungenArray(i);
-    meldungen.push(this.createMeldungGroup(i));
-    this.fokussiereVornameNachRender(i, meldungen.length - 1);
-  }
-
-  /**
-   * Springt nach dem Hinzufügen einer Meldung ins Vorname-Feld ihres ersten Spielers – wichtig für
-   * Tastatur-Bedienung: Enter auf „+ Weitere Meldung" soll direkt in die neue Zeile führen statt
-   * den Fokus auf dem Button zu belassen. `setTimeout` wartet den Render-Zyklus ab, da das Feld erst
-   * nach der Change Detection im DOM existiert.
-   */
-  private fokussiereVornameNachRender(i: number, k: number): void {
-    setTimeout(() => {
-      document.getElementById(`vorname-${i}-${k}-0`)?.focus();
-    });
-  }
-
-  removeMeldung(i: number, k: number): void {
-    if (this.canRemoveMeldung(i)) {
-      this.meldungenArray(i).removeAt(k);
-    }
-  }
-
-  canRemoveMeldung(i: number): boolean {
-    return this.meldungenArray(i).length > 1;
-  }
-
-  addSpieler(i: number, k: number): void {
-    if (this.canAddSpieler(i, k)) {
-      this.spielerArray(i, k).push(this.createSpielerGroup());
-    }
-  }
-
-  removeSpieler(i: number, k: number, j: number): void {
-    if (this.canRemoveSpieler(i, k)) {
-      this.spielerArray(i, k).removeAt(j);
-    }
-  }
-
-  /**
-   * Umschalter „Ich habe noch keine Radikal ID": Die Eingaben bleiben erhalten, damit man den
-   * Umschalter ausprobieren kann, ohne bereits Getipptes zu verlieren. Nicht relevante Felder
-   * werden erst beim Absenden ausgeblendet ({@link toSpielerPayload}); hier werden nur die nun
-   * ein-/ausgeblendeten Felder neu bewertet, damit veraltete Feldfehler verschwinden.
-   */
-  toggleRadikalId(i: number, k: number, j: number): void {
-    const group = this.spielerGroup(i, k, j);
-    group.get('radikalId')?.updateValueAndValidity();
-    group.get('geburtsdatum')?.updateValueAndValidity();
-  }
-
-  // ── Hilfsmethoden fürs Template ────────────────────────────────────────────
-
-  isDisziplinSelected(i: number): boolean {
-    return this.disziplinGroup(i).get('selected')?.value === true;
-  }
-
-  needsTeamName(i: number): boolean {
-    return DISZIPLINEN[i].teamName && this.isDisziplinSelected(i);
-  }
-
-  teamNameInvalid(i: number, k: number): boolean {
-    const ctrl = this.meldungGroup(i, k).get('teamName');
-    return ctrl !== null && ctrl.invalid && ctrl.touched;
-  }
-
-  readonly teamnameMaxLaenge = TEAMNAME_MAX_LAENGE;
-
-  teamNameRequiredFehler(i: number, k: number): boolean {
-    const ctrl = this.meldungGroup(i, k).get('teamName');
-    return ctrl !== null && ctrl.hasError('required') && ctrl.touched;
-  }
+  // ── Fehler-Prädikate (für den Spec; die Kindkomponenten haben eigene) ──────
 
   teamNameLaengeFehler(i: number, k: number): boolean {
     const ctrl = this.meldungGroup(i, k).get('teamName');
@@ -465,22 +155,10 @@ export class AnmeldungComponent implements OnInit {
     return ctrl !== null && ctrl.hasError('zeichen') && ctrl.touched;
   }
 
-  /** Fachliche Dubletten-Meldung vom Server (per {@link zeigeTeamnameDuplikatAmFeld} gesetzt) oder null. */
+  /** Fachliche Dubletten-Meldung vom Server (per FormService gesetzt) oder null. */
   teamNameDuplikatText(i: number, k: number): string | null {
     const fehler: unknown = this.meldungGroup(i, k).get('teamName')?.errors?.['duplikat'];
     return typeof fehler === 'string' ? fehler : null;
-  }
-
-  canAddSpieler(i: number, k: number): boolean {
-    return this.spielerArray(i, k).length < DISZIPLINEN[i].maxSpieler;
-  }
-
-  canRemoveSpieler(i: number, k: number): boolean {
-    return this.spielerArray(i, k).length > DISZIPLINEN[i].minSpieler;
-  }
-
-  hatKeineRadikalId(i: number, k: number, j: number): boolean {
-    return this.spielerGroup(i, k, j).get('hatKeineRadikalId')?.value === true;
   }
 
   spielerFeldInvalid(i: number, k: number, j: number, feld: string): boolean {
@@ -494,76 +172,53 @@ export class AnmeldungComponent implements OnInit {
     return ctrl !== null && ctrl.touched && ctrl.hasError(fehler);
   }
 
-  /** Heutiges Datum als `YYYY-MM-DD` – als `max` fürs Geburtsdatum-Feld (keine Zukunft). */
-  readonly heuteIso = new Date().toISOString().slice(0, 10);
-
   radikalAngabeInvalid(i: number, k: number, j: number): boolean {
     const group = this.spielerGroup(i, k, j);
     return group.hasError('radikalIdAngabeFehlt') && group.touched;
   }
 
-  /** Die (optionale) 4. Zeile bei Triple Mix darf als Ersatz eingetragen werden. */
-  zeigtErsatzHinweis(i: number, k: number, j: number): boolean {
-    return DISZIPLINEN[i].value === 'TRIPLE_MIX' && j === 3;
+  /** Serverseitig gesetzte Spieler-Dublette (409) für die Anzeige unter den Namensfeldern. */
+  spielerDuplikatText(i: number, k: number, j: number): string | null {
+    const fehler: unknown = this.spielerGroup(i, k, j).get('vorname')?.errors?.['duplikat'];
+    return typeof fehler === 'string' ? fehler : null;
   }
 
-  // ── Validator ────────────────────────────────────────────────────────────
-
-  private mindestensEineDisziplinValidator(group: AbstractControl): ValidationErrors | null {
-    const arr = (group.get('disziplinen') as FormArray).controls;
-    const anySelected = arr.some((c) => c.get('selected')?.value === true);
-    return anySelected ? null : { noDisziplin: true };
-  }
-
-  // ── Submit ───────────────────────────────────────────────────────────────
+  // ── Submit ─────────────────────────────────────────────────────────────────
 
   onSubmit(): void {
-    // Alte Teamname-Dubletten-Fehler (vom Server gesetzt) zurücksetzen, damit sie das erneute
+    // Alte Dubletten-Fehler (vom Server gesetzt) zurücksetzen, damit sie das erneute
     // Absenden nicht blockieren.
-    this.clearTeamnameDuplikatFehler();
-    this.clearSpielerDuplikatFehler();
+    this.formService.entferneDuplikatFehler();
     this.submitted.set(true);
     this.form.markAllAsTouched();
     // Eingeklappte Karten mit Fehler wieder aufklappen, damit kein Validierungsfehler verdeckt bleibt.
     this.klappeFehlerhafteKartenAuf();
     if (this.form.invalid) return;
 
-    const disziplinen = this.disziplinenArray.controls
-      .map((ctrl, i) => ({ ctrl, meta: DISZIPLINEN[i] }))
-      .filter(({ ctrl }) => ctrl.get('selected')?.value === true)
-      .flatMap(({ ctrl, meta }) =>
-        (ctrl.get('meldungen') as FormArray).controls.map((meldung) => ({
-          disziplin: meta.value,
-          teamName: normalisiereTeamname(stringWert(meldung, 'teamName')),
-          spieler: (meldung.get('spieler') as FormArray).controls.map((s) =>
-            this.toSpielerPayload(s),
-          ),
-        })),
-      );
-
-    const body = { disziplinen };
+    const body = erstelleAnmeldungRequest(this.formService.rohwert());
 
     this.loading.set(true);
     this.errorMessage.set(null);
     this.successMsg.set(null);
 
-    this.httpClient.post('/api/anmeldung', body).subscribe({
+    this.api.sendeAnmeldung(body).subscribe({
       next: () => {
         this.loading.set(false);
         this.successMsg.set('Anmeldung erfolgreich! Wir sehen uns beim Turnier.');
         this.form.reset();
         this.submitted.set(false);
-        this._formValue.set(this.form.getRawValue());
         // Nach dem Absenden zum Erfolgs-Banner am Seitenanfang hochscrollen, damit die
         // Bestätigung nicht unbemerkt oberhalb des Sichtbereichs bleibt.
         this.scrollToTop();
       },
       error: (err: unknown) => {
         this.loading.set(false);
-        // Teamname-Dublette (409 mit Disziplin-Feldkennung) direkt am Feld anzeigen; sonst Banner.
-        if (this.zeigeTeamnameDuplikatAmFeld(err)) return;
-        if (this.zeigeSpielerDuplikatAmFeld(err)) return;
-        this.errorMessage.set(`Fehler bei der Anmeldung: ${extractFehlermeldung(err)}`);
+        // Dubletten (409 mit Feldkennung, ADR 0011/#170) direkt am Feld anzeigen; sonst Banner.
+        const teamnameDuplikat = parseTeamnameDuplikat(err);
+        if (teamnameDuplikat && this.formService.setzeTeamnameDuplikat(teamnameDuplikat)) return;
+        const spielerDuplikat = parseSpielerDuplikat(err);
+        if (spielerDuplikat && this.formService.setzeSpielerDuplikat(spielerDuplikat)) return;
+        this.errorMessage.set(`Fehler bei der Anmeldung: ${extrahiereFehlermeldung(err)}`);
       },
     });
   }
@@ -582,102 +237,14 @@ export class AnmeldungComponent implements OnInit {
    * Absende-Versuch kein Fehler hinter einer zugeklappten Karte verborgen bleibt (#184).
    */
   private klappeFehlerhafteKartenAuf(): void {
-    this.disziplinenArray.controls.forEach((_, i) => {
-      if (this.isDisziplinSelected(i) && this.isCollapsed(i) && this.disziplinHatFehler(i)) {
-        this.setCollapsed(i, false);
+    this.formService.disziplinenArray.controls.forEach((_, i) => {
+      if (
+        this.isDisziplinSelected(i) &&
+        this.isCollapsed(i) &&
+        this.formService.hatDisziplinFehler(i)
+      ) {
+        this.kollaps.setzen(i, false);
       }
     });
-  }
-
-  /** Entfernt an allen Teamname-Feldern den serverseitig gesetzten `duplikat`-Fehler. */
-  private clearTeamnameDuplikatFehler(): void {
-    this.disziplinenArray.controls.forEach((_, i) => {
-      for (const meldung of this.meldungenArray(i).controls) {
-        const ctrl = meldung.get('teamName');
-        if (ctrl?.hasError('duplikat')) {
-          ctrl.setErrors(null);
-          ctrl.updateValueAndValidity();
-        }
-      }
-    });
-  }
-
-  /**
-   * Wertet einen 409 mit Disziplin-Feldkennung aus (siehe ADR 0011) und setzt den Fehler am
-   * passenden Teamname-Control. Gibt true zurück, wenn der Fehler feldgenau behandelt wurde.
-   */
-  private zeigeTeamnameDuplikatAmFeld(err: unknown): boolean {
-    if (!(err instanceof HttpErrorResponse) || err.status !== 409) return false;
-    const errors = (err.error as { errors?: { field?: string; message?: string }[] } | null)
-      ?.errors;
-    const feld = errors?.[0];
-    if (!feld?.field) return false;
-    const index = DISZIPLINEN.findIndex((d) => d.value === feld.field);
-    if (index < 0 || this.meldungenArray(index).length === 0) return false;
-    const ctrl = this.meldungGroup(index, 0).get('teamName');
-    if (!ctrl) return false;
-    ctrl.setErrors({
-      duplikat: feld.message ?? 'Teamname ist in dieser Disziplin bereits vergeben.',
-    });
-    ctrl.markAsTouched();
-    return true;
-  }
-
-  /** Entfernt an allen Spieler-Namensfeldern den serverseitig gesetzten `duplikat`-Fehler. */
-  private clearSpielerDuplikatFehler(): void {
-    this.disziplinenArray.controls.forEach((_, i) => {
-      this.meldungenArray(i).controls.forEach((_, k) => {
-        for (const spieler of this.spielerArray(i, k).controls) {
-          for (const feld of ['vorname', 'nachname']) {
-            const ctrl = spieler.get(feld);
-            if (ctrl?.hasError('duplikat')) {
-              ctrl.setErrors(null);
-              ctrl.updateValueAndValidity();
-            }
-          }
-        }
-      });
-    });
-  }
-
-  /**
-   * Wertet einen 409 mit Feldkennung `"<DISZIPLIN>:<index>"` (Einzel-Spieler-Dublette, #170) aus und setzt
-   * den Fehler an Vor-/Nachname der betroffenen Meldung. Gibt true zurück, wenn feldgenau behandelt.
-   */
-  private zeigeSpielerDuplikatAmFeld(err: unknown): boolean {
-    if (!(err instanceof HttpErrorResponse) || err.status !== 409) return false;
-    const feld = (err.error as { errors?: { field?: string; message?: string }[] } | null)
-      ?.errors?.[0];
-    if (!feld?.field?.includes(':')) return false;
-    const [disziplin, indexText] = feld.field.split(':');
-    const i = DISZIPLINEN.findIndex((d) => d.value === disziplin);
-    const k = Number(indexText);
-    if (i < 0 || Number.isNaN(k) || k < 0 || k >= this.meldungenArray(i).length) return false;
-    const spieler = this.spielerGroup(i, k, 0); // Einzel: genau ein Spieler je Meldung
-    const nachricht = feld.message ?? 'Diese Person ist in dieser Disziplin bereits gemeldet.';
-    for (const name of ['vorname', 'nachname']) {
-      const ctrl = spieler.get(name);
-      ctrl?.setErrors({ duplikat: nachricht });
-      ctrl?.markAsTouched();
-    }
-    return true;
-  }
-
-  /** Serverseitig gesetzte Spieler-Dublette (409) für die Anzeige unter den Namensfeldern. */
-  spielerDuplikatText(i: number, k: number, j: number): string | null {
-    const fehler: unknown = this.spielerGroup(i, k, j).get('vorname')?.errors?.['duplikat'];
-    return typeof fehler === 'string' ? fehler : null;
-  }
-
-  /** Baut das Spieler-DTO; je nach Umschalter wird Radikal ID oder Initialen+Geburtsdatum gesendet. */
-  private toSpielerPayload(group: AbstractControl) {
-    const hatKeine = group.get('hatKeineRadikalId')?.value === true;
-    return {
-      vorname: stringWert(group, 'vorname'),
-      nachname: stringWert(group, 'nachname'),
-      radikalId: hatKeine ? null : leerZuNull(stringWert(group, 'radikalId')),
-      initialen: hatKeine ? leerZuNull(stringWert(group, 'initialen')) : null,
-      geburtsdatum: hatKeine ? leerZuNull(stringWert(group, 'geburtsdatum')) : null,
-    };
   }
 }

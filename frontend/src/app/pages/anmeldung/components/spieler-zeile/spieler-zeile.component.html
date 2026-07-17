@@ -1,0 +1,162 @@
+<div class="spieler-row" [formGroup]="spielerGroup()">
+  <div class="spieler-row-head">
+    <span class="spieler-nr">
+      @if (zeigeSpielerNr()) {
+        Spieler {{ j() + 1 }}
+      } @else {
+        Meldung {{ k() + 1 }}
+      }
+    </span>
+    <div class="spieler-row-head-right">
+      <label class="radikal-toggle">
+        <input
+          type="checkbox"
+          formControlName="hatKeineRadikalId"
+          (change)="radikalIdUmgeschaltet.emit()"
+        />
+        Ich habe noch keine Radikal ID
+      </label>
+      @if (kannEntfernen()) {
+        <button
+          type="button"
+          class="spieler-remove"
+          (click)="entfernen.emit()"
+          [attr.aria-label]="'Spieler ' + (j() + 1) + ' entfernen'"
+        >
+          Entfernen
+        </button>
+      }
+      @if (kannMeldungEntfernen()) {
+        <button
+          type="button"
+          class="meldung-remove"
+          (click)="meldungEntfernen.emit()"
+          [attr.aria-label]="'Meldung ' + (k() + 1) + ' entfernen'"
+        >
+          Meldung entfernen
+        </button>
+      }
+    </div>
+  </div>
+
+  <div class="spieler-felder" [class.spieler-felder--split]="hatKeineRadikalId()">
+    <div class="field-group">
+      <label [for]="'vorname-' + i() + '-' + k() + '-' + j()" class="field-label">
+        Vorname <span class="required">*</span>
+      </label>
+      <input
+        [id]="'vorname-' + i() + '-' + k() + '-' + j()"
+        type="text"
+        formControlName="vorname"
+        class="field-input field-input--sm"
+        [class.field-input--error]="feldInvalid('vorname')"
+        autocomplete="given-name"
+        placeholder="Max"
+      />
+      @if (feldHatFehler('vorname', 'required')) {
+        <span class="field-error">Vorname ist erforderlich.</span>
+      }
+      @if (feldHatFehler('vorname', 'zeichen')) {
+        <span class="field-error"
+          >Bitte einen gültigen Namen eingeben – z. B. „Anna“, „Anna Lena“ oder „Anna-Lena“.</span
+        >
+      }
+    </div>
+
+    <div class="field-group">
+      <label [for]="'nachname-' + i() + '-' + k() + '-' + j()" class="field-label">
+        Nachname <span class="required">*</span>
+      </label>
+      <input
+        [id]="'nachname-' + i() + '-' + k() + '-' + j()"
+        type="text"
+        formControlName="nachname"
+        class="field-input field-input--sm"
+        [class.field-input--error]="feldInvalid('nachname')"
+        autocomplete="family-name"
+        placeholder="Mustermann"
+      />
+      @if (feldHatFehler('nachname', 'required')) {
+        <span class="field-error">Nachname ist erforderlich.</span>
+      }
+      @if (feldHatFehler('nachname', 'zeichen')) {
+        <span class="field-error"
+          >Bitte einen gültigen Namen eingeben – z. B. „Anna“, „Anna Lena“ oder „Anna-Lena“.</span
+        >
+      }
+    </div>
+
+    <!-- Radikal-ID-Angabe: entweder Radikal ID oder Initialen + Geburtsdatum -->
+    @if (!hatKeineRadikalId()) {
+      <div class="field-group">
+        <label [for]="'radikalId-' + i() + '-' + k() + '-' + j()" class="field-label">
+          Radikal ID <span class="required">*</span>
+        </label>
+        <input
+          [id]="'radikalId-' + i() + '-' + k() + '-' + j()"
+          type="text"
+          formControlName="radikalId"
+          class="field-input field-input--sm"
+          [class.field-input--error]="
+            radikalAngabeInvalid() || feldHatFehler('radikalId', 'pattern')
+          "
+          placeholder="MM01011990"
+        />
+        @if (feldHatFehler('radikalId', 'pattern')) {
+          <span class="field-error">
+            Format: zwei Buchstaben und achtstelliges Geburtsdatum (z.&nbsp;B. MM01011990).
+          </span>
+        }
+      </div>
+    } @else {
+      <div class="field-group">
+        <label [for]="'initialen-' + i() + '-' + k() + '-' + j()" class="field-label">
+          Initialen <span class="required">*</span>
+        </label>
+        <input
+          [id]="'initialen-' + i() + '-' + k() + '-' + j()"
+          type="text"
+          formControlName="initialen"
+          class="field-input field-input--sm"
+          [class.field-input--error]="radikalAngabeInvalid()"
+          placeholder="MM"
+        />
+      </div>
+      <div class="field-group">
+        <label [for]="'geburtsdatum-' + i() + '-' + k() + '-' + j()" class="field-label">
+          Geburtsdatum <span class="required">*</span>
+        </label>
+        <input
+          [id]="'geburtsdatum-' + i() + '-' + k() + '-' + j()"
+          type="date"
+          formControlName="geburtsdatum"
+          class="field-input field-input--sm"
+          [max]="heuteIso"
+          [class.field-input--error]="radikalAngabeInvalid() || feldInvalid('geburtsdatum')"
+        />
+        @if (feldHatFehler('geburtsdatum', 'geburtsdatumUngueltig')) {
+          <span class="field-error">
+            Bitte ein gültiges Datum mit vierstelligem Jahr eingeben.
+          </span>
+        }
+        @if (feldHatFehler('geburtsdatum', 'geburtsdatumInZukunft')) {
+          <span class="field-error"> Das Geburtsdatum darf nicht in der Zukunft liegen. </span>
+        }
+      </div>
+    }
+  </div>
+
+  @if (spielerDuplikatText(); as duplikatMeldung) {
+    <span class="field-error">{{ duplikatMeldung }}</span>
+  }
+
+  @if (radikalAngabeInvalid()) {
+    <span class="field-error">
+      Bitte Radikal ID angeben – oder Initialen und Geburtsdatum, damit eine erstellt werden kann.
+    </span>
+  }
+
+  @if (istErsatzZeile()) {
+    <p class="ersatz-hinweis">Die vierte Person kann als Ersatz eingetragen werden.</p>
+  }
+</div>

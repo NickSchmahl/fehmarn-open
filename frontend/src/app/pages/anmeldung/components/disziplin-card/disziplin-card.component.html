@@ -1,0 +1,93 @@
+<div
+  class="disziplin-card"
+  [class.disziplin-card--selected]="istGewaehlt()"
+  [formGroup]="disziplinGroup"
+>
+  <!-- Kopfzeile: Auswahl-Checkbox + Titelzeile (#184).
+       Die Checkbox hakt an/ab. Ist die Disziplin gewählt, klappt ein Klick auf die
+       Titelzeile nur den Detailbereich ein/aus – abwählen geht dann nur per Checkbox. -->
+  <div class="disziplin-head">
+    <label class="disziplin-checkbox">
+      <input
+        type="checkbox"
+        formControlName="selected"
+        class="disziplin-checkbox-input"
+        [id]="'disziplin-' + meta().value"
+        [attr.aria-label]="meta().label"
+      />
+      <span class="disziplin-custom-check" aria-hidden="true">
+        <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+          <path
+            d="M2 5l2.5 2.5L8 3"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </span>
+    </label>
+
+    @if (istGewaehlt()) {
+      <button
+        type="button"
+        class="disziplin-headline disziplin-headline--button"
+        [class.disziplin-headline--collapsed]="eingeklappt()"
+        (click)="klappUmschalten.emit()"
+        [attr.aria-expanded]="!eingeklappt()"
+        [attr.aria-controls]="'disziplin-detail-' + index()"
+      >
+        <span class="disziplin-headline-text">
+          <span class="disziplin-name">{{ meta().label }}</span>
+          @if (meta().subtitle) {
+            <span class="disziplin-subtitle">{{ meta().subtitle }}</span>
+          }
+        </span>
+        @if (meta().preisProSpieler > 0) {
+          <span class="disziplin-price">{{ meta().preisProSpieler }}&nbsp;€ / Spieler</span>
+        } @else {
+          <span class="disziplin-price">kostenlos</span>
+        }
+        @if (eingeklappt()) {
+          <span class="collapse-count" aria-hidden="true">{{ meldungGesamt() }}</span>
+        }
+        <span class="collapse-chevron" aria-hidden="true">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <path
+              d="M3 4.5L6 7.5L9 4.5"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </span>
+      </button>
+    } @else {
+      <label class="disziplin-headline" [for]="'disziplin-' + meta().value">
+        <span class="disziplin-headline-text">
+          <span class="disziplin-name">{{ meta().label }}</span>
+          @if (meta().subtitle) {
+            <span class="disziplin-subtitle">{{ meta().subtitle }}</span>
+          }
+        </span>
+        @if (meta().preisProSpieler > 0) {
+          <span class="disziplin-price">{{ meta().preisProSpieler }}&nbsp;€ / Spieler</span>
+        } @else {
+          <span class="disziplin-price">kostenlos</span>
+        }
+      </label>
+    }
+  </div>
+
+  <!-- Meldungen dieser Disziplin (Teamname + Spielerzeilen je Meldung) -->
+  @if (istGewaehlt() && !eingeklappt()) {
+    <div class="meldungen-block" [id]="'disziplin-detail-' + index()">
+      @for (meldungCtrl of meldungControls; track meldungCtrl; let k = $index) {
+        <app-meldung-card [meldungGroup]="meldungGruppe(k)" [i]="index()" [k]="k" [meta]="meta()" />
+      }
+
+      <button type="button" class="meldung-add" (click)="addMeldung()">+ Weitere Meldung</button>
+    </div>
+  }
+</div>

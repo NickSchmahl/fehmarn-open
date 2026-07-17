@@ -291,7 +291,7 @@
 }
 
 .team-block--named {
-  padding: 0.5rem;
+  padding: 0.5rem 0;
   border: 1px solid var(--border);
   border-left: 2px solid var(--accent);
   border-radius: var(--radius);
@@ -347,10 +347,13 @@
   gap: 0.5rem;
 }
 
+/* Feste Spalten: Name flexibel, Radikal-ID und Aktionen mit fester Breite, damit die
+   Spaltenkanten unabhängig von Namenslänge, Filter und Team-/Einzelmeldung stabil sind.
+   Aktionsspalte = 2×32px Icon-Buttons + 0.4rem Lücke = 72px. */
 .admin-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 9rem 72px;
   align-items: center;
-  justify-content: space-between;
   gap: 1rem;
   padding: 0.7rem 0.85rem;
   border: 1px solid var(--border);
@@ -389,11 +392,14 @@
   font-size: 0.9rem;
 }
 
+/* Immer Spalte 2, auch bei Team-Mitgliedern (dort fehlt das Aktions-Element in Spalte 3).
+   Überlange IDs brechen um, die Spaltenkante bleibt stehen. */
 .admin-radikal-id {
-  flex: 0 0 auto;
+  grid-column: 2;
   color: var(--text-muted);
   font-size: 0.8rem;
   font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
 }
 
 .team-badge {
@@ -494,12 +500,16 @@
     padding: 2rem 1.25rem 1.5rem;
   }
 
+  /* Schmale Displays: Spalten stapeln, Aktionen rechtsbündig für bessere Übersicht. */
   .admin-row {
-    flex-direction: column;
+    grid-template-columns: 1fr;
     align-items: stretch;
     gap: 0.6rem;
   }
-  .admin-row-actions {
-    justify-content: space-between;
+  .admin-radikal-id {
+    grid-column: auto;
+  }
+  .admin-row app-meldung-aktionen {
+    justify-self: end;
   }
 }

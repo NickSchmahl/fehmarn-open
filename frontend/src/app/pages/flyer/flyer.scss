@@ -353,6 +353,10 @@
   color: var(--text);
 }
 
+.flyer-hoch-titel-akzent {
+  color: var(--accent);
+}
+
 .flyer-hoch-titel-jahr {
   font-family: 'Anton', 'DM Sans', sans-serif;
   font-size: clamp(1.4rem, 7vw, 2.1rem);

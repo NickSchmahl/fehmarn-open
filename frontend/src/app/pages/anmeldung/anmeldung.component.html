@@ -27,7 +27,7 @@
     @if (anmeldungOffen()) {
       <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate class="anmeldung-form">
         <!-- ── Disziplinen + Spieler ──────────────────────────────────────── -->
-        <section class="form-section" formArrayName="disziplinen">
+        <section class="form-section">
           <h2 class="section-title">Disziplinen &amp; Spieler</h2>
 
           <div class="hinweis radikal-hinweis" role="note">
@@ -53,120 +53,12 @@
 
           <div class="disziplin-grid">
             @for (disziplin of disziplinen; track disziplin.value; let i = $index) {
-              <div
-                class="disziplin-card"
-                [class.disziplin-card--selected]="isDisziplinSelected(i)"
-                [formGroupName]="i"
-              >
-                <!-- Kopfzeile: Auswahl-Checkbox + Titelzeile (#184).
-                     Die Checkbox hakt an/ab. Ist die Disziplin gewählt, klappt ein Klick auf die
-                     Titelzeile nur den Detailbereich ein/aus – abwählen geht dann nur per Checkbox. -->
-                <div class="disziplin-head">
-                  <label class="disziplin-checkbox">
-                    <input
-                      type="checkbox"
-                      formControlName="selected"
-                      class="disziplin-checkbox-input"
-                      [id]="'disziplin-' + disziplin.value"
-                      [attr.aria-label]="disziplin.label"
-                    />
-                    <span class="disziplin-custom-check" aria-hidden="true">
-                      <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                        <path
-                          d="M2 5l2.5 2.5L8 3"
-                          stroke="currentColor"
-                          stroke-width="1.5"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                        />
-                      </svg>
-                    </span>
-                  </label>
-
-                  @if (isDisziplinSelected(i)) {
-                    <button
-                      type="button"
-                      class="disziplin-headline disziplin-headline--button"
-                      [class.disziplin-headline--collapsed]="isCollapsed(i)"
-                      (click)="toggleCollapse(i)"
-                      [attr.aria-expanded]="!isCollapsed(i)"
-                      [attr.aria-controls]="'disziplin-detail-' + i"
-                    >
-                      <span class="disziplin-headline-text">
-                        <span class="disziplin-name">{{ disziplin.label }}</span>
-                        @if (disziplin.subtitle) {
-                          <span class="disziplin-subtitle">{{ disziplin.subtitle }}</span>
-                        }
-                      </span>
-                      @if (disziplin.preisProSpieler > 0) {
-                        <span class="disziplin-price"
-                          >{{ disziplin.preisProSpieler }}&nbsp;€ / Spieler</span
-                        >
-                      } @else {
-                        <span class="disziplin-price">kostenlos</span>
-                      }
-                      @if (isCollapsed(i)) {
-                        <span class="collapse-count" aria-hidden="true">{{
-                          meldungGesamt(i)
-                        }}</span>
-                      }
-                      <span class="collapse-chevron" aria-hidden="true">
-                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                          <path
-                            d="M3 4.5L6 7.5L9 4.5"
-                            stroke="currentColor"
-                            stroke-width="1.5"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                          />
-                        </svg>
-                      </span>
-                    </button>
-                  } @else {
-                    <label class="disziplin-headline" [for]="'disziplin-' + disziplin.value">
-                      <span class="disziplin-headline-text">
-                        <span class="disziplin-name">{{ disziplin.label }}</span>
-                        @if (disziplin.subtitle) {
-                          <span class="disziplin-subtitle">{{ disziplin.subtitle }}</span>
-                        }
-                      </span>
-                      @if (disziplin.preisProSpieler > 0) {
-                        <span class="disziplin-price"
-                          >{{ disziplin.preisProSpieler }}&nbsp;€ / Spieler</span
-                        >
-                      } @else {
-                        <span class="disziplin-price">kostenlos</span>
-                      }
-                    </label>
-                  }
-                </div>
-
-                <!-- Meldungen dieser Disziplin (Teamname + Spielerzeilen je Meldung) -->
-                @if (isDisziplinSelected(i) && !isCollapsed(i)) {
-                  <div
-                    class="meldungen-block"
-                    [id]="'disziplin-detail-' + i"
-                    formArrayName="meldungen"
-                  >
-                    @for (
-                      meldungCtrl of meldungenArray(i).controls;
-                      track meldungCtrl;
-                      let k = $index
-                    ) {
-                      <app-meldung-card
-                        [meldungGroup]="meldungGroup(i, k)"
-                        [i]="i"
-                        [k]="k"
-                        [meta]="disziplin"
-                      />
-                    }
-
-                    <button type="button" class="meldung-add" (click)="addMeldung(i)">
-                      + Weitere Meldung
-                    </button>
-                  </div>
-                }
-              </div>
+              <app-disziplin-card
+                [meta]="disziplin"
+                [index]="i"
+                [eingeklappt]="isCollapsed(i)"
+                (klappUmschalten)="toggleCollapse(i)"
+              />
             }
           </div>
         </section>

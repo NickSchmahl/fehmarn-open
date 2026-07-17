@@ -5,6 +5,7 @@ import { map, Observable, Subject } from 'rxjs';
 import { DISZIPLINEN } from '../../../shared/disziplin';
 import {
   geburtsdatumValidator,
+  initialenMusterValidator,
   mindestensEineDisziplinValidator,
   radikalIdAngabeValidator,
   radikalIdPatternValidator,
@@ -118,7 +119,7 @@ export class AnmeldungFormService {
         nachname: ['', [Validators.required, spielernameMusterValidator]],
         hatKeineRadikalId: [false],
         radikalId: ['', [radikalIdPatternValidator]],
-        initialen: [''],
+        initialen: ['', [initialenMusterValidator]],
         geburtsdatum: ['', [geburtsdatumValidator]],
       },
       { validators: radikalIdAngabeValidator },
@@ -185,6 +186,7 @@ export class AnmeldungFormService {
   revalidiereRadikalFelder(i: number, k: number, j: number): void {
     const group = this.spielerGroup(i, k, j);
     group.get('radikalId')?.updateValueAndValidity();
+    group.get('initialen')?.updateValueAndValidity();
     group.get('geburtsdatum')?.updateValueAndValidity();
   }
 

@@ -59,6 +59,22 @@ export function radikalIdPatternValidator(control: AbstractControl): ValidationE
   return RADIKAL_ID_MUSTER.test(value) ? null : { pattern: true };
 }
 
+/** Initialen: genau zwei Großbuchstaben (A–Z), z. B. „MM“. */
+const INITIALEN_MUSTER = /^[A-Z]{2}$/;
+
+/**
+ * Feld-Validator für die Initialen: genau zwei Großbuchstaben. Nur im „keine ID"-Modus relevant;
+ * sonst ist das Feld ausgeblendet und ein Restwert wird nicht geprüft. Leer bleibt Sache der
+ * Pflicht-Logik im Gruppen-Validator {@link radikalIdAngabeValidator}.
+ */
+export function initialenMusterValidator(control: AbstractControl): ValidationErrors | null {
+  const parent = control.parent;
+  if (!parent || parent.get('hatKeineRadikalId')?.value !== true) return null;
+  const value = typeof control.value === 'string' ? control.value : '';
+  if (value === '') return null;
+  return INITIALEN_MUSTER.test(value) ? null : { initialenMuster: true };
+}
+
 /**
  * Feld-Validator fürs Geburtsdatum: erlaubt nur ein reales Datum mit vierstelligem Jahr
  * (`YYYY-MM-DD`) und kein Datum in der Zukunft. Nur im „keine ID"-Modus relevant; sonst ist

@@ -17,7 +17,7 @@ import { AnmeldungApiService } from './services/anmeldung-api.service';
 import { AnmeldungFormService } from './services/anmeldung-form.service';
 import { KollapsZustand } from './services/kollaps-zustand';
 import { PreisUebersichtComponent } from './components/preis-uebersicht/preis-uebersicht.component';
-import { SpielerZeileComponent } from './components/spieler-zeile/spieler-zeile.component';
+import { MeldungCardComponent } from './components/meldung-card/meldung-card.component';
 
 /**
  * Container der Anmeldeseite: orchestriert Formular (AnmeldungFormService), HTTP
@@ -32,7 +32,7 @@ import { SpielerZeileComponent } from './components/spieler-zeile/spieler-zeile.
     ReactiveFormsModule,
     BrandIconComponent,
     PreisUebersichtComponent,
-    SpielerZeileComponent,
+    MeldungCardComponent,
   ],
   providers: [AnmeldungFormService],
   templateUrl: './anmeldung.component.html',

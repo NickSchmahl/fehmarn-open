@@ -1,0 +1,67 @@
+<div class="meldung-card" [formGroup]="meldungGroup()">
+  @if (brauchtTeamname()) {
+    <div class="teamname-field">
+      <div class="teamname-field-head">
+        <label [for]="'teamname-' + i() + '-' + k()" class="field-label">
+          Teamname <span class="required">*</span>
+        </label>
+        @if (canRemoveMeldung()) {
+          <button
+            type="button"
+            class="meldung-remove"
+            (click)="removeMeldung()"
+            [attr.aria-label]="'Meldung ' + (k() + 1) + ' entfernen'"
+          >
+            Meldung entfernen
+          </button>
+        }
+      </div>
+      <input
+        [id]="'teamname-' + i() + '-' + k()"
+        type="text"
+        formControlName="teamName"
+        class="field-input field-input--sm"
+        [class.field-input--error]="teamNameInvalid()"
+        placeholder="z. B. Die Bullseye Boys"
+      />
+      @if (teamNameRequiredFehler()) {
+        <span class="field-error">Teamname ist erforderlich.</span>
+      }
+      @if (teamNameLaengeFehler()) {
+        <span class="field-error"
+          >Teamname darf höchstens {{ teamnameMaxLaenge }} Zeichen haben.</span
+        >
+      }
+      @if (teamNameZeichenFehler()) {
+        <span class="field-error"
+          >Bitte einen gültigen Teamnamen eingeben – z. B. „Die Bären“ oder „Team 42“.</span
+        >
+      }
+      @if (teamNameDuplikatText(); as duplikatMeldung) {
+        <span class="field-error">{{ duplikatMeldung }}</span>
+      }
+    </div>
+  }
+
+  <div class="spieler-block">
+    @for (spielerCtrl of spielerControls; track spielerCtrl; let j = $index) {
+      <app-spieler-zeile
+        [spielerGroup]="spielerGruppe(j)"
+        [i]="i()"
+        [k]="k()"
+        [j]="j"
+        [zeigeSpielerNr]="brauchtTeamname()"
+        [kannEntfernen]="canRemoveSpieler()"
+        [kannMeldungEntfernen]="!brauchtTeamname() && j === 0 && canRemoveMeldung()"
+        [istErsatzZeile]="istErsatzZeile(j)"
+        (entfernen)="removeSpieler(j)"
+        (meldungEntfernen)="removeMeldung()"
+        (radikalIdUmgeschaltet)="toggleRadikalId(j)"
+      />
+    }
+
+    @if (canAddSpieler()) {
+      <button type="button" class="spieler-add" (click)="addSpieler()">+ Spieler hinzufügen</button>
+    }
+  </div>
+</div>

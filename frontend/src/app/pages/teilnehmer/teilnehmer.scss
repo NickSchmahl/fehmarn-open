@@ -53,12 +53,13 @@
 
 /* ── Card ───────────────────────────────────────────────── */
 .teilnehmer-card {
+  box-sizing: border-box;
   width: 100%;
-  max-width: 720px;
+  max-width: 1600px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 2.5rem 2rem 2rem;
+  padding: 2.5rem clamp(1.25rem, 3vw, 3rem) 3rem;
   box-shadow:
     0 0 0 1px rgba(255, 255, 255, 0.03),
     0 24px 64px rgba(0, 0, 0, 0.6);
@@ -142,6 +143,25 @@
   font-size: 0.95rem;
 }
 
+/* ── Sticky Toolbar (Suche + Filter) ───────────────────── */
+.toolbar-sticky {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  margin: 0 calc(-1 * clamp(1.25rem, 3vw, 3rem)) 1.75rem;
+  padding: 0.75rem clamp(1.25rem, 3vw, 3rem) 1rem;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.toolbar-sticky .search-input {
+  margin-bottom: 0.75rem;
+}
+
+.toolbar-sticky .chip-row {
+  margin-bottom: 0;
+}
+
 /* ── Filter-Chips ───────────────────────────────────────── */
 .chip-row {
   display: flex;
@@ -196,7 +216,7 @@
 
 /* ── Disziplin-Sektion ──────────────────────────────────── */
 .disziplin-section {
-  margin-bottom: 1.75rem;
+  margin-bottom: 2.25rem;
 }
 .disziplin-section:last-child {
   margin-bottom: 0;
@@ -233,9 +253,10 @@
   list-style: none;
   margin: 0;
   padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.6rem 0.75rem;
+  align-items: start;
 }
 
 .team-item {
@@ -285,9 +306,17 @@
   border-color: var(--border-focus);
 }
 
+/* ── Admin: Team-Block-Grid ─────────────────────────────── */
+.team-blocks-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 0.6rem 0.75rem;
+  align-items: start;
+}
+
 /* ── Admin: Team-Block ──────────────────────────────────── */
 .team-block {
-  margin-bottom: 0.5rem;
+  margin-bottom: 0;
 }
 
 .team-block--named {
@@ -498,6 +527,11 @@
 @media (max-width: 720px) {
   .teilnehmer-card {
     padding: 2rem 1.25rem 1.5rem;
+  }
+
+  .toolbar-sticky {
+    margin: 0 -1.25rem 1.5rem;
+    padding: 0.6rem 1.25rem 0.85rem;
   }
 
   /* Schmale Displays: Aktionen rutschen oben rechts in die Kopfzeile neben den Namen,

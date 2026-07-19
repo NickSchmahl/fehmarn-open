@@ -20,13 +20,117 @@
       @if (adminGruppen().length === 0) {
         <div class="empty-state"><p>Noch keine Anmeldungen.</p></div>
       } @else {
-        <input
-          type="search"
-          class="search-input"
-          placeholder="Suche nach Name"
-          (input)="setSuche($any($event.target).value)"
-        />
+        <div class="toolbar-sticky">
+          <input
+            type="search"
+            class="search-input"
+            placeholder="Suche nach Name"
+            (input)="setSuche($any($event.target).value)"
+          />
 
+          <div class="chip-row" role="tablist" aria-label="Disziplin filtern">
+            @for (chip of chips(); track chip.value) {
+              <button
+                type="button"
+                role="tab"
+                class="chip"
+                [class.chip--active]="aktiveDisziplin() === chip.value"
+                [attr.aria-selected]="aktiveDisziplin() === chip.value"
+                (click)="setFilter(chip.value)"
+              >
+                {{ chip.label }}
+                <span class="chip-count">{{ chip.anzahl }}</span>
+              </button>
+            }
+          </div>
+        </div>
+
+        @for (gruppe of sichtbareAdminGruppen(); track gruppe.disziplin) {
+          <section class="disziplin-section">
+            <h2 class="section-title">
+              {{ gruppe.label }}
+              <span class="section-count">{{ gruppe.anzahl }}</span>
+            </h2>
+
+            <div class="team-blocks-grid">
+              @for (meldung of gruppe.meldungen; track meldung.id) {
+                <div
+                  class="team-block"
+                  [class.team-block--named]="meldung.teamName"
+                  [class.admin-row--abgemeldet]="meldung.abgemeldet"
+                >
+                  @if (meldung.teamName) {
+                    <div
+                      class="team-head"
+                      [class.team-head--abgemeldet]="meldung.abgemeldet"
+                      [class.team-head--anwesend]="meldung.anwesend && !meldung.abgemeldet"
+                    >
+                      <span class="team-head-name">
+                        {{ meldung.teamName }}
+                        @if (meldung.abgemeldet) {
+                          <span class="status-badge">abgemeldet</span>
+                        }
+                      </span>
+                      <div class="team-head-actions">
+                        <app-meldung-aktionen
+                          [anwesend]="meldung.anwesend"
+                          [abgemeldet]="meldung.abgemeldet"
+                          (toggleAnwesenheit)="toggleAnwesenheit(meldung.id, $event)"
+                          (abmelden)="abmelden(meldung.id)"
+                          (reaktivieren)="reaktivieren(meldung.id)"
+                        />
+                      </div>
+                    </div>
+                  }
+
+                  @if (fehlerFuer(meldung.id); as fehler) {
+                    <div class="team-block-fehler alert-error" role="alert">{{ fehler }}</div>
+                  }
+
+                  <ul class="admin-list">
+                    @for (spieler of meldung.spieler; track $index) {
+                      <li
+                        class="admin-row"
+                        [class.admin-row--anwesend]="
+                          !meldung.teamName && meldung.anwesend && !meldung.abgemeldet
+                        "
+                      >
+                        <span class="admin-name">
+                          {{ spieler.vorname }} {{ spieler.nachname }}
+                          @if (!spieler.radikalId) {
+                            <span class="neu-anlegen-badge">ID neu anlegen</span>
+                          }
+                        </span>
+                        <span class="admin-radikal-id">
+                          @if (spieler.radikalId) {
+                            {{ spieler.radikalId }}
+                          } @else {
+                            {{ anlageGrundlage(spieler) }}
+                          }
+                        </span>
+                        @if (!meldung.teamName) {
+                          <app-meldung-aktionen
+                            [anwesend]="meldung.anwesend"
+                            [abgemeldet]="meldung.abgemeldet"
+                            (toggleAnwesenheit)="toggleAnwesenheit(meldung.id, $event)"
+                            (abmelden)="abmelden(meldung.id)"
+                            (reaktivieren)="reaktivieren(meldung.id)"
+                          />
+                        }
+                      </li>
+                    }
+                  </ul>
+                </div>
+              }
+            </div>
+          </section>
+        }
+      }
+    } @else if (gruppen().length === 0) {
+      <div class="empty-state"><p>Noch keine Anmeldungen.</p></div>
+    } @else {
+      <!-- ══ Öffentlicher Modus ══════════════════════════════════════════ -->
+      <div class="toolbar-sticky">
         <div class="chip-row" role="tablist" aria-label="Disziplin filtern">
           @for (chip of chips(); track chip.value) {
             <button
@@ -42,104 +146,6 @@
             </button>
           }
         </div>
-
-        @for (gruppe of sichtbareAdminGruppen(); track gruppe.disziplin) {
-          <section class="disziplin-section">
-            <h2 class="section-title">
-              {{ gruppe.label }}
-              <span class="section-count">{{ gruppe.anzahl }}</span>
-            </h2>
-
-            @for (meldung of gruppe.meldungen; track meldung.id) {
-              <div
-                class="team-block"
-                [class.team-block--named]="meldung.teamName"
-                [class.admin-row--abgemeldet]="meldung.abgemeldet"
-              >
-                @if (meldung.teamName) {
-                  <div
-                    class="team-head"
-                    [class.team-head--abgemeldet]="meldung.abgemeldet"
-                    [class.team-head--anwesend]="meldung.anwesend && !meldung.abgemeldet"
-                  >
-                    <span class="team-head-name">
-                      {{ meldung.teamName }}
-                      @if (meldung.abgemeldet) {
-                        <span class="status-badge">abgemeldet</span>
-                      }
-                    </span>
-                    <div class="team-head-actions">
-                      <app-meldung-aktionen
-                        [anwesend]="meldung.anwesend"
-                        [abgemeldet]="meldung.abgemeldet"
-                        (toggleAnwesenheit)="toggleAnwesenheit(meldung.id, $event)"
-                        (abmelden)="abmelden(meldung.id)"
-                        (reaktivieren)="reaktivieren(meldung.id)"
-                      />
-                    </div>
-                  </div>
-                }
-
-                @if (fehlerFuer(meldung.id); as fehler) {
-                  <div class="team-block-fehler alert-error" role="alert">{{ fehler }}</div>
-                }
-
-                <ul class="admin-list">
-                  @for (spieler of meldung.spieler; track $index) {
-                    <li
-                      class="admin-row"
-                      [class.admin-row--anwesend]="
-                        !meldung.teamName && meldung.anwesend && !meldung.abgemeldet
-                      "
-                    >
-                      <span class="admin-name">
-                        {{ spieler.vorname }} {{ spieler.nachname }}
-                        @if (!spieler.radikalId) {
-                          <span class="neu-anlegen-badge">ID neu anlegen</span>
-                        }
-                      </span>
-                      <span class="admin-radikal-id">
-                        @if (spieler.radikalId) {
-                          {{ spieler.radikalId }}
-                        } @else {
-                          {{ anlageGrundlage(spieler) }}
-                        }
-                      </span>
-                      @if (!meldung.teamName) {
-                        <app-meldung-aktionen
-                          [anwesend]="meldung.anwesend"
-                          [abgemeldet]="meldung.abgemeldet"
-                          (toggleAnwesenheit)="toggleAnwesenheit(meldung.id, $event)"
-                          (abmelden)="abmelden(meldung.id)"
-                          (reaktivieren)="reaktivieren(meldung.id)"
-                        />
-                      }
-                    </li>
-                  }
-                </ul>
-              </div>
-            }
-          </section>
-        }
-      }
-    } @else if (gruppen().length === 0) {
-      <div class="empty-state"><p>Noch keine Anmeldungen.</p></div>
-    } @else {
-      <!-- ══ Öffentlicher Modus ══════════════════════════════════════════ -->
-      <div class="chip-row" role="tablist" aria-label="Disziplin filtern">
-        @for (chip of chips(); track chip.value) {
-          <button
-            type="button"
-            role="tab"
-            class="chip"
-            [class.chip--active]="aktiveDisziplin() === chip.value"
-            [attr.aria-selected]="aktiveDisziplin() === chip.value"
-            (click)="setFilter(chip.value)"
-          >
-            {{ chip.label }}
-            <span class="chip-count">{{ chip.anzahl }}</span>
-          </button>
-        }
       </div>
 
       @for (gruppe of sichtbareGruppen(); track gruppe.disziplin) {

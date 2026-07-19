@@ -118,9 +118,14 @@
           type="text"
           formControlName="initialen"
           class="field-input field-input--sm"
-          [class.field-input--error]="radikalAngabeInvalid()"
+          [class.field-input--error]="
+            radikalAngabeInvalid() || feldHatFehler('initialen', 'initialenMuster')
+          "
           placeholder="MM"
         />
+        @if (feldHatFehler('initialen', 'initialenMuster')) {
+          <span class="field-error">Bitte genau zwei Großbuchstaben eingeben (z.&nbsp;B. MM).</span>
+        }
       </div>
       <div class="field-group">
         <label [for]="'geburtsdatum-' + i() + '-' + k() + '-' + j()" class="field-label">

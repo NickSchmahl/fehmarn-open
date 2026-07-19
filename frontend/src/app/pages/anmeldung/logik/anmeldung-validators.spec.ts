@@ -1,6 +1,7 @@
 import { AbstractControl, FormArray, FormControl, FormGroup } from '@angular/forms';
 import {
   geburtsdatumValidator,
+  initialenMusterValidator,
   mindestensEineDisziplinValidator,
   radikalIdAngabeValidator,
   radikalIdPatternValidator,
@@ -105,6 +106,32 @@ describe('radikalIdPatternValidator', () => {
   it('ignoriert leere Eingaben', () => {
     const group = spielerGroup();
     expect(radikalIdPatternValidator(control(group, 'radikalId'))).toBeNull();
+  });
+});
+
+describe('initialenMusterValidator', () => {
+  it('akzeptiert genau zwei Großbuchstaben im „keine ID"-Modus', () => {
+    const group = spielerGroup({ hatKeineRadikalId: true, initialen: 'MM' });
+    expect(initialenMusterValidator(control(group, 'initialen'))).toBeNull();
+  });
+
+  it('lehnt Kleinbuchstaben, Ziffern und falsche Längen ab', () => {
+    for (const wert of ['mm', 'Mm', 'M', 'MMM', 'M1', 'M-', 'Mü']) {
+      const group = spielerGroup({ hatKeineRadikalId: true, initialen: wert });
+      expect(initialenMusterValidator(control(group, 'initialen'))).toEqual({
+        initialenMuster: true,
+      });
+    }
+  });
+
+  it('prüft nur im „keine ID"-Modus (sonst Feld ausgeblendet)', () => {
+    const group = spielerGroup({ initialen: 'mm' });
+    expect(initialenMusterValidator(control(group, 'initialen'))).toBeNull();
+  });
+
+  it('ignoriert leere Eingaben (Sache der Pflichtprüfung)', () => {
+    const group = spielerGroup({ hatKeineRadikalId: true });
+    expect(initialenMusterValidator(control(group, 'initialen'))).toBeNull();
   });
 });
 

@@ -198,6 +198,23 @@ class AnmeldungControllerTest {
     }
 
     @Test
+    void postAnmeldung_mitUngueltigenInitialen_sollBadRequestMitFeldfehler() throws Exception {
+        // Initialen müssen genau zwei Großbuchstaben sein – "mm" (Kleinbuchstaben) ist ungültig.
+        when(anmeldungService.anmelden(any())).thenReturn(List.of());
+        AnmeldungRequest request = new AnmeldungRequest(List.of(new DisziplinAnmeldung(
+                Disziplin.HERRENEINZEL,
+                null,
+                List.of(new SpielerRequest("Max", "Mustermann", null, "mm", LocalDate.of(1990, 1, 1))))));
+
+        mockMvc.perform(post("/api/anmeldung")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Validierungsfehler"))
+                .andExpect(jsonPath("$.errors[?(@.field =~ /.*initialen/)]").exists());
+    }
+
+    @Test
     void postAnmeldung_mitGeburtsdatumInZukunft_sollBadRequestMitFeldfehler() throws Exception {
         when(anmeldungService.anmelden(any())).thenReturn(List.of());
         AnmeldungRequest request = new AnmeldungRequest(List.of(new DisziplinAnmeldung(

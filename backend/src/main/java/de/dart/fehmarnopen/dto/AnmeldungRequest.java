@@ -32,6 +32,7 @@ public record AnmeldungRequest(
                             message =
                                     "Radikal ID muss zwei Buchstaben und ein achtstelliges Geburtsdatum sein (z. B. MM01011990)")
                     String radikalId,
-            String initialen,
+            @Pattern(regexp = "^[A-Z]{2}$", message = "Initialen müssen genau zwei Großbuchstaben sein (z. B. MM)")
+                    String initialen,
             @Past(message = "Geburtsdatum muss in der Vergangenheit liegen") LocalDate geburtsdatum) {}
 }

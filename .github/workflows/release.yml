@@ -38,7 +38,7 @@ jobs:
           cache: 'maven'
 
       - name: Node aufsetzen
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: '22'
 

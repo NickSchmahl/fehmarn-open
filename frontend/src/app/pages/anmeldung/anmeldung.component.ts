@@ -1,4 +1,13 @@
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import {
+  afterNextRender,
+  Component,
+  computed,
+  ElementRef,
+  inject,
+  Injector,
+  OnInit,
+  signal,
+} from '@angular/core';
 import { FormArray, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { DISZIPLINEN } from '../../shared/disziplin';
 import { formatiereIsoDatum } from '../../shared/datum';
@@ -36,6 +45,8 @@ import { DisziplinCardComponent } from './components/disziplin-card/disziplin-ca
 export class AnmeldungComponent implements OnInit {
   private api = inject(AnmeldungApiService);
   private formService = inject(AnmeldungFormService);
+  private host = inject<ElementRef<HTMLElement>>(ElementRef);
+  private injector = inject(Injector);
 
   // Öffentliche Metadaten für das Template
   readonly disziplinen = DISZIPLINEN;
@@ -193,7 +204,11 @@ export class AnmeldungComponent implements OnInit {
     this.form.markAllAsTouched();
     // Eingeklappte Karten mit Fehler wieder aufklappen, damit kein Validierungsfehler verdeckt bleibt.
     this.klappeFehlerhafteKartenAuf();
-    if (this.form.invalid) return;
+    if (this.form.invalid) {
+      // Zum obersten sichtbaren Fehler springen, damit der Nutzer sofort sieht, was fehlt.
+      this.springeZuErstemFehler();
+      return;
+    }
 
     const body = erstelleAnmeldungRequest(this.formService.rohwert());
 
@@ -230,6 +245,33 @@ export class AnmeldungComponent implements OnInit {
   private scrollToTop(): void {
     if (typeof window === 'undefined') return;
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  /**
+   * Springt nach dem Absende-Versuch zum obersten Validierungsfehler. `afterNextRender` läuft nur
+   * im Browser und erst, nachdem die durch {@link klappeFehlerhafteKartenAuf} und
+   * `markAllAsTouched` ausgelösten DOM-Änderungen (aufgeklappte Karten, sichtbare Fehlermeldungen)
+   * gerendert sind – sonst würde ins Leere gescrollt.
+   */
+  private springeZuErstemFehler(): void {
+    afterNextRender(
+      () => {
+        this.scrollToFirstError();
+      },
+      { injector: this.injector },
+    );
+  }
+
+  /**
+   * Scrollt zum ersten Fehler-Element in Dokumentreihenfolge (also dem visuell obersten):
+   * dem formweiten Fehler-Banner, einem als fehlerhaft markierten Eingabefeld oder einer
+   * Feld-Fehlermeldung. `querySelector` liefert stets den ersten Treffer im Dokument.
+   */
+  private scrollToFirstError(): void {
+    const fehler = this.host.nativeElement.querySelector<HTMLElement>(
+      '.alert-error, .field-input--error, .field-error',
+    );
+    fehler?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
   /**

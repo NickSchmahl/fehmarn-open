@@ -15,6 +15,22 @@ const TRIPLE_MIX = DISZIPLINEN.findIndex((d) => d.value === 'TRIPLE_MIX');
 const TEAMWETTBEWERB = DISZIPLINEN.findIndex((d) => d.value === 'TEAMWETTBEWERB');
 const U18 = DISZIPLINEN.findIndex((d) => d.value === 'U18');
 
+/**
+ * jsdom implementiert `scrollIntoView` nicht – für den Scroll-zum-Fehler-Test wird die
+ * Methode temporär durch einen Mock ersetzt (`mock.instances[0]` liefert das Ziel-Element).
+ */
+function mockScrollIntoView(): { scrollSpy: jest.Mock; restore: () => void } {
+  const original = Element.prototype.scrollIntoView;
+  const scrollSpy = jest.fn();
+  Element.prototype.scrollIntoView = scrollSpy;
+  return {
+    scrollSpy,
+    restore: () => {
+      Element.prototype.scrollIntoView = original;
+    },
+  };
+}
+
 describe('AnmeldungComponent', () => {
   let component: AnmeldungComponent;
   let fixture: ComponentFixture<AnmeldungComponent>;
@@ -318,6 +334,19 @@ describe('AnmeldungComponent', () => {
       fixture.detectChanges();
 
       expect(disziplinFehlerSichtbar()).toBe(true);
+    });
+
+    it('scrollt beim Absenden ohne Auswahl zum Disziplin-Fehler-Banner', () => {
+      const { scrollSpy, restore } = mockScrollIntoView();
+
+      component.onSubmit();
+      fixture.detectChanges();
+
+      expect(scrollSpy).toHaveBeenCalled();
+      const gescrolltesElement = scrollSpy.mock.instances[0] as HTMLElement;
+      expect(gescrolltesElement.classList.contains('alert-error')).toBe(true);
+      expect(gescrolltesElement.textContent).toContain('mindestens eine Disziplin');
+      restore();
     });
   });
 
@@ -915,6 +944,25 @@ describe('AnmeldungComponent', () => {
       expect(detailBereich(HERRENDOPPEL)).not.toBeNull();
       expect(titelzeile()?.getAttribute('aria-expanded')).toBe('true');
       httpMock.expectNone('/api/anmeldung');
+    });
+
+    it('scrollt beim Absenden mit Fehler in einer eingeklappten Karte zum aufgeklappten Fehlerfeld', () => {
+      const { scrollSpy, restore } = mockScrollIntoView();
+      waehleDisziplin(HERRENDOPPEL); // Pflichtfelder leer → ungültig
+      klickeTitelzeile(); // Karte einklappen
+
+      const submitBtn = host().querySelector('.submit-btn');
+      (submitBtn as HTMLButtonElement | null)?.click();
+      fixture.detectChanges();
+
+      // Karte ist wieder offen, und es wurde zu einem darin liegenden Fehler-Element gescrollt.
+      expect(detailBereich(HERRENDOPPEL)).not.toBeNull();
+      expect(scrollSpy).toHaveBeenCalled();
+      const gescrolltesElement = scrollSpy.mock.instances[0] as HTMLElement;
+      expect(gescrolltesElement.matches('.alert-error, .field-input--error, .field-error')).toBe(
+        true,
+      );
+      restore();
     });
 
     it('aktualisiert die Meldungsanzahl der Zusammenfassung nach „+ Weitere Meldung"', () => {

@@ -11,6 +11,12 @@ public class TestSecurityConfig {
 
     @Bean
     public SecurityFilterChain testFilterChain(HttpSecurity http) throws Exception {
+        // CSRF bewusst deaktiviert – aus denselben Gründen wie in SecurityConfig:
+        // Die API ist zustandslos, kennt keine Cookies und keine HTTP-Session, das
+        // JWT wird ausschließlich über den Authorization-Header übertragen.
+        // Zusätzlich ist diese @TestConfiguration reiner Testcode und wird nie
+        // ausgeliefert. CodeQL (java/spring-disabled-csrf-protection) meldet das
+        // trotzdem – False Positive.
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
         return http.build();

@@ -4,7 +4,7 @@ import { AdminLoginComponent } from './pages/login/login.component';
 const BASISTITEL = '12. Fehmarn Open 2027';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'flyer', pathMatch: 'full' },
+  { path: '', redirectTo: 'anmeldung', pathMatch: 'full' },
   {
     path: 'anmeldung',
     title: `${BASISTITEL} – Anmeldung`,
@@ -36,5 +36,5 @@ export const routes: Routes = [
     title: `${BASISTITEL} – Admin-Login`,
     component: AdminLoginComponent,
   },
-  { path: '**', redirectTo: 'flyer' },
+  { path: '**', redirectTo: 'anmeldung' },
 ];

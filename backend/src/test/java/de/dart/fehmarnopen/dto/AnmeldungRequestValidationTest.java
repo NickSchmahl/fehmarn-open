@@ -1,16 +1,14 @@
 package de.dart.fehmarnopen.dto;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import java.time.LocalDate;
-import java.util.Set;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 class AnmeldungRequestValidationTest {
 
@@ -24,8 +22,8 @@ class AnmeldungRequestValidationTest {
 
     @Test
     void radikalIdMitAnhaengendemGrossbuchstaben_wirdAkzeptiert() {
-        AnmeldungRequest.SpielerRequest s = new AnmeldungRequest.SpielerRequest(
-                "Max", "Mustermann", "MM01011990A", null, null);
+        AnmeldungRequest.SpielerRequest s =
+                new AnmeldungRequest.SpielerRequest("Max", "Mustermann", "MM01011990A", null, null);
         Set<ConstraintViolation<AnmeldungRequest.SpielerRequest>> violations = validator.validate(s);
         assertThat(violations).isEmpty();
     }

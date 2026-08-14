@@ -44,8 +44,9 @@ export function spielernameMusterValidator(control: AbstractControl): Validation
   return SPIELERNAME_MUSTER.test(normalisiert) ? null : { zeichen: true };
 }
 
-/** Radikal ID: zwei Buchstaben (Initialen) + achtstelliges Geburtsdatum TTMMJJJJ (z. B. MM01011990). */
-const RADIKAL_ID_MUSTER = /^[A-Za-z]{2}\d{8}$/;
+/** Radikal ID: zwei Buchstaben (Initialen) + achtstelliges Geburtsdatum TTMMJJJJ (z. B. MM01011990),
+ * optional ein weiterer Großbuchstabe als Suffix (z. B. MM01011990A). */
+const RADIKAL_ID_MUSTER = /^[A-Za-z]{2}\d{8}[A-Z]?$/;
 
 /**
  * Feld-Validator für die Radikal ID. Im „keine ID"-Modus ist das Feld ausgeblendet – ein

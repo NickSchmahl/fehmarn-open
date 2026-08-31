@@ -121,6 +121,22 @@ npm install && ng serve       # http://localhost:4200, /api proxied
 - **Tests:** Vorhandene Testabdeckung nicht verschlechtern; neue Logik testen.
 - **DB (`*.db`) und `target/`, `node_modules/` niemals committen** (in .gitignore).
 
+## Harness (`.claude/`)
+
+Der Ablauf ist nicht nur beschrieben, sondern im Repo verankert
+([ADR 0015](docs/adr/0015-claude-harness-im-repo.md)):
+
+- **`CLAUDE.md`** bindet diese Datei per `@AGENTS.md` ein – Claude Code liest `CLAUDE.md`,
+  nicht `AGENTS.md`. Ohne die Datei wäre dieser Kontext in keiner Session geladen.
+- **Skills** (`.claude/skills/`): `/quality-gate` (CI-äquivalentes Gate, **die** Wahrheit),
+  `/ticket-start <nr>`, `/ticket-pr <nr>`, `/db-schema`.
+- **Hook** (`.claude/hooks/git-guard.sh`): blockt `--amend`, Force-Push, `git add -A`/`.`,
+  `*.db` im Commit und Direktcommits/Pushes auf `main`.
+- **Path-Rules** (`.claude/rules/`): Backend-, Frontend- und Liquibase-Regeln, die nur laden,
+  wenn passende Dateien angefasst werden.
+
+Ändert sich `ci.yml`, wird `/quality-gate` im selben PR mitgezogen – sonst driften sie auseinander.
+
 ## Arbeitsweise mit KI-Assistenten
 
 Siehe `docs/workflow.md` für den vollständigen Workflow (Branches, PRs via gh CLI,

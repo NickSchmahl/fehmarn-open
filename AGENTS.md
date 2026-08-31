@@ -19,7 +19,7 @@ im kommenden Jahr statt.
 | Bereich    | Technologie |
 |------------|-------------|
 | Backend    | Java 25, Spring Boot 4 |
-| Frontend   | Angular 21 (Standalone Components) |
+| Frontend   | Angular 22 (Standalone Components) |
 | Datenbank  | SQLite via Spring Data JPA / Hibernate (community dialect) |
 | Auth       | Spring Security + JWT (jjwt) |
 | Build      | Maven (backend, mit frontend-maven-plugin), npm/Angular CLI (frontend) |
@@ -39,7 +39,7 @@ im kommenden Jahr statt.
 │       ├── exception/           # GlobalExceptionHandler + fachliche Exceptions
 │       ├── repository/          # Spring Data JPA Repositories
 │       └── service/             # AnmeldungService (Kernlogik)
-├── frontend/                    # Angular 21
+├── frontend/                    # Angular 22
 │   └── src/app/
 │       ├── auth/                # Guard, Interceptor, Service
 │       ├── core/                # HTTP-Error-Interceptor, Toast-/Error-Services

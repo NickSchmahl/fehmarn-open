@@ -40,6 +40,19 @@ updates:
         update-types: [ "major", "minor", "patch" ]
       frontend-minor-und-patch:
         update-types: [ "minor", "patch" ]
+      # Dieselbe Angular-Gruppe nochmal fuer SECURITY-Updates: Gruppen gelten
+      # standardmaessig nur fuer Versions-Updates. Ohne diesen Block oeffnet
+      # Dependabot bei einem Advisory pro @angular/*-Paket einen eigenen PR,
+      # der an `npm ci` scheitert (exakte Peer-Dependencies untereinander,
+      # z. B. @angular/common@22.1.1 verlangt genau @angular/core@22.1.1).
+      angular-security:
+        applies-to: "security-updates"
+        patterns:
+          - "@angular/*"
+          - "@angular-eslint/*"
+          - "angular-eslint"
+          - "jest-preset-angular"
+          - "typescript"
 
   - package-ecosystem: "github-actions"
     directory: "/"

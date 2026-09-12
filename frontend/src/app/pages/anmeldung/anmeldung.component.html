@@ -57,6 +57,7 @@
                 [meta]="disziplin"
                 [index]="i"
                 [eingeklappt]="isCollapsed(i)"
+                [ausgebucht]="istDisziplinAusgebucht(i)"
                 (klappUmschalten)="toggleCollapse(i)"
               />
             }

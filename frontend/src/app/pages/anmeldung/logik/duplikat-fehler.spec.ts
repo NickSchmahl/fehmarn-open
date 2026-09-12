@@ -1,6 +1,10 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { DISZIPLINEN } from '../../../shared/disziplin';
-import { parseSpielerDuplikat, parseTeamnameDuplikat } from './duplikat-fehler';
+import {
+  parseSpielerDuplikat,
+  parseTeamlimitFehler,
+  parseTeamnameDuplikat,
+} from './duplikat-fehler';
 
 const HERRENDOPPEL = DISZIPLINEN.findIndex((d) => d.value === 'HERRENDOPPEL');
 const HERRENEINZEL = DISZIPLINEN.findIndex((d) => d.value === 'HERRENEINZEL');
@@ -34,6 +38,33 @@ describe('parseTeamnameDuplikat', () => {
 
   it('behandelt Spieler-Feldkennungen (mit Doppelpunkt) nicht als Teamname-Dublette', () => {
     expect(parseTeamnameDuplikat(fehler409('HERRENEINZEL:0'))).toBeNull();
+  });
+});
+
+describe('parseTeamlimitFehler', () => {
+  it('erkennt die Teamlimit-Kennung und übernimmt die Backend-Meldung', () => {
+    expect(parseTeamlimitFehler(fehler409('TEAMWETTBEWERB:limit', 'Ausgebucht'))).toBe(
+      'Ausgebucht',
+    );
+  });
+
+  it('liefert eine Default-Meldung, wenn das Backend keine mitschickt', () => {
+    expect(parseTeamlimitFehler(fehler409('TEAMWETTBEWERB:limit'))).toBe(
+      'Der Teamwettbewerb ist ausgebucht.',
+    );
+  });
+
+  it('ignoriert andere Feldkennungen und Nicht-409-Fehler', () => {
+    expect(parseTeamlimitFehler(fehler409('TEAMWETTBEWERB'))).toBeNull();
+    expect(parseTeamlimitFehler(fehler409('HERRENEINZEL:0'))).toBeNull();
+    expect(parseTeamlimitFehler(new Error('kein HTTP-Fehler'))).toBeNull();
+  });
+});
+
+describe('parseTeamnameDuplikat und parseSpielerDuplikat greifen bei der Teamlimit-Kennung nicht', () => {
+  it('lässt die Teamlimit-Kennung durch', () => {
+    expect(parseTeamnameDuplikat(fehler409('TEAMWETTBEWERB:limit'))).toBeNull();
+    expect(parseSpielerDuplikat(fehler409('TEAMWETTBEWERB:limit'))).toBeNull();
   });
 });
 

@@ -77,6 +77,15 @@ export interface AdminAnzeigeGruppe {
   meldungen: AdminMeldungEintrag[];
 }
 
+/**
+ * Ausschnitt aus GET /api/anmeldung/status: reicht für die Teamlimit-Warnung. Bewusst lokal
+ * gehalten statt Querimport aus dem Anmeldung-Feature.
+ */
+interface TeamlimitStatus {
+  teamwettbewerbAusgebucht: boolean;
+  maxTeams: number;
+}
+
 /** Fehler einer Zeilen-Aktion (z. B. 409 beim Reaktivieren wegen Teamname-Dublette). */
 export interface AktionsFehler {
   meldungId: number;
@@ -245,8 +254,48 @@ export class Teilnehmer implements OnInit {
     });
   }
 
+  /**
+   * Reaktiviert eine Meldung. Beim Teamwettbewerb darf der Admin das 96er-Limit überziehen,
+   * bekommt vorher aber eine Warnung – dafür wird der aktuelle Ausgebucht-Status geholt.
+   */
   reaktivieren(id: number): void {
     this.aktionBeginnen();
+    if (this.disziplinVon(id) !== 'TEAMWETTBEWERB') {
+      this.sendeReaktivierung(id);
+      return;
+    }
+    this.http.get<TeamlimitStatus>('/api/anmeldung/status').subscribe({
+      next: (status) => {
+        if (status.teamwettbewerbAusgebucht && !this.bestaetigeUeberziehen(status.maxTeams)) {
+          return;
+        }
+        this.sendeReaktivierung(id);
+      },
+      // Status nicht erreichbar: die Reaktivierung nicht blockieren – sie ist ohnehin erlaubt.
+      error: () => {
+        this.sendeReaktivierung(id);
+      },
+    });
+  }
+
+  /** Disziplin einer Meldung aus der geladenen Admin-Übersicht, oder null. */
+  private disziplinVon(meldungId: number): Disziplin | null {
+    for (const gruppe of this.adminGruppen()) {
+      if (gruppe.meldungen.some((meldung) => meldung.id === meldungId)) {
+        return gruppe.disziplin;
+      }
+    }
+    return null;
+  }
+
+  private bestaetigeUeberziehen(maxTeams: number): boolean {
+    return window.confirm(
+      `Der Teamwettbewerb ist mit ${maxTeams} Teams voll. Beim Reaktivieren wird das Limit ` +
+        `überschritten. Trotzdem reaktivieren?`,
+    );
+  }
+
+  private sendeReaktivierung(id: number): void {
     this.http.post(`/api/admin/anmeldung/${id}/reaktivieren`, {}).subscribe({
       next: () => {
         this.ladeAdmin();

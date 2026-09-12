@@ -16,8 +16,10 @@ import de.dart.fehmarnopen.entity.Disziplin;
 import de.dart.fehmarnopen.entity.Spieler;
 import de.dart.fehmarnopen.exception.DoppelterTeamnameException;
 import de.dart.fehmarnopen.exception.GlobalExceptionHandler;
+import de.dart.fehmarnopen.exception.TeamlimitErreichtException;
 import de.dart.fehmarnopen.service.AnmeldeschlussService;
 import de.dart.fehmarnopen.service.AnmeldungService;
+import de.dart.fehmarnopen.service.TeamlimitService;
 import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -46,6 +48,9 @@ class AnmeldungControllerTest {
 
     @MockitoBean
     private AnmeldeschlussService anmeldeschlussService;
+
+    @MockitoBean
+    private TeamlimitService teamlimitService;
 
     private SpielerRequest spielerRequest(String vorname) {
         return new SpielerRequest(vorname, "Mustermann", "MM01011990", null, null);
@@ -174,6 +179,22 @@ class AnmeldungControllerTest {
     }
 
     @Test
+    void postAnmeldung_beiVollemTeamwettbewerb_sollConflictMitTeamwettbewerbFeldZurueckgeben() throws Exception {
+        AnmeldungRequest request = new AnmeldungRequest(List.of(new DisziplinAnmeldung(
+                Disziplin.TEAMWETTBEWERB, "Team 97", List.of(spielerRequest("Max"), spielerRequest("Tim")))));
+
+        when(anmeldungService.anmelden(any())).thenThrow(new TeamlimitErreichtException(96));
+
+        mockMvc.perform(post("/api/anmeldung")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonMapper.writeValueAsString(request)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.errors[0].field").value("TEAMWETTBEWERB:limit"))
+                .andExpect(jsonPath("$.errors[0].message")
+                        .value("Der Teamwettbewerb ist ausgebucht – es sind bereits 96 Teams angemeldet."));
+    }
+
+    @Test
     void postAnmeldung_ohneBody_sollBadRequestZurueckgeben() throws Exception {
         mockMvc.perform(post("/api/anmeldung").contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
@@ -240,6 +261,19 @@ class AnmeldungControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.anmeldungOffen").value(true))
                 .andExpect(jsonPath("$.anmeldeschluss").value("2027-02-28"));
+    }
+
+    @Test
+    void getStatus_sollTeamlimitMitliefern() throws Exception {
+        when(anmeldeschlussService.anmeldungOffen()).thenReturn(true);
+        when(anmeldeschlussService.anmeldeschluss()).thenReturn(LocalDate.of(2027, 2, 28));
+        when(teamlimitService.istAusgebucht()).thenReturn(true);
+        when(teamlimitService.maxTeams()).thenReturn(96);
+
+        mockMvc.perform(get("/api/anmeldung/status"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.teamwettbewerbAusgebucht").value(true))
+                .andExpect(jsonPath("$.maxTeams").value(96));
     }
 
     @Test

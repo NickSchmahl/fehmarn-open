@@ -1,5 +1,6 @@
 package de.dart.fehmarnopen.exception;
 
+import de.dart.fehmarnopen.entity.Disziplin;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,6 +47,14 @@ public class GlobalExceptionHandler {
         // Disziplin als Feldkennung mitgeben, damit das Frontend den Fehler dem richtigen
         // Teamname-Feld zuordnen kann (siehe ADR 0011).
         FieldError feld = new FieldError(ex.getDisziplin().name(), ex.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(ErrorResponse.of(409, ex.getMessage(), List.of(feld)));
+    }
+
+    @ExceptionHandler(TeamlimitErreichtException.class)
+    public ResponseEntity<ErrorResponse> handleTeamlimitErreicht(TeamlimitErreichtException ex) {
+        // Feldkennung "TEAMWETTBEWERB:limit", damit das Frontend den Fehler der Kachel zuordnen kann
+        // (ADR 0011) und ihn nicht mit einer Teamname-Dublette (reine Disziplin-Kennung) verwechselt.
+        FieldError feld = new FieldError(Disziplin.TEAMWETTBEWERB.name() + ":limit", ex.getMessage());
         return ResponseEntity.status(HttpStatus.CONFLICT).body(ErrorResponse.of(409, ex.getMessage(), List.of(feld)));
     }
 

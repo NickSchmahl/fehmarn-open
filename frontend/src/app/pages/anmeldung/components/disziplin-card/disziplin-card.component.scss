@@ -137,6 +137,23 @@ button.disziplin-headline {
   letter-spacing: 0.04em;
 }
 
+/* ── Ausgebucht: Teamlimit erreicht (96 Teams) ──────────────────────── */
+.disziplin-card--ausgebucht {
+  opacity: 0.65;
+
+  .disziplin-headline {
+    cursor: not-allowed;
+  }
+}
+
+.disziplin-ausgebucht {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--danger);
+}
+
 /* ── Meldungen (mehrere Meldungen je Disziplin, #169) ───────────────── */
 // Zähler-Pill (nur zugeklappt): zeigt die Anzahl der Meldungen kompakt neben dem Chevron.
 .collapse-count {

@@ -39,10 +39,18 @@ Flyer ansehen
   dieselbe Disziplin mehrfach im Request mehr.
 - Innerhalb eines Requests: doppelter (normalisierter, case-insensitiver) Teamname in
   derselben Disziplin → `DoppelterTeamnameException` (409); doppelte Radikal-ID in derselben
-  Disziplin → `DoppelteRadikalIdException` (400). Beide Prüfungen laufen in-memory, bevor
-  irgendetwas gespeichert wird (`AnmeldungService`).
-- Eine Anmeldeschluss-Sperre ist **nicht** vorgesehen – der zugehörige tote Code
-  (`TurnierConfig`, `AnmeldungGesperrtException`) soll entfernt werden (siehe [admin.md](admin.md)).
+  Disziplin → `DoppelteRadikalIdException` (400). Beide Prüfungen laufen in-memory im
+  `RequestDublettenService`, bevor irgendetwas gespeichert wird.
+- **Anmeldeschluss:** nach dem Stichtag lehnt `POST /api/anmeldung` mit **403** ab; die
+  Anmeldeseite zeigt dann eine Infoseite statt des Formulars (#153,
+  [ADR 0013](../adr/0013-anmeldeschluss-config-statt-db.md)).
+- **Teamlimit Teamwettbewerb: 96 Teams** (`TeamlimitService`,
+  [ADR 0016](../adr/0016-teamlimit-96-fest-im-code.md)). Gezählt werden nur aktive
+  (nicht abgemeldete) Meldungen; eine Abmeldung gibt den Platz frei. Passt nicht der ganze
+  Request ins Limit, wird er komplett mit **409** (`TEAMWETTBEWERB:limit`) abgelehnt. Die
+  Anmeldeseite sperrt die Kachel schon vorher, sobald `GET /api/anmeldung/status`
+  `teamwettbewerbAusgebucht` meldet. Die Admin-Reaktivierung darf das Limit überziehen
+  (Warndialog, siehe [admin.md](admin.md)).
 
 ## Offene Punkte (aktueller Scope)
 

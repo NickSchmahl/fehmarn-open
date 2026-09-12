@@ -1,6 +1,7 @@
 <div
   class="disziplin-card"
   [class.disziplin-card--selected]="istGewaehlt()"
+  [class.disziplin-card--ausgebucht]="ausgebucht()"
   [formGroup]="disziplinGroup"
 >
   <!-- Kopfzeile: Auswahl-Checkbox + Titelzeile (#184).
@@ -8,12 +9,15 @@
        Titelzeile nur den Detailbereich ein/aus – abwählen geht dann nur per Checkbox. -->
   <div class="disziplin-head">
     <label class="disziplin-checkbox">
+      <!-- `attr.disabled` statt control.disable(): sperrt nur die Bedienung, lässt den
+           Formularwert unangetastet. Die Wahrheit über das Limit liegt beim Backend (409). -->
       <input
         type="checkbox"
         formControlName="selected"
         class="disziplin-checkbox-input"
         [id]="'disziplin-' + meta().value"
         [attr.aria-label]="meta().label"
+        [attr.disabled]="ausgebucht() && !istGewaehlt() ? '' : null"
       />
       <span class="disziplin-custom-check" aria-hidden="true">
         <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
@@ -39,7 +43,9 @@
       >
         <span class="disziplin-headline-text">
           <span class="disziplin-name">{{ meta().label }}</span>
-          @if (meta().subtitle) {
+          @if (ausgebucht()) {
+            <span class="disziplin-ausgebucht">Ausgebucht</span>
+          } @else if (meta().subtitle) {
             <span class="disziplin-subtitle">{{ meta().subtitle }}</span>
           }
         </span>
@@ -67,7 +73,9 @@
       <label class="disziplin-headline" [for]="'disziplin-' + meta().value">
         <span class="disziplin-headline-text">
           <span class="disziplin-name">{{ meta().label }}</span>
-          @if (meta().subtitle) {
+          @if (ausgebucht()) {
+            <span class="disziplin-ausgebucht">Ausgebucht</span>
+          } @else if (meta().subtitle) {
             <span class="disziplin-subtitle">{{ meta().subtitle }}</span>
           }
         </span>

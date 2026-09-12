@@ -143,22 +143,21 @@
   font-size: 0.95rem;
 }
 
-/* ── Sticky Toolbar (Suche + Filter) ───────────────────── */
-.toolbar-sticky {
-  position: sticky;
-  top: 0;
-  z-index: 5;
+/* ── Toolbar (Suche + Filter) ───────────────────────────── */
+/* Bewusst nicht sticky: auf Mobil klebte die mehrzeilige Leiste unter dem
+   fixen App-Header und verdeckte einen Großteil des Viewports. */
+.toolbar {
   margin: 0 calc(-1 * clamp(1.25rem, 3vw, 3rem)) 1.75rem;
   padding: 0.75rem clamp(1.25rem, 3vw, 3rem) 1rem;
   background: var(--surface);
   border-bottom: 1px solid var(--border);
 }
 
-.toolbar-sticky .search-input {
+.toolbar .search-input {
   margin-bottom: 0.75rem;
 }
 
-.toolbar-sticky .chip-row {
+.toolbar .chip-row {
   margin-bottom: 0;
 }
 
@@ -529,7 +528,7 @@
     padding: 2rem 1.25rem 1.5rem;
   }
 
-  .toolbar-sticky {
+  .toolbar {
     margin: 0 -1.25rem 1.5rem;
     padding: 0.6rem 1.25rem 0.85rem;
   }

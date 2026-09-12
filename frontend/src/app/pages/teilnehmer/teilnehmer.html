@@ -20,7 +20,7 @@
       @if (adminGruppen().length === 0) {
         <div class="empty-state"><p>Noch keine Anmeldungen.</p></div>
       } @else {
-        <div class="toolbar-sticky">
+        <div class="toolbar">
           <input
             type="search"
             class="search-input"
@@ -130,7 +130,7 @@
       <div class="empty-state"><p>Noch keine Anmeldungen.</p></div>
     } @else {
       <!-- ══ Öffentlicher Modus ══════════════════════════════════════════ -->
-      <div class="toolbar-sticky">
+      <div class="toolbar">
         <div class="chip-row" role="tablist" aria-label="Disziplin filtern">
           @for (chip of chips(); track chip.value) {
             <button

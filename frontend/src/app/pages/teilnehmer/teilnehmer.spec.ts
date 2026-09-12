@@ -417,6 +417,109 @@ describe('Teilnehmer (admin)', () => {
     httpTesting.expectOne('/api/admin/teilnehmer').flush(adminResponse);
   });
 
+  describe('Reaktivieren im vollen Teamwettbewerb (96er-Limit)', () => {
+    /** Admin-Antwort mit einer abgemeldeten Teamwettbewerb-Meldung (id 9). */
+    const teamResponse = {
+      disziplinen: [
+        {
+          disziplin: 'TEAMWETTBEWERB',
+          anzahl: 96,
+          meldungen: [
+            {
+              id: 9,
+              teamName: 'Team X',
+              anwesend: false,
+              abgemeldet: true,
+              spieler: [
+                {
+                  vorname: 'Anna',
+                  nachname: 'Schmidt',
+                  radikalId: 'AS-1',
+                  initialen: null,
+                  geburtsdatum: null,
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+
+    let confirmSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      confirmSpy = jest.spyOn(window, 'confirm');
+      fixture.detectChanges();
+      httpTesting.expectOne('/api/admin/teilnehmer').flush(teamResponse);
+    });
+
+    afterEach(() => {
+      confirmSpy.mockRestore();
+    });
+
+    /** Beantwortet den Ausgebucht-Status, den das Reaktivieren vorab abfragt. */
+    function flusheStatus(ausgebucht: boolean): void {
+      httpTesting.expectOne('/api/anmeldung/status').flush({
+        anmeldungOffen: true,
+        anmeldeschluss: '2027-02-28',
+        teamwettbewerbAusgebucht: ausgebucht,
+        maxTeams: 96,
+      });
+    }
+
+    it('warnt vor dem Überziehen und reaktiviert nach Bestätigung', () => {
+      confirmSpy.mockReturnValue(true);
+
+      component.reaktivieren(9);
+      flusheStatus(true);
+
+      expect(confirmSpy).toHaveBeenCalledWith(expect.stringContaining('96'));
+      httpTesting.expectOne('/api/admin/anmeldung/9/reaktivieren').flush(null);
+      httpTesting.expectOne('/api/admin/teilnehmer').flush(teamResponse);
+    });
+
+    it('sendet nichts, wenn der Admin die Warnung abbricht', () => {
+      confirmSpy.mockReturnValue(false);
+
+      component.reaktivieren(9);
+      flusheStatus(true);
+
+      expect(confirmSpy).toHaveBeenCalled();
+      httpTesting.expectNone('/api/admin/anmeldung/9/reaktivieren');
+    });
+
+    it('warnt nicht, solange noch Plätze frei sind', () => {
+      component.reaktivieren(9);
+      flusheStatus(false);
+
+      expect(confirmSpy).not.toHaveBeenCalled();
+      httpTesting.expectOne('/api/admin/anmeldung/9/reaktivieren').flush(null);
+      httpTesting.expectOne('/api/admin/teilnehmer').flush(teamResponse);
+    });
+
+    it('reaktiviert trotzdem, wenn der Status-Abruf scheitert', () => {
+      component.reaktivieren(9);
+      httpTesting
+        .expectOne('/api/anmeldung/status')
+        .flush(null, { status: 500, statusText: 'Server Error' });
+
+      expect(confirmSpy).not.toHaveBeenCalled();
+      httpTesting.expectOne('/api/admin/anmeldung/9/reaktivieren').flush(null);
+      httpTesting.expectOne('/api/admin/teilnehmer').flush(teamResponse);
+    });
+  });
+
+  it('fragt bei anderen Disziplinen keinen Teamlimit-Status ab', () => {
+    fixture.detectChanges();
+    httpTesting.expectOne('/api/admin/teilnehmer').flush(adminResponse);
+
+    component.reaktivieren(5); // HERRENDOPPEL
+
+    httpTesting.expectNone('/api/anmeldung/status');
+    httpTesting.expectOne('/api/admin/anmeldung/5/reaktivieren').flush(null);
+    httpTesting.expectOne('/api/admin/teilnehmer').flush(adminResponse);
+  });
+
   it('zeigt den Reaktivierungs-Konflikt (409) nur an der betroffenen Zeile', () => {
     fixture.detectChanges();
     httpTesting.expectOne('/api/admin/teilnehmer').flush(adminResponse);

@@ -20,4 +20,7 @@ public interface AnmeldungRepository extends JpaRepository<Anmeldung, Long> {
      */
     @EntityGraph(attributePaths = "spieler")
     List<Anmeldung> findByDisziplinAndAbgemeldetFalse(Disziplin disziplin);
+
+    /** Anzahl aktiver Anmeldungen einer Disziplin – für das Teamlimit des Teamwettbewerbs. */
+    long countByDisziplinAndAbgemeldetFalse(Disziplin disziplin);
 }

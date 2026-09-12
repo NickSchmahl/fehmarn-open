@@ -23,5 +23,6 @@ Entscheidungen bekommen ein neues ADR mit Status „ersetzt durch …".
 | [0012](0012-nested-tests-fachlogik.md) | `@Nested`-Testklassen je Methode für fachliche Tests | Akzeptiert |
 | [0013](0013-anmeldeschluss-config-statt-db.md) | Anmeldeschluss als Server-Config statt DB | Akzeptiert |
 | [0014](0014-signals-immutable-daten.md) | Signals halten unveränderliche Daten (kein In-place-Mutieren) | Akzeptiert |
+| [0015](0015-teamlimit-96-fest-im-code.md) | Teamlimit (96 Teams) fest im Code, Zählung über aktive Anmeldungen | Akzeptiert |
 
 > Neuen ADR anlegen: nächste freie Nummer, Dateiname `NNNN-kurz-titel.md`, Zeile hier ergänzen.

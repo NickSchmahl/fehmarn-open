@@ -36,6 +36,20 @@ export function parseTeamnameDuplikat(err: unknown): TeamnameDuplikat | null {
   };
 }
 
+/**
+ * Feldkennung des ausgebuchten Teamwettbewerbs (#96er-Limit). Bewusst mit Suffix, damit sie weder
+ * als Teamname-Dublette (reine Disziplin-Kennung) noch als Spieler-Dublette (`<DISZIPLIN>:<index>`)
+ * durchgeht.
+ */
+const TEAMLIMIT_FELD = 'TEAMWETTBEWERB:limit';
+
+/** Wertet einen 409 mit der Teamlimit-Kennung aus und liefert die Meldung, sonst null. */
+export function parseTeamlimitFehler(err: unknown): string | null {
+  const feld = ersterFeldFehler(err);
+  if (feld?.field !== TEAMLIMIT_FELD) return null;
+  return feld.message ?? 'Der Teamwettbewerb ist ausgebucht.';
+}
+
 /** Wertet einen 409 mit Feldkennung `"<DISZIPLIN>:<index>"` als Einzel-Spieler-Dublette aus (#170). */
 export function parseSpielerDuplikat(err: unknown): SpielerDuplikat | null {
   const feld = ersterFeldFehler(err);

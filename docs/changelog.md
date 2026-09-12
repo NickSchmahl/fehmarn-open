@@ -8,6 +8,23 @@ hinweg. Architekturentscheidungen liegen als [ADR](adr/), Ticket-Status in
 > **Release-Konvention:** Pro Release ein datierter Abschnitt hier; das zugehörige
 > [GitHub Release](../../releases) (Tag `vX.Y.Z`) verlinkt auf diesen Changelog.
 
+## 2026-09-12 — Teamlimit Teamwettbewerb: 96 Teams
+
+Spielplan und Boards geben 96 Teams her; darüber hinaus soll keine Online-Anmeldung mehr möglich sein.
+
+- **Backend als Wahrheit:** `TeamlimitService` (feste Konstante `MAX_TEAMS = 96`) zählt die aktiven
+  Teamwettbewerb-Meldungen. Passt der Request nicht mehr komplett ins Limit, lehnt
+  `POST /api/anmeldung` ihn mit **409** ab (`TeamlimitErreichtException`, Feldkennung
+  `TEAMWETTBEWERB:limit`) – keine Teil-Anmeldung.
+- **Zählweise:** nur aktive Meldungen; eine Admin-Abmeldung gibt den Platz wieder frei.
+- **Frontend:** `GET /api/anmeldung/status` liefert zusätzlich `teamwettbewerbAusgebucht` und
+  `maxTeams`; ist es voll, ist die Teamwettbewerb-Kachel als „Ausgebucht" gekennzeichnet und nicht
+  mehr wählbar. Ein 409 im Rennen zweier Anmeldungen sperrt die Kachel nachträglich.
+- **Admin:** darf beim Reaktivieren überziehen, bekommt aber vorher einen Warnhinweis.
+- **Nebenbei:** die Dubletten-Prüfungen innerhalb eines Requests sind aus dem `AnmeldungService` in
+  den `RequestDublettenService` gewandert (PMD-Kopplungsgrenze), Verhalten unverändert.
+- Begründung: [ADR 0015](adr/0015-teamlimit-96-fest-im-code.md).
+
 ## 2026-07-11 — Anmeldeschluss 28.02.2027 (#153)
 
 Nach dem Anmeldeschluss sind keine Online-Anmeldungen mehr möglich, damit Finn planen kann.

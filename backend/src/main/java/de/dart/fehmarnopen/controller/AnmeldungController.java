@@ -5,6 +5,7 @@ import de.dart.fehmarnopen.dto.AnmeldungRequest;
 import de.dart.fehmarnopen.dto.AnmeldungResponse;
 import de.dart.fehmarnopen.service.AnmeldeschlussService;
 import de.dart.fehmarnopen.service.AnmeldungService;
+import de.dart.fehmarnopen.service.TeamlimitService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +22,7 @@ public class AnmeldungController {
 
     private final AnmeldungService anmeldungService;
     private final AnmeldeschlussService anmeldeschlussService;
+    private final TeamlimitService teamlimitService;
 
     @PostMapping
     public ResponseEntity<AnmeldungResponse> anmelden(@Valid @RequestBody AnmeldungRequest request) {
@@ -31,6 +33,9 @@ public class AnmeldungController {
     @GetMapping("/status")
     public AnmeldeschlussStatusResponse status() {
         return new AnmeldeschlussStatusResponse(
-                anmeldeschlussService.anmeldungOffen(), anmeldeschlussService.anmeldeschluss());
+                anmeldeschlussService.anmeldungOffen(),
+                anmeldeschlussService.anmeldeschluss(),
+                teamlimitService.istAusgebucht(),
+                teamlimitService.maxTeams());
     }
 }

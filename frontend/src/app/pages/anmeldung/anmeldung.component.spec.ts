@@ -46,9 +46,12 @@ describe('AnmeldungComponent', () => {
     component = fixture.componentInstance;
     httpMock = TestBed.inject(HttpTestingController);
     fixture.detectChanges(); // löst ngOnInit + Status-GET aus
-    httpMock
-      .expectOne('/api/anmeldung/status')
-      .flush({ anmeldungOffen: true, anmeldeschluss: '2027-02-28' });
+    httpMock.expectOne('/api/anmeldung/status').flush({
+      anmeldungOffen: true,
+      anmeldeschluss: '2027-02-28',
+      teamwettbewerbAusgebucht: false,
+      maxTeams: 96,
+    });
     await fixture.whenStable();
   });
 
@@ -836,6 +839,106 @@ describe('AnmeldungComponent', () => {
   });
 
   // ── Einklappbarer Detailbereich der Disziplin-Karte (#184) ──────────────────
+
+  describe('Teamwettbewerb-Limit (96 Teams)', () => {
+    /** Die Kachel des Teamwettbewerbs im DOM. */
+    function teamKachel(): Element {
+      return host().querySelectorAll('.disziplin-card')[TEAMWETTBEWERB];
+    }
+
+    function teamCheckbox(): HTMLInputElement | null {
+      return teamKachel().querySelector<HTMLInputElement>('.disziplin-checkbox-input');
+    }
+
+    it('lässt die Kachel bei freien Plätzen wählbar und zeigt kein Ausgebucht-Kennzeichen', () => {
+      fixture.detectChanges();
+
+      expect(component.istDisziplinAusgebucht(TEAMWETTBEWERB)).toBe(false);
+      expect(teamCheckbox()?.disabled).toBe(false);
+      expect(teamKachel().querySelector('.disziplin-ausgebucht')).toBeNull();
+    });
+
+    it('sperrt die Teamwettbewerb-Kachel, wenn der Status ausgebucht meldet', () => {
+      component.teamwettbewerbAusgebucht.set(true);
+      fixture.detectChanges();
+
+      expect(component.istDisziplinAusgebucht(TEAMWETTBEWERB)).toBe(true);
+      expect(teamCheckbox()?.disabled).toBe(true);
+      expect(teamKachel().querySelector('.disziplin-ausgebucht')?.textContent).toContain(
+        'Ausgebucht',
+      );
+    });
+
+    it('kennzeichnet auch eine bereits gewählte Kachel als ausgebucht', () => {
+      // Race-Fall: Auswahl passierte, als noch Plätze frei waren; der 409 kommt erst beim Absenden.
+      waehleDisziplin(TEAMWETTBEWERB);
+      component.teamwettbewerbAusgebucht.set(true);
+      fixture.detectChanges();
+
+      expect(teamKachel().querySelector('.disziplin-ausgebucht')?.textContent).toContain(
+        'Ausgebucht',
+      );
+      // Abwählen muss möglich bleiben, sonst hängt der Nutzer fest.
+      expect(teamCheckbox()?.disabled).toBe(false);
+    });
+
+    it('lässt andere Disziplinen bei ausgebuchtem Teamwettbewerb unberührt', () => {
+      component.teamwettbewerbAusgebucht.set(true);
+      fixture.detectChanges();
+
+      expect(component.istDisziplinAusgebucht(HERRENDOPPEL)).toBe(false);
+      const doppelKachel = host().querySelectorAll('.disziplin-card')[HERRENDOPPEL];
+      expect(
+        doppelKachel.querySelector<HTMLInputElement>('.disziplin-checkbox-input')?.disabled,
+      ).toBe(false);
+    });
+
+    it('übernimmt den Ausgebucht-Status aus dem Status-GET', async () => {
+      // Eigene Fixture, weil das globale beforeEach den Status bereits mit freien Plätzen geflusht hat.
+      const eigene = TestBed.createComponent(AnmeldungComponent);
+      eigene.detectChanges();
+      httpMock.expectOne('/api/anmeldung/status').flush({
+        anmeldungOffen: true,
+        anmeldeschluss: '2027-02-28',
+        teamwettbewerbAusgebucht: true,
+        maxTeams: 96,
+      });
+      await eigene.whenStable();
+
+      expect(eigene.componentInstance.teamwettbewerbAusgebucht()).toBe(true);
+      expect(eigene.componentInstance.maxTeams()).toBe(96);
+    });
+
+    it('sperrt die Kachel nach einem 409 des Backends und zeigt die Meldung als Banner', () => {
+      waehleDisziplin(TEAMWETTBEWERB);
+      component.meldungGroup(TEAMWETTBEWERB, 0).get('teamName')?.setValue('Team 97');
+      setzeMitRadikalId(TEAMWETTBEWERB, 0, 0, 'Max', 'Mustermann');
+      setzeMitRadikalId(TEAMWETTBEWERB, 0, 1, 'Tom', 'Test');
+      setzeMitRadikalId(TEAMWETTBEWERB, 0, 2, 'Ann', 'Ase');
+      setzeMitRadikalId(TEAMWETTBEWERB, 0, 3, 'Uwe', 'Ulm');
+
+      component.onSubmit();
+
+      httpMock.expectOne('/api/anmeldung').flush(
+        {
+          status: 409,
+          message: 'Der Teamwettbewerb ist ausgebucht – es sind bereits 96 Teams angemeldet.',
+          errors: [
+            {
+              field: 'TEAMWETTBEWERB:limit',
+              message: 'Der Teamwettbewerb ist ausgebucht – es sind bereits 96 Teams angemeldet.',
+            },
+          ],
+        },
+        { status: 409, statusText: 'Conflict' },
+      );
+
+      expect(component.teamwettbewerbAusgebucht()).toBe(true);
+      expect(component.errorMessage()).toContain('ausgebucht');
+      // Nicht als Teamname-Dublette am Feld anzeigen.
+      expect(component.teamNameDuplikatText(TEAMWETTBEWERB, 0)).toBeNull();
+    });
+  });
 
   describe('Einklappbarer Detailbereich (#184)', () => {
     /** Klickt die Titelzeile der gewählten Disziplin – klappt den Detailbereich ein/aus. */

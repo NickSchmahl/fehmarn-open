@@ -24,6 +24,8 @@ export class DisziplinCardComponent {
   meta = input.required<DisziplinMeta>();
   index = input.required<number>();
   eingeklappt = input.required<boolean>();
+  /** Disziplin ist ausgebucht (Teamlimit): nicht mehr neu wählbar. */
+  ausgebucht = input(false);
 
   klappUmschalten = output();
 

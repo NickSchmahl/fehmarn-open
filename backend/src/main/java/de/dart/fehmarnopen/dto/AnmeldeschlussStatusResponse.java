@@ -2,5 +2,9 @@ package de.dart.fehmarnopen.dto;
 
 import java.time.LocalDate;
 
-/** Öffentlicher Anmeldeschluss-Status fürs Frontend: ob Anmeldung offen ist und der Stichtag. */
-public record AnmeldeschlussStatusResponse(boolean anmeldungOffen, LocalDate anmeldeschluss) {}
+/**
+ * Öffentlicher Anmeldestatus fürs Frontend: ob die Anmeldung offen ist, der Stichtag sowie ob der
+ * Teamwettbewerb sein Teamlimit ({@code maxTeams}) erreicht hat.
+ */
+public record AnmeldeschlussStatusResponse(
+        boolean anmeldungOffen, LocalDate anmeldeschluss, boolean teamwettbewerbAusgebucht, int maxTeams) {}

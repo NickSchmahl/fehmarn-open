@@ -61,6 +61,19 @@ class AnmeldungRepositoryTest {
     }
 
     @Test
+    void countByDisziplinAndAbgemeldetFalse_zaehltNurAktiveDerDisziplin() {
+        anmeldungRepository.save(anmeldung(Disziplin.TEAMWETTBEWERB, false, spieler("Max", "Mustermann")));
+        anmeldungRepository.save(anmeldung(Disziplin.TEAMWETTBEWERB, false, spieler("Ann", "Alt")));
+        // Abgemeldet: gibt den Platz wieder frei und zählt nicht mit.
+        anmeldungRepository.save(anmeldung(Disziplin.TEAMWETTBEWERB, true, spieler("Tim", "Test")));
+        // Andere Disziplin: zählt nicht gegen das Teamlimit.
+        anmeldungRepository.save(anmeldung(Disziplin.HERRENDOPPEL, false, spieler("Uwe", "Ulm")));
+
+        assertThat(anmeldungRepository.countByDisziplinAndAbgemeldetFalse(Disziplin.TEAMWETTBEWERB))
+                .isEqualTo(2);
+    }
+
+    @Test
     void findAllBy_sollAlleAnmeldungenInklusiveAbgemeldeteZurueckgeben() {
         anmeldungRepository.save(anmeldung(Disziplin.HERRENEINZEL, false, spieler("Max", "Mustermann")));
         anmeldungRepository.save(anmeldung(Disziplin.HERRENDOPPEL, true, spieler("Tim", "Test")));

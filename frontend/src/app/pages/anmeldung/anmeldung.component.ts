@@ -16,7 +16,11 @@ import { BrandIconComponent } from '../../ui/brand-icon/brand-icon.component';
 import { AnmeldeschlussStatus, PreisPosten } from './model/anmeldung.model';
 import { berechneGesamtpreis, berechnePreisPosten } from './logik/preisberechnung';
 import { erstelleAnmeldungRequest } from './logik/anmeldung-payload';
-import { parseSpielerDuplikat, parseTeamnameDuplikat } from './logik/duplikat-fehler';
+import {
+  parseSpielerDuplikat,
+  parseTeamlimitFehler,
+  parseTeamnameDuplikat,
+} from './logik/duplikat-fehler';
 import { AnmeldungApiService } from './services/anmeldung-api.service';
 import { AnmeldungFormService } from './services/anmeldung-form.service';
 import { KollapsZustand } from './services/kollaps-zustand';
@@ -64,6 +68,11 @@ export class AnmeldungComponent implements OnInit {
   anmeldungOffen = signal(true);
   anmeldeschlussAnzeige = signal<string | null>(null);
 
+  // Teamlimit des Teamwettbewerbs: ist es erreicht, wird die Kachel gesperrt. Quelle ist der
+  // Status-GET; ein 409 beim Absenden (zwei Anmeldungen gleichzeitig) setzt es ebenfalls.
+  teamwettbewerbAusgebucht = signal(false);
+  maxTeams = signal(0);
+
   /** Klapp-Zustand der Disziplin-Karten (#184). */
   private kollaps = new KollapsZustand();
 
@@ -90,6 +99,8 @@ export class AnmeldungComponent implements OnInit {
       next: (status: AnmeldeschlussStatus) => {
         this.anmeldungOffen.set(status.anmeldungOffen);
         this.anmeldeschlussAnzeige.set(formatiereIsoDatum(status.anmeldeschluss));
+        this.teamwettbewerbAusgebucht.set(status.teamwettbewerbAusgebucht);
+        this.maxTeams.set(status.maxTeams);
       },
       // Defensiv: bei Ladefehler das Formular zeigen; das Backend sperrt späte POSTs ohnehin (403).
       error: () => {
@@ -138,6 +149,14 @@ export class AnmeldungComponent implements OnInit {
 
   isDisziplinSelected(i: number): boolean {
     return this.formService.istDisziplinGewaehlt(i);
+  }
+
+  /**
+   * Ist die Disziplin ausgebucht? Betrifft nur den Teamwettbewerb (Teamlimit). Eine bereits
+   * gewählte Kachel bleibt bedienbar, damit sie im Race-Fall wieder abgewählt werden kann.
+   */
+  istDisziplinAusgebucht(i: number): boolean {
+    return DISZIPLINEN[i]?.value === 'TEAMWETTBEWERB' && this.teamwettbewerbAusgebucht();
   }
 
   needsTeamName(i: number): boolean {
@@ -229,6 +248,13 @@ export class AnmeldungComponent implements OnInit {
       error: (err: unknown) => {
         this.loading.set(false);
         // Dubletten (409 mit Feldkennung, ADR 0011/#170) direkt am Feld anzeigen; sonst Banner.
+        // Ausgebuchter Teamwettbewerb (409): Kachel sperren und als Banner erklären.
+        const teamlimit = parseTeamlimitFehler(err);
+        if (teamlimit) {
+          this.teamwettbewerbAusgebucht.set(true);
+          this.errorMessage.set(teamlimit);
+          return;
+        }
         const teamnameDuplikat = parseTeamnameDuplikat(err);
         if (teamnameDuplikat && this.formService.setzeTeamnameDuplikat(teamnameDuplikat)) return;
         const spielerDuplikat = parseSpielerDuplikat(err);

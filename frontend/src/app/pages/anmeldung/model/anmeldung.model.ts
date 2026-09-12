@@ -28,6 +28,8 @@ export interface AnmeldungRequest {
 export interface AnmeldeschlussStatus {
   anmeldungOffen: boolean;
   anmeldeschluss: string; // ISO YYYY-MM-DD
+  teamwettbewerbAusgebucht: boolean; // Teamlimit des Teamwettbewerbs erreicht
+  maxTeams: number; // Obergrenze Teams im Teamwettbewerb
 }
 
 /** Eine Zeile der Preisaufschlüsselung: eine gewählte Disziplin mit Spielerzahl und Betrag. */

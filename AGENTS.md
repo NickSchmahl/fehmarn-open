@@ -19,7 +19,7 @@ im kommenden Jahr statt.
 | Bereich    | Technologie |
 |------------|-------------|
 | Backend    | Java 25, Spring Boot 4 |
-| Frontend   | Angular 21 (Standalone Components) |
+| Frontend   | Angular 22 (Standalone Components) |
 | Datenbank  | SQLite via Spring Data JPA / Hibernate (community dialect) |
 | Auth       | Spring Security + JWT (jjwt) |
 | Build      | Maven (backend, mit frontend-maven-plugin), npm/Angular CLI (frontend) |
@@ -39,7 +39,7 @@ im kommenden Jahr statt.
 │       ├── exception/           # GlobalExceptionHandler + fachliche Exceptions
 │       ├── repository/          # Spring Data JPA Repositories
 │       └── service/             # AnmeldungService (Kernlogik)
-├── frontend/                    # Angular 21
+├── frontend/                    # Angular 22
 │   └── src/app/
 │       ├── auth/                # Guard, Interceptor, Service
 │       ├── core/                # HTTP-Error-Interceptor, Toast-/Error-Services
@@ -120,6 +120,22 @@ npm install && ng serve       # http://localhost:4200, /api proxied
 - **Commits:** Kurz, deutsch, mit Issue-Referenz wenn vorhanden (z.B. `#27 admin-teilnehmerliste ...`).
 - **Tests:** Vorhandene Testabdeckung nicht verschlechtern; neue Logik testen.
 - **DB (`*.db`) und `target/`, `node_modules/` niemals committen** (in .gitignore).
+
+## Harness (`.claude/`)
+
+Der Ablauf ist nicht nur beschrieben, sondern im Repo verankert
+([ADR 0015](docs/adr/0015-claude-harness-im-repo.md)):
+
+- **`CLAUDE.md`** bindet diese Datei per `@AGENTS.md` ein – Claude Code liest `CLAUDE.md`,
+  nicht `AGENTS.md`. Ohne die Datei wäre dieser Kontext in keiner Session geladen.
+- **Skills** (`.claude/skills/`): `/quality-gate` (CI-äquivalentes Gate, **die** Wahrheit),
+  `/ticket-start <nr>`, `/ticket-pr <nr>`, `/db-schema`.
+- **Hook** (`.claude/hooks/git-guard.sh`): blockt `--amend`, Force-Push, `git add -A`/`.`,
+  `*.db` im Commit und Direktcommits/Pushes auf `main`.
+- **Path-Rules** (`.claude/rules/`): Backend-, Frontend- und Liquibase-Regeln, die nur laden,
+  wenn passende Dateien angefasst werden.
+
+Ändert sich `ci.yml`, wird `/quality-gate` im selben PR mitgezogen – sonst driften sie auseinander.
 
 ## Arbeitsweise mit KI-Assistenten
 

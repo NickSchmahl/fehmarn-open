@@ -8,6 +8,33 @@ hinweg. Architekturentscheidungen liegen als [ADR](adr/), Ticket-Status in
 > **Release-Konvention:** Pro Release ein datierter Abschnitt hier; das zugehörige
 > [GitHub Release](../../releases) (Tag `vX.Y.Z`) verlinkt auf diesen Changelog.
 
+## 2026-08-31 — Claude-Harness im Repo (ADR 0015)
+
+Der Ticket-Ablauf war gut beschrieben, aber nirgends maschinell verankert. Drei Lücken:
+`AGENTS.md` wurde von Claude Code gar nicht geladen (gelesen wird `CLAUDE.md`), alle Git-Regeln
+waren Prosa, und das Quality-Gate stand viermal in Prosa statt einmal als Ablauf.
+
+- **`CLAUDE.md`** bindet `AGENTS.md` per `@`-Import ein — eine Wahrheit, keine Kopie.
+- **Skills** (`.claude/skills/`): `/quality-gate` als maßgebliche Gate-Definition,
+  `/ticket-start`, `/ticket-pr` (nur manuell auslösbar), `/db-schema`.
+- **Hook** (`.claude/hooks/git-guard.sh`): blockt `--amend`, Force-Push, `git add -A`/`.`,
+  `*.db` im Commit und Direktcommits/Pushes auf `main` — die Verbotsliste aus
+  `docs/workflow.md`, jetzt technisch statt zugesagt.
+- **Path-Rules** (`.claude/rules/`): Backend-, Frontend- und Liquibase-Regeln, die nur laden,
+  wenn passende Dateien angefasst werden. Die Liquibase-Regel greift bei `entity/**` — also
+  genau dann, wenn jemand im Begriff ist, eine Entity ohne Changeset zu ändern.
+
+Begründung und Alternativen: [ADR 0015](adr/0015-claude-harness-im-repo.md).
+
+**Nebenbei korrigiert:**
+
+- **CI:** Der Frontend-Testschritt rief `npm test -- --watch=false --browsers=ChromeHeadless`.
+  Das sind Karma-Flags, der Runner ist aber Jest (jest-preset-angular, jsdom). Jest 30 ignoriert
+  sie stillschweigend — nachgemessen identisch (32 Suites, 258 Tests). Entfernt, weil sie
+  Browser-Tests suggerieren, die es nicht gibt.
+- **Versionsdrift:** `README.md` und `AGENTS.md` nannten noch Angular 21, obwohl der Sprung auf
+  **22** längst gelaufen ist (#87, siehe Eintrag unten). Beide Übersichten nachgezogen.
+
 ## 2026-07-11 — Anmeldeschluss 28.02.2027 (#153)
 
 Nach dem Anmeldeschluss sind keine Online-Anmeldungen mehr möglich, damit Finn planen kann.

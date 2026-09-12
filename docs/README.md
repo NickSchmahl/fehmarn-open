@@ -8,6 +8,7 @@ Qualitäts-/Vertrauensstrategie. Einstiegspunkt für Menschen **und** KI-Assiste
 | Bereich | Zweck |
 |---------|-------|
 | [`../AGENTS.md`](../AGENTS.md) | Haupt-Einstieg: Architektur, Stack, Konventionen (Kurzform) |
+| [`../CLAUDE.md`](../CLAUDE.md) | Was Claude Code lädt: bindet `AGENTS.md` ein, listet Skills/Hooks ([ADR 0015](adr/0015-claude-harness-im-repo.md)) |
 | [`workflow.md`](workflow.md) | Zusammenarbeit Nick ↔ Assistent (Branches, PRs, Tickets, DoD) |
 | [`setup-github.md`](setup-github.md) | GitHub-Zugang für den Assistenten |
 | [`datenbank-schema-aendern.md`](datenbank-schema-aendern.md) | **DB-Schema ändern (Liquibase-Changeset, kein Reset) – Schritt für Schritt** |
@@ -30,6 +31,7 @@ Qualitäts-/Vertrauensstrategie. Einstiegspunkt für Menschen **und** KI-Assiste
 | eine Architektur-/Technikentscheidung dokumentieren | neuer ADR in [`adr/`](adr/) |
 | ein Feature beschreiben/ändern | passendes Dokument in [`features/`](features/) |
 | eine Qualitätsregel/Testkonvention festlegen | passendes Dokument in [`quality/`](quality/) |
+| einen **wiederkehrenden Ablauf** für den Assistenten festhalten | Skill unter `.claude/skills/` (siehe [ADR 0015](adr/0015-claude-harness-im-repo.md)) |
 
 ## Konvention
 

@@ -175,6 +175,13 @@ gemergt wurde, die ursprüngliche Dependabot-`angular`-PR schließen.
   `npm ci`.
 - **TypeScript** nicht unabhängig anheben – Angular akzeptiert nur einen
   bestimmten TS-Bereich; `ng update` setzt die passende Version.
+- **Security-Updates** (Dependabot-Alert auf ein `@angular/*`-Paket) laufen
+  über die eigene Gruppe `angular-security` (`applies-to: security-updates`),
+  weil Dependabot-Gruppen sonst nur für Versions-Updates gelten. Tauchen
+  trotzdem Einzel-PRs auf, die an `npm ci` (ERESOLVE) scheitern: nicht
+  reparieren, sondern lokal alle `@angular/*` gemeinsam auf die gepatchte
+  Minor heben (`npx ng update @angular/core@22.1 @angular/cli@22.1`) und als
+  eigenen PR mergen – Dependabot schließt die Einzel-PRs dann selbst.
 
 ### Spring-Boot-Major lokal durchführen
 

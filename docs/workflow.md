@@ -30,19 +30,22 @@ Branch, Nick pusht/merged selbst.
   `fix/<nr>-kurzbeschreibung`, `chore/...`.
 - Commits deutsch, mit Issue-Referenz: `#42 abmeldelink-mail korrigieren`.
 - **Vor jedem Commit die vollständige, CI-äquivalente Quality-Gate lokal laufen**
-  (nicht nur eine Teilmenge – sonst wird die CI rot):
+  (nicht nur eine Teilmenge – sonst wird die CI rot). Mit Claude Code: **`/quality-gate`**,
+  das ist die maßgebliche Definition ([ADR 0015](adr/0015-claude-harness-im-repo.md)):
   - Backend: `./mvnw spotless:apply` (bzw. `spotless:check`) + `./mvnw verify`.
   - Frontend (`frontend/`): `npm run lint` **und** `npm test` **und**
     `npm run format:check`. ESLint (`strict-type-checked`) ist ein CI-Gate – nur
     Jest + Prettier zu prüfen reicht **nicht**.
-- **Nur bewusst gewählte Dateien stagen** (`git add <pfad>`), **kein `git add -A`**
+- **Nur bewusst gewählte Dateien stagen** (`git add <pfad>`), ***kein `git add -A`***
   – sonst geraten fremde/versehentliche Dateien in den Commit.
 
 ## Ticket-Ablauf
 
 1. Neue Aufgabe → als Eintrag in `docs/backlog.md` (und optional GitHub Issue).
-2. Assistent nimmt Ticket, legt Branch an, setzt um, schreibt/aktualisiert Tests.
+2. Assistent nimmt Ticket, legt Branch an, setzt um, schreibt/aktualisiert Tests
+   (mit Claude Code: **`/ticket-start <nr>`**, Schema-Änderungen über **`/db-schema`**).
 3. PR öffnen (Vorlage `.github/pull_request_template.md`), CI abwarten (grün = Build-Wahrheit).
+   Mit Claude Code: **`/ticket-pr <nr>`** – fährt Gate, Commit, Push und PR in dieser Reihenfolge.
    Der PR-Body enthält eine Zeile **`Closes #<nr>`** und geht gegen base **`main`** –
    sonst schliesst das Ticket beim Merge nicht automatisch (siehe Auto-Close-Regel unten).
 4. Nick reviewt & merged → Auto-Deploy auf Test-Umgebung (Port 8081).
@@ -51,12 +54,15 @@ Branch, Nick pusht/merged selbst.
 
 ## Was der Assistent NICHT tut
 
+> Die kursiv markierten Punkte werden von `.claude/hooks/git-guard.sh` **technisch geblockt**,
+> nicht nur zugesagt (ADR 0015).
+
 - Keine Prod-Deploys ohne ausdrückliche Freigabe.
 - Keine Secrets/Passwörter/Tokens in Dateien oder Commits.
-- Keine `main`-Direktcommits – immer über Branch + PR.
-- Datenbank (`*.db`) nicht anfassen/committen.
-- **Kein `git commit --amend` und kein `git push --force`/`--force-with-lease` auf
-  bereits gepushten Branches / offenen PRs.** Historie, auf die andere/GitHub bereits
+- *Keine `main`-Direktcommits – immer über Branch + PR.*
+- *Datenbank (`*.db`) nicht anfassen/committen.*
+- ***Kein `git commit --amend` und kein `git push --force`/`--force-with-lease` auf
+  bereits gepushten Branches / offenen PRs.*** Historie, auf die andere/GitHub bereits
   zugreifen, wird nicht umgeschrieben. Korrekturen kommen als **zusätzlicher neuer
   Commit** obendrauf.
 - **Merge-Konflikte** eines PR-Branches werden gelöst, indem `main` **in den Branch

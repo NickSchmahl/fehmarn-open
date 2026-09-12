@@ -36,7 +36,7 @@ Bezahlung erfolgt ausschließlich vor Ort. Keine Online-Zahlung.
 | Bereich | Technologie |
 |---|---|
 | Backend | Java, Spring Boot 4 |
-| Frontend | Angular 21 (Standalone Components) |
+| Frontend | Angular 22 (Standalone Components) |
 | Datenbank | SQLite via Spring Data JPA / Hibernate |
 | Auth | Spring Security, JWT |
 
@@ -45,7 +45,7 @@ Bezahlung erfolgt ausschließlich vor Ort. Keine Online-Zahlung.
 ```
 /
 ├── backend/        # Spring Boot 4 Anwendung
-├── frontend/       # Angular 21 Anwendung
+├── frontend/       # Angular 22 Anwendung
 ├── AGENTS.md       # Projektkontext für KI-Assistenten
 └── README.md
 ```

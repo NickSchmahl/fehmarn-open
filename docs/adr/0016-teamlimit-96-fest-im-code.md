@@ -1,4 +1,4 @@
-# ADR 0015 – Teamlimit (96 Teams) fest im Code, Zählung über aktive Anmeldungen
+# ADR 0016 – Teamlimit (96 Teams) fest im Code, Zählung über aktive Anmeldungen
 
 **Status:** Akzeptiert · **Datum:** 2026-09-12
 

@@ -45,7 +45,7 @@ Flyer ansehen
   Anmeldeseite zeigt dann eine Infoseite statt des Formulars (#153,
   [ADR 0013](../adr/0013-anmeldeschluss-config-statt-db.md)).
 - **Teamlimit Teamwettbewerb: 96 Teams** (`TeamlimitService`,
-  [ADR 0015](../adr/0015-teamlimit-96-fest-im-code.md)). Gezählt werden nur aktive
+  [ADR 0016](../adr/0016-teamlimit-96-fest-im-code.md)). Gezählt werden nur aktive
   (nicht abgemeldete) Meldungen; eine Abmeldung gibt den Platz frei. Passt nicht der ganze
   Request ins Limit, wird er komplett mit **409** (`TEAMWETTBEWERB:limit`) abgelehnt. Die
   Anmeldeseite sperrt die Kachel schon vorher, sobald `GET /api/anmeldung/status`

@@ -70,7 +70,8 @@ jobs:
         run: npm run lint
 
       - name: Tests
-        run: npm test -- --watch=false --browsers=ChromeHeadless
+        # Testrunner ist Jest (jest-preset-angular, jsdom) - keine Browser-Flags.
+        run: npm test
 
       - name: Build
         run: npm run build

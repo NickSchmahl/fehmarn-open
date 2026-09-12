@@ -21,7 +21,7 @@ Alle unter `/api/admin`, JWT-geschützt (`AdminTeilnehmerController`):
 | Anwesenheit setzen (Turniertag) | `PUT /api/admin/anmeldung/{id}/anwesenheit` | ✅ |
 
 **Teamlimit beim Reaktivieren:** Der Teamwettbewerb ist auf 96 Teams begrenzt
-([ADR 0015](../adr/0015-teamlimit-96-fest-im-code.md)). Die Reaktivierung wird serverseitig
+([ADR 0016](../adr/0016-teamlimit-96-fest-im-code.md)). Die Reaktivierung wird serverseitig
 **nicht** gegen das Limit geprüft – der Admin darf bewusst überziehen (Nachrücker, Absprachen
 vor Ort). Ist der Wettbewerb voll, fragt das Frontend vorher per Bestätigungsdialog nach.
 

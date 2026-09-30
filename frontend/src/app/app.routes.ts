@@ -3,6 +3,8 @@ import { AdminLoginComponent } from './pages/login/login.component';
 
 const BASISTITEL = '12. Fehmarn Open 2027';
 
+// Neue Top-Level-Route? Auch im Backend im SpaFallbackController eintragen,
+// sonst endet ein Direktaufruf (Link, F5) in einem 404.
 export const routes: Routes = [
   { path: '', redirectTo: 'anmeldung', pathMatch: 'full' },
   {

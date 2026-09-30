@@ -21,20 +21,20 @@
     "js-yaml": "^3.15.2"
   },
   "dependencies": {
-    "@angular/common": "^22.1.6",
-    "@angular/compiler": "^22.1.6",
-    "@angular/core": "^22.1.6",
-    "@angular/forms": "^22.1.6",
-    "@angular/platform-browser": "^22.1.6",
-    "@angular/router": "^22.1.6",
+    "@angular/common": "^22.2.0",
+    "@angular/compiler": "^22.2.0",
+    "@angular/core": "^22.2.0",
+    "@angular/forms": "^22.2.0",
+    "@angular/platform-browser": "^22.2.0",
+    "@angular/router": "^22.2.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "zone.js": "^0.16.3"
   },
   "devDependencies": {
-    "@angular/build": "^22.1.8",
-    "@angular/cli": "^22.1.8",
-    "@angular/compiler-cli": "^22.1.6",
+    "@angular/build": "^22.2.0",
+    "@angular/cli": "^22.2.0",
+    "@angular/compiler-cli": "^22.2.0",
     "@eslint/js": "^10.0.1",
     "@jest/globals": "^30.5.1",
     "@types/jest": "^30.0.0",
@@ -49,6 +49,6 @@
     "ts-jest": "^29.4.12",
     "typescript": "~6.0.3",
     "typescript-eslint": "^8.70.0",
-    "vitest": "^4.1.11"
+    "vitest": "^5.0.3"
   }
 }

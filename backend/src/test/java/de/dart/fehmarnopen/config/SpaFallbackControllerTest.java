@@ -5,6 +5,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -19,9 +21,11 @@ class SpaFallbackControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @Test
-    void angularRouteWirdAufIndexWeitergeleitet() throws Exception {
-        mockMvc.perform(get("/anmeldung")).andExpect(status().isOk()).andExpect(forwardedUrl("/index.html"));
+    // Alle Top-Level-Routen aus frontend/src/app/app.routes.ts
+    @ParameterizedTest
+    @ValueSource(strings = {"/anmeldung", "/teilnehmer", "/flyer", "/impressum", "/datenschutz"})
+    void angularRouteWirdAufIndexWeitergeleitet(String route) throws Exception {
+        mockMvc.perform(get(route)).andExpect(status().isOk()).andExpect(forwardedUrl("/index.html"));
     }
 
     @Test

@@ -31,7 +31,7 @@ vor Ort). Ist der Wettbewerb voll, fragt das Frontend vorher per Bestätigungsdi
 |----------|--------------------|--------------|
 | **Flyer-Upload** | Kein Upload-Endpunkt, keine Speicherung; nur statische Route `/flyer` | ✅ **umsetzen – vor Testabnahme** (`Q-FEAT-4`) |
 | **QR-Code für Anmeldelink** | Kein Code, keine QR-Bibliothek | ⭕ **umsetzen – gewünscht** (`Q-FEAT-5`), evtl. rein clientseitig |
-| **Excel-Export** | Kein Code, keine POI-Abhängigkeit | ⏭️ **verschoben** – nicht vor Testabnahme (`Q-FEAT-3`) |
+| **Excel-Export** | Kein Code, keine POI-Abhängigkeit | 🔄 **ersetzt durch Export-Seite** (#305): Turniertag-PDF + Radikal-CSV/-PDF, rein clientseitig – Konzept + Mockups in #306–#309 (`Q-FEAT-3`) |
 | **Anmeldeschluss sperren / Datum setzen** | `TurnierConfig` (`anmeldungGesperrt`, `anmeldeschlussDatum`) existiert, wird aber **von nichts genutzt**; `AnmeldungGesperrtException` **nie geworfen** → toter Code | 🚫 **soll raus** – overengineered (`Q-RM-1`) |
 
 Details/Begründung: [ADR 0008](../adr/0008-scope-reduktion-testabnahme.md).
@@ -41,7 +41,8 @@ Tickets: [tickets/quality-roadmap.md](../tickets/quality-roadmap.md) (Abschnitt 
 - **Flyer-Upload:** Speicherort festlegen; Datei-Whitelist + Größenlimit beachten
   (Sicherheitsaspekt – kein beliebiger Upload).
 - **QR-Code:** kann evtl. ohne Backend rein im Frontend erzeugt werden (Bibliothek prüfen).
-- **Excel-Export (später):** z.B. Apache POI.
+- **Export (#305):** CSV statt Excel (öffnet direkt in Excel, kein Apache POI); PDFs über die Druckansicht des Browsers.
+  Mockups: [specs/assets/2026-10-28-export/](../superpowers/specs/assets/2026-10-28-export/).
 
 ## Datenmodell
 

@@ -1,0 +1,291 @@
+<!doctype html>
+<!--
+  Design-Mockup (#Export-Seite): Meldeliste für Radikal als A4-PDF.
+  Technisch-nüchtern, ohne Ankreuzfelder. Statischer Entwurf mit Beispieldaten.
+-->
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <title>Radikal-Meldeliste – Mockup</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --ink: #14161c;
+        --ink-soft: #4b5163;
+        --ink-muted: #7d8396;
+        --line: #dcdee4;
+        --zebra: #f6f6f8;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: #6b6f7a;
+        font-family: 'DM Sans', 'Helvetica Neue', sans-serif;
+        color: var(--ink);
+      }
+      .page {
+        width: 210mm;
+        height: 297mm;
+        margin: 10mm auto;
+        padding: 12mm 12mm 10mm;
+        background: #fff;
+        display: flex;
+        flex-direction: column;
+      }
+      .mono {
+        font-family: 'JetBrains Mono', monospace;
+      }
+      .kopf {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 6mm;
+        border-bottom: 1.2px solid var(--ink);
+        padding-bottom: 3mm;
+      }
+      .kopf h1 {
+        margin: 0;
+        font-size: 14pt;
+        font-weight: 700;
+      }
+      .kopf p {
+        margin: 1mm 0 0;
+        font-size: 8pt;
+        color: var(--ink-soft);
+      }
+      .meta {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 7pt;
+        color: var(--ink-soft);
+        text-align: right;
+        line-height: 1.6;
+      }
+      .meta b {
+        color: var(--ink);
+        font-weight: 600;
+      }
+
+      .summe {
+        margin-top: 4mm;
+        display: grid;
+        grid-template-columns: 1.3fr 1fr;
+        gap: 6mm;
+        align-items: start;
+      }
+      .summe table {
+        font-size: 7.6pt;
+        border-collapse: collapse;
+        width: 100%;
+      }
+      .summe th,
+      .summe td {
+        padding: 0.9mm 1.5mm;
+        border-bottom: 0.6px solid var(--line);
+        text-align: right;
+      }
+      .summe th:first-child,
+      .summe td:first-child {
+        text-align: left;
+      }
+      .summe th {
+        font-size: 6.4pt;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--ink-muted);
+        border-bottom: 1px solid var(--ink);
+      }
+      .summe tfoot td {
+        font-weight: 700;
+        border-bottom: none;
+        border-top: 1px solid var(--ink);
+      }
+      .legende {
+        font-size: 7.2pt;
+        color: var(--ink-soft);
+        border: 0.8px solid var(--line);
+        border-radius: 1.5mm;
+        padding: 2.4mm 3mm;
+        line-height: 1.55;
+      }
+      .legende h2 {
+        margin: 0 0 1mm;
+        font-size: 6.4pt;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--ink-muted);
+      }
+
+      .gruppe {
+        margin-top: 5mm;
+        display: flex;
+        align-items: baseline;
+        gap: 3mm;
+        border-bottom: 1px solid var(--ink);
+        padding-bottom: 1mm;
+      }
+      .gruppe h3 {
+        margin: 0;
+        font-size: 10pt;
+      }
+      .gruppe span {
+        font-size: 7pt;
+        color: var(--ink-muted);
+      }
+      .gruppe code {
+        margin-left: auto;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 6.8pt;
+        color: var(--ink-muted);
+      }
+      table.liste {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 7.6pt;
+      }
+      .liste th {
+        text-align: left;
+        font-size: 6.2pt;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--ink-muted);
+        font-weight: 700;
+        padding: 1.2mm 1.4mm 0.8mm;
+      }
+      .liste td {
+        padding: 0.95mm 1.4mm;
+        border-bottom: 0.5px solid var(--line);
+      }
+      .liste tbody tr:nth-child(even) td {
+        background: var(--zebra);
+      }
+      .liste .mono {
+        font-size: 7pt;
+      }
+      .liste .klein {
+        color: var(--ink-muted);
+      }
+      .status {
+        font-size: 6.2pt;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        border-radius: 1mm;
+        padding: 0.2mm 1.2mm;
+        white-space: nowrap;
+      }
+      .status.ok {
+        color: var(--ink-soft);
+        border: 0.7px solid var(--line);
+      }
+      .status.neu {
+        color: #fff;
+        background: var(--ink);
+      }
+      .team-start td {
+        border-top: 0.8px solid var(--ink-muted);
+      }
+      .fuss {
+        margin-top: auto;
+        display: flex;
+        justify-content: space-between;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 6.6pt;
+        color: var(--ink-muted);
+        border-top: 0.6px solid var(--line);
+        padding-top: 2mm;
+      }
+    </style>
+  </head>
+  <body>
+    <section class="page" id="seite-radikal">
+      <header class="kopf">
+        <div>
+          <h1>Meldeliste für Radikal</h1>
+          <p>12. Fehmarn Open 2027 · 05.–07.03.2027 · alle aktiven Meldungen, eine Zeile je Spieler</p>
+        </div>
+        <div class="meta">
+          Export <b>2026-10-28 14:32</b><br />
+          Datei <b>fehmarn-open-2027_radikal_2026-10-28.pdf</b><br />
+          Gegenstück <b>…_radikal_2026-10-28.csv</b>
+        </div>
+      </header>
+
+      <div class="summe">
+        <table>
+          <thead>
+            <tr><th>Disziplin</th><th>Code</th><th>Meldungen</th><th>Spieler</th><th>neue IDs</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Herreneinzel</td><td class="mono klein">HERRENEINZEL</td><td>18</td><td>18</td><td>3</td></tr>
+            <tr><td>Dameneinzel</td><td class="mono klein">DAMENEINZEL</td><td>9</td><td>9</td><td>1</td></tr>
+            <tr><td>Herrendoppel</td><td class="mono klein">HERRENDOPPEL</td><td>12</td><td>24</td><td>2</td></tr>
+            <tr><td>Damendoppel</td><td class="mono klein">DAMENDOPPEL</td><td>5</td><td>10</td><td>0</td></tr>
+            <tr><td>Triple Mix</td><td class="mono klein">TRIPLE_MIX</td><td>8</td><td>26</td><td>4</td></tr>
+            <tr><td>Teamwettbewerb</td><td class="mono klein">TEAMWETTBEWERB</td><td>9</td><td>44</td><td>5</td></tr>
+            <tr><td>U18-Turnier</td><td class="mono klein">U18</td><td>4</td><td>4</td><td>2</td></tr>
+          </tbody>
+          <tfoot>
+            <tr><td>Gesamt</td><td></td><td>65</td><td>135</td><td>17</td></tr>
+          </tfoot>
+        </table>
+        <div class="legende">
+          <h2>Legende</h2>
+          <span class="status ok">VORHANDEN</span> Radikal-ID vom Spieler angegeben.<br />
+          <span class="status neu">NEU</span> Keine ID angegeben – aus Initialen + Geburtsdatum gebildet, bitte im
+          Radikal-System anlegen.<br />
+          Abgemeldete Meldungen sind nicht enthalten. Ein Spieler kann in mehreren Disziplinen stehen.
+        </div>
+      </div>
+
+      <div class="gruppe">
+        <h3>Herreneinzel</h3>
+        <span>18 Meldungen · 18 Spieler</span>
+        <code>HERRENEINZEL</code>
+      </div>
+      <table class="liste">
+        <thead>
+          <tr><th>Lfd</th><th>Nachname</th><th>Vorname</th><th>Radikal-ID</th><th>Status</th><th>Geb.-Datum</th><th>Angemeldet</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="klein">1</td><td>Albers</td><td>Jonas</td><td class="mono">JA14021991</td><td><span class="status ok">VORHANDEN</span></td><td class="mono klein">–</td><td class="mono klein">2026-07-21</td></tr>
+          <tr><td class="klein">2</td><td>Brandt</td><td>Malte</td><td class="mono">MB03071985</td><td><span class="status ok">VORHANDEN</span></td><td class="mono klein">–</td><td class="mono klein">2026-07-22</td></tr>
+          <tr><td class="klein">3</td><td>Claussen</td><td>Henrik</td><td class="mono">HC22111979</td><td><span class="status neu">NEU</span></td><td class="mono">1979-11-22</td><td class="mono klein">2026-08-02</td></tr>
+          <tr><td class="klein">4</td><td>Dreyer</td><td>Ole</td><td class="mono">OD09091996</td><td><span class="status ok">VORHANDEN</span></td><td class="mono klein">–</td><td class="mono klein">2026-08-05</td></tr>
+          <tr><td class="klein">5</td><td>Ehlers</td><td>Sven</td><td class="mono">SE30011988</td><td><span class="status ok">VORHANDEN</span></td><td class="mono klein">–</td><td class="mono klein">2026-08-11</td></tr>
+          <tr><td class="klein">6</td><td>Feddersen</td><td>Lars</td><td class="mono">LF17051982</td><td><span class="status ok">VORHANDEN</span></td><td class="mono klein">–</td><td class="mono klein">2026-08-14</td></tr>
+          <tr><td class="klein">7</td><td>Gosch</td><td>Timo</td><td class="mono">TG01121999</td><td><span class="status neu">NEU</span></td><td class="mono">1999-12-01</td><td class="mono klein">2026-09-01</td></tr>
+          <tr><td class="klein">8</td><td>Hansen</td><td>Kai</td><td class="mono">KH12031988</td><td><span class="status ok">VORHANDEN</span></td><td class="mono klein">–</td><td class="mono klein">2026-09-03</td></tr>
+          <tr><td class="klein">…</td><td class="klein" colspan="6">weitere 10 Spieler</td></tr>
+        </tbody>
+      </table>
+
+      <div class="gruppe">
+        <h3>Herrendoppel</h3>
+        <span>12 Meldungen · 24 Spieler</span>
+        <code>HERRENDOPPEL</code>
+      </div>
+      <table class="liste">
+        <thead>
+          <tr><th>Lfd</th><th>Team</th><th>Nachname</th><th>Vorname</th><th>Radikal-ID</th><th>Status</th><th>Geb.-Datum</th></tr>
+        </thead>
+        <tbody>
+          <tr class="team-start"><td class="klein">1.1</td><td>Doppelt hält besser</td><td>Hinz</td><td>Dennis</td><td class="mono">DH25061990</td><td><span class="status ok">VORHANDEN</span></td><td class="mono klein">–</td></tr>
+          <tr><td class="klein">1.2</td><td class="klein">〃</td><td>Jessen</td><td>Bjarne</td><td class="mono">BJ08081994</td><td><span class="status ok">VORHANDEN</span></td><td class="mono klein">–</td></tr>
+          <tr class="team-start"><td class="klein">2.1</td><td>Hafenkante</td><td>Kühl</td><td>Marco</td><td class="mono">MK19041977</td><td><span class="status ok">VORHANDEN</span></td><td class="mono klein">–</td></tr>
+          <tr><td class="klein">2.2</td><td class="klein">〃</td><td>Nissen</td><td>Hauke</td><td class="mono">HN11111981</td><td><span class="status neu">NEU</span></td><td class="mono">1981-11-11</td></tr>
+          <tr class="team-start"><td class="klein">3.1</td><td>Single Out</td><td>Petersen</td><td>Nils</td><td class="mono">NP06031995</td><td><span class="status ok">VORHANDEN</span></td><td class="mono klein">–</td></tr>
+          <tr><td class="klein">3.2</td><td class="klein">〃</td><td>Rahlf</td><td>Torben</td><td class="mono">TR21091984</td><td><span class="status ok">VORHANDEN</span></td><td class="mono klein">–</td></tr>
+          <tr><td class="klein">…</td><td class="klein" colspan="6">weitere 9 Teams</td></tr>
+        </tbody>
+      </table>
+
+      <footer class="fuss">
+        <span>fehmarn-open · Radikal-Meldeliste · Stand 2026-10-28 14:32</span>
+        <span>Seite 1 / 4</span>
+      </footer>
+    </section>
+  </body>
+</html>

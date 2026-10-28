@@ -1,0 +1,498 @@
+<!doctype html>
+<!--
+  Design-Mockup (#Export-Seite): Turniertag-Liste als druckbares A4-PDF.
+  Statischer Entwurf mit Beispieldaten – kein Produktivcode. Rendern mit
+  Chromium (Druckansicht) oder als Screenshot je .page.
+-->
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <title>Turniertag-Liste – Mockup</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Anton&family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --ink: #14161c;
+        --ink-soft: #4b5163;
+        --ink-muted: #7d8396;
+        --line: #d9dbe2;
+        --zebra: #f5f5f2;
+        --gold: #e8c547;
+        --gold-ink: #8a6d00;
+        --paper: #ffffff;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: #6b6f7a;
+        font-family: 'DM Sans', 'Helvetica Neue', sans-serif;
+        color: var(--ink);
+      }
+      .page {
+        width: 210mm;
+        height: 297mm;
+        margin: 10mm auto;
+        padding: 12mm 13mm 10mm;
+        background: var(--paper);
+        display: flex;
+        flex-direction: column;
+        position: relative;
+      }
+      @media print {
+        body {
+          background: none;
+        }
+        .page {
+          margin: 0;
+          page-break-after: always;
+        }
+      }
+
+      /* Kopfzeile */
+      .kopf {
+        display: flex;
+        align-items: stretch;
+        border-bottom: 2.5px solid var(--ink);
+        padding-bottom: 3mm;
+      }
+      .marke {
+        display: flex;
+        align-items: center;
+        gap: 3mm;
+      }
+      .marke-punkt {
+        width: 9mm;
+        height: 9mm;
+        border-radius: 50%;
+        background: radial-gradient(circle, var(--gold) 0 28%, var(--ink) 29% 46%, var(--gold) 47% 58%, var(--ink) 59%);
+      }
+      .marke-text {
+        font-family: Anton, sans-serif;
+        font-size: 15pt;
+        letter-spacing: 0.04em;
+        line-height: 1;
+      }
+      .marke-text small {
+        display: block;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 7.5pt;
+        letter-spacing: 0.14em;
+        color: var(--ink-muted);
+        margin-top: 1.2mm;
+        text-transform: uppercase;
+      }
+      .kopf-rechts {
+        margin-left: auto;
+        text-align: right;
+        font-size: 7.5pt;
+        color: var(--ink-soft);
+        line-height: 1.45;
+      }
+      .kopf-rechts strong {
+        display: block;
+        font-family: Anton, sans-serif;
+        font-weight: 400;
+        font-size: 11pt;
+        letter-spacing: 0.08em;
+        color: var(--ink);
+      }
+
+      /* Disziplin-Block */
+      .disziplin {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 4mm;
+        margin-top: 5mm;
+        align-items: end;
+      }
+      .disziplin h1 {
+        margin: 0;
+        font-family: Anton, sans-serif;
+        font-weight: 400;
+        font-size: 30pt;
+        line-height: 0.95;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+      }
+      .disziplin h1::after {
+        content: '';
+        display: block;
+        width: 22mm;
+        height: 1.6mm;
+        background: var(--gold);
+        margin-top: 2mm;
+      }
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.6mm;
+        margin-top: 3mm;
+      }
+      .chip {
+        font-size: 7.5pt;
+        border: 1px solid var(--line);
+        border-radius: 99px;
+        padding: 0.6mm 2.4mm;
+        color: var(--ink-soft);
+      }
+      .chip b {
+        color: var(--ink);
+      }
+      .kennzahlen {
+        display: grid;
+        grid-template-columns: repeat(3, 24mm);
+        gap: 1.6mm;
+      }
+      .kennzahl {
+        border: 1.2px solid var(--ink);
+        border-radius: 2mm;
+        padding: 1.8mm 2mm 1.6mm;
+      }
+      .kennzahl .wert {
+        font-family: Anton, sans-serif;
+        font-size: 16pt;
+        line-height: 1;
+      }
+      .kennzahl .label {
+        font-size: 6.5pt;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--ink-muted);
+        margin-top: 1mm;
+      }
+      .kennzahl.leer .wert {
+        color: transparent;
+        border-bottom: 1px dashed var(--ink-muted);
+        height: 5.6mm;
+      }
+
+      /* Tabelle */
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 5mm;
+        font-size: 8.6pt;
+      }
+      thead th {
+        text-align: left;
+        font-size: 6.5pt;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: var(--ink-muted);
+        font-weight: 700;
+        padding: 0 1.5mm 1.5mm;
+        border-bottom: 1.2px solid var(--ink);
+      }
+      tbody td {
+        padding: 1.55mm 1.5mm;
+        border-bottom: 0.6px solid var(--line);
+        vertical-align: middle;
+      }
+      tbody tr:nth-child(even) td {
+        background: var(--zebra);
+      }
+      .nr {
+        width: 8mm;
+        color: var(--ink-muted);
+        font-variant-numeric: tabular-nums;
+      }
+      .name b {
+        font-weight: 700;
+      }
+      .id {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 7.6pt;
+        color: var(--ink-soft);
+        width: 30mm;
+      }
+      .id .neu {
+        font-family: 'DM Sans', sans-serif;
+        font-size: 6pt;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        color: var(--gold-ink);
+        border: 0.8px solid var(--gold);
+        border-radius: 1mm;
+        padding: 0 1mm;
+        margin-left: 1mm;
+        vertical-align: 1px;
+      }
+      .geld {
+        width: 17mm;
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+        font-weight: 500;
+      }
+      .box-zelle {
+        width: 18mm;
+        text-align: center;
+      }
+      .box {
+        display: inline-block;
+        width: 4.6mm;
+        height: 4.6mm;
+        border: 1.2px solid var(--ink);
+        border-radius: 0.8mm;
+        vertical-align: middle;
+        position: relative;
+      }
+      .box.an::after {
+        content: '✓';
+        position: absolute;
+        inset: -1.6mm 0 0 0.4mm;
+        font-size: 10pt;
+        font-weight: 700;
+      }
+      .notiz {
+        width: 38mm;
+      }
+      .notiz span {
+        display: block;
+        border-bottom: 0.6px dotted var(--ink-muted);
+        height: 3.4mm;
+      }
+      .team-name {
+        font-weight: 700;
+        font-size: 9.4pt;
+      }
+      .team-spieler {
+        display: flex;
+        flex-wrap: wrap;
+        column-gap: 2.6mm;
+        margin-top: 0.8mm;
+        font-size: 7.4pt;
+        color: var(--ink-soft);
+        line-height: 1.5;
+      }
+      .team-spieler span {
+        white-space: nowrap;
+      }
+      .team-spieler code {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 6.6pt;
+        color: var(--ink-muted);
+      }
+
+      /* Abgemeldet */
+      .abgemeldet {
+        margin-top: 4mm;
+        font-size: 7.6pt;
+        color: var(--ink-muted);
+      }
+      .abgemeldet h2 {
+        font-size: 6.5pt;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        margin: 0 0 1mm;
+      }
+      .abgemeldet s {
+        margin-right: 3mm;
+      }
+
+      /* Fuß */
+      .fuss {
+        margin-top: auto;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: end;
+        gap: 6mm;
+        border-top: 0.8px solid var(--line);
+        padding-top: 3mm;
+        font-size: 7pt;
+        color: var(--ink-muted);
+      }
+      .unterschrift {
+        display: flex;
+        gap: 6mm;
+      }
+      .unterschrift div {
+        width: 42mm;
+        border-top: 0.8px solid var(--ink);
+        padding-top: 1mm;
+        color: var(--ink-soft);
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Seite 1: Einzel-Disziplin – eine Zeile je Spieler -->
+    <section class="page" id="seite-einzel">
+      <header class="kopf">
+        <div class="marke">
+          <div class="marke-punkt"></div>
+          <div class="marke-text">12. FEHMARN OPEN 2027<small>Radikal-Geräte · 05.–07. März</small></div>
+        </div>
+        <div class="kopf-rechts">
+          <strong>TURNIERTAG-LISTE</strong>
+          Stand 28.10.2026, 14:32 Uhr<br />
+          Seite 2 von 9
+        </div>
+      </header>
+
+      <div class="disziplin">
+        <div>
+          <h1>Herreneinzel</h1>
+          <div class="chips">
+            <span class="chip"><b>Sa 06.03.</b></span>
+            <span class="chip">Meldeschluss vor Ort <b>10:00</b></span>
+            <span class="chip">Beginn <b>11:00</b></span>
+            <span class="chip">501 · Bo3</span>
+            <span class="chip">10 € / Spieler</span>
+          </div>
+        </div>
+        <div class="kennzahlen">
+          <div class="kennzahl">
+            <div class="wert">18</div>
+            <div class="label">Meldungen</div>
+          </div>
+          <div class="kennzahl leer">
+            <div class="wert">–</div>
+            <div class="label">Anwesend</div>
+          </div>
+          <div class="kennzahl">
+            <div class="wert">180 €</div>
+            <div class="label">Soll Kasse</div>
+          </div>
+        </div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th class="nr">#</th>
+            <th>Name</th>
+            <th>Radikal-ID</th>
+            <th class="geld">Startgeld</th>
+            <th class="box-zelle">Anwesend</th>
+            <th class="box-zelle">Bezahlt</th>
+            <th class="notiz">Notiz</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td class="nr">1</td><td class="name"><b>Albers</b>, Jonas</td><td class="id">JA14021991</td><td class="geld">10 €</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td><td class="notiz"><span></span></td></tr>
+          <tr><td class="nr">2</td><td class="name"><b>Brandt</b>, Malte</td><td class="id">MB03071985</td><td class="geld">10 €</td><td class="box-zelle"><span class="box an"></span></td><td class="box-zelle"><span class="box"></span></td><td class="notiz"><span></span></td></tr>
+          <tr><td class="nr">3</td><td class="name"><b>Claussen</b>, Henrik</td><td class="id">HC22111979<span class="neu">NEU</span></td><td class="geld">10 €</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td><td class="notiz"><span></span></td></tr>
+          <tr><td class="nr">4</td><td class="name"><b>Dreyer</b>, Ole</td><td class="id">OD09091996</td><td class="geld">10 €</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td><td class="notiz"><span></span></td></tr>
+          <tr><td class="nr">5</td><td class="name"><b>Ehlers</b>, Sven</td><td class="id">SE30011988</td><td class="geld">10 €</td><td class="box-zelle"><span class="box an"></span></td><td class="box-zelle"><span class="box"></span></td><td class="notiz"><span></span></td></tr>
+          <tr><td class="nr">6</td><td class="name"><b>Feddersen</b>, Lars</td><td class="id">LF17051982</td><td class="geld">10 €</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td><td class="notiz"><span></span></td></tr>
+          <tr><td class="nr">7</td><td class="name"><b>Gosch</b>, Timo</td><td class="id">TG01121999<span class="neu">NEU</span></td><td class="geld">10 €</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td><td class="notiz"><span></span></td></tr>
+          <tr><td class="nr">8</td><td class="name"><b>Hansen</b>, Kai</td><td class="id">KH12031988</td><td class="geld">10 €</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td><td class="notiz"><span></span></td></tr>
+          <tr><td class="nr">9</td><td class="name"><b>Hinz</b>, Dennis</td><td class="id">DH25061990</td><td class="geld">10 €</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td><td class="notiz"><span></span></td></tr>
+          <tr><td class="nr">10</td><td class="name"><b>Jessen</b>, Bjarne</td><td class="id">BJ08081994</td><td class="geld">10 €</td><td class="box-zelle"><span class="box an"></span></td><td class="box-zelle"><span class="box"></span></td><td class="notiz"><span></span></td></tr>
+          <tr><td class="nr">11</td><td class="name"><b>Kühl</b>, Marco</td><td class="id">MK19041977</td><td class="geld">10 €</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td><td class="notiz"><span></span></td></tr>
+          <tr><td class="nr">12</td><td class="name"><b>Lorenzen</b>, Finn</td><td class="id">FL02021993</td><td class="geld">10 €</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td><td class="notiz"><span></span></td></tr>
+          <tr><td class="nr">13</td><td class="name"><b>Möller</b>, Jan</td><td class="id">JM27101986</td><td class="geld">10 €</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td><td class="notiz"><span></span></td></tr>
+          <tr><td class="nr">14</td><td class="name"><b>Nissen</b>, Hauke</td><td class="id">HN11111981<span class="neu">NEU</span></td><td class="geld">10 €</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td><td class="notiz"><span></span></td></tr>
+          <tr><td class="nr">15</td><td class="name"><b>Petersen</b>, Nils</td><td class="id">NP06031995</td><td class="geld">10 €</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td><td class="notiz"><span></span></td></tr>
+          <tr><td class="nr">16</td><td class="name"><b>Rahlf</b>, Torben</td><td class="id">TR21091984</td><td class="geld">10 €</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td><td class="notiz"><span></span></td></tr>
+          <tr><td class="nr">17</td><td class="name"><b>Schröder</b>, Mats</td><td class="id">MS15071998</td><td class="geld">10 €</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td><td class="notiz"><span></span></td></tr>
+          <tr><td class="nr">18</td><td class="name"><b>Thomsen</b>, Erik</td><td class="id">ET04041980</td><td class="geld">10 €</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td><td class="notiz"><span></span></td></tr>
+          <tr><td class="nr">19</td><td class="name" style="color: var(--ink-muted)">Nachmeldung</td><td class="id"></td><td class="geld"></td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td><td class="notiz"><span></span></td></tr>
+          <tr><td class="nr">20</td><td class="name" style="color: var(--ink-muted)">Nachmeldung</td><td class="id"></td><td class="geld"></td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td><td class="notiz"><span></span></td></tr>
+        </tbody>
+      </table>
+
+      <div class="abgemeldet">
+        <h2>Abgemeldet – spielt nicht mit</h2>
+        <s>Ullrich, Peter (PU10101975)</s><s>Voss, André (AV23081989)</s>
+      </div>
+
+      <footer class="fuss">
+        <div>
+          ✓ = Anwesenheit bereits digital erfasst · <b>NEU</b> = Radikal-ID wird aus Initialen + Geburtsdatum
+          neu angelegt<br />
+          Sortiert nach Nachname · Nur für den internen Gebrauch der Turnierleitung
+        </div>
+        <div class="unterschrift">
+          <div>Kasse gezählt (€)</div>
+          <div>Kürzel Turnierleitung</div>
+        </div>
+      </footer>
+    </section>
+
+    <!-- Seite 2: Team-Disziplin – eine Zeile je Meldung, Spieler darunter -->
+    <section class="page" id="seite-team">
+      <header class="kopf">
+        <div class="marke">
+          <div class="marke-punkt"></div>
+          <div class="marke-text">12. FEHMARN OPEN 2027<small>Radikal-Geräte · 05.–07. März</small></div>
+        </div>
+        <div class="kopf-rechts">
+          <strong>TURNIERTAG-LISTE</strong>
+          Stand 28.10.2026, 14:32 Uhr<br />
+          Seite 1 von 9
+        </div>
+      </header>
+
+      <div class="disziplin">
+        <div>
+          <h1>Teamwettbewerb</h1>
+          <div class="chips">
+            <span class="chip"><b>Fr 05.03.</b></span>
+            <span class="chip">Meldeschluss vor Ort <b>18:00</b></span>
+            <span class="chip">Beginn <b>19:00</b></span>
+            <span class="chip">501 · Bo7</span>
+            <span class="chip">10 € / Spieler</span>
+          </div>
+        </div>
+        <div class="kennzahlen">
+          <div class="kennzahl">
+            <div class="wert">9<span style="font-size: 9pt; color: var(--ink-muted)"> / 96</span></div>
+            <div class="label">Teams</div>
+          </div>
+          <div class="kennzahl leer">
+            <div class="wert">–</div>
+            <div class="label">Anwesend</div>
+          </div>
+          <div class="kennzahl">
+            <div class="wert">450 €</div>
+            <div class="label">Soll Kasse</div>
+          </div>
+        </div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th class="nr">#</th>
+            <th>Team &amp; Spieler (Radikal-ID)</th>
+            <th class="geld">Startgeld</th>
+            <th class="box-zelle">Anwesend</th>
+            <th class="box-zelle">Bezahlt</th>
+            <th class="notiz">Notiz</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td class="nr">1</td><td><div class="team-name">Bullseye Boys</div><div class="team-spieler"><span>Kai Hansen <code>KH12031988</code></span><span>Ole Dreyer <code>OD09091996</code></span><span>Jan Möller <code>JM27101986</code></span><span>Finn Lorenzen <code>FL02021993</code></span></div></td><td class="geld">40 €<br /><small style="color: var(--ink-muted)">4 × 10</small></td><td class="box-zelle"><span class="box an"></span></td><td class="box-zelle"><span class="box"></span></td><td class="notiz"><span></span><span></span></td></tr>
+          <tr><td class="nr">2</td><td><div class="team-name">Darts Vader</div><div class="team-spieler"><span>Sven Ehlers <code>SE30011988</code></span><span>Lena Ehlers <code>LE14061990</code></span><span>Timo Gosch <code>TG01121999</code></span><span>Mats Schröder <code>MS15071998</code></span><span>Erik Thomsen <code>ET04041980</code></span></div></td><td class="geld">50 €<br /><small style="color: var(--ink-muted)">5 × 10</small></td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td><td class="notiz"><span></span><span></span></td></tr>
+          <tr><td class="nr">3</td><td><div class="team-name">Fehmarnsund Flyers</div><div class="team-spieler"><span>Nils Petersen <code>NP06031995</code></span><span>Hauke Nissen <code>HN11111981</code></span><span>Torben Rahlf <code>TR21091984</code></span><span>Bjarne Jessen <code>BJ08081994</code></span><span>Marco Kühl <code>MK19041977</code></span><span>Jonas Albers <code>JA14021991</code></span></div></td><td class="geld">60 €<br /><small style="color: var(--ink-muted)">6 × 10</small></td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td><td class="notiz"><span></span><span></span></td></tr>
+          <tr><td class="nr">4</td><td><div class="team-name">Inselkönige</div><div class="team-spieler"><span>Malte Brandt <code>MB03071985</code></span><span>Dennis Hinz <code>DH25061990</code></span><span>Lars Feddersen <code>LF17051982</code></span><span>Henrik Claussen <code>HC22111979</code></span></div></td><td class="geld">40 €<br /><small style="color: var(--ink-muted)">4 × 10</small></td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td><td class="notiz"><span></span><span></span></td></tr>
+          <tr><td class="nr">5</td><td><div class="team-name">Ostsee Treble</div><div class="team-spieler"><span>Anna Wulf <code>AW03031992</code></span><span>Merle Sach <code>MS28021997</code></span><span>Jule Paulsen <code>JP19121994</code></span><span>Tim Rix <code>TR07071991</code></span><span>Paul Witt <code>PW30091987</code></span></div></td><td class="geld">50 €<br /><small style="color: var(--ink-muted)">5 × 10</small></td><td class="box-zelle"><span class="box an"></span></td><td class="box-zelle"><span class="box"></span></td><td class="notiz"><span></span><span></span></td></tr>
+          <tr><td class="nr">6</td><td><div class="team-name">Puttgarden Pfeile</div><div class="team-spieler"><span>Kim Frahm <code>KF01011990</code></span><span>Ben Kock <code>BK05051985</code></span><span>Leon Stoltenberg <code>LS16081996</code></span><span>Max Mewes <code>MM01011990</code></span></div></td><td class="geld">40 €<br /><small style="color: var(--ink-muted)">4 × 10</small></td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td><td class="notiz"><span></span><span></span></td></tr>
+          <tr><td class="nr">7</td><td><div class="team-name">Triple Twenty Crew</div><div class="team-spieler"><span>Rieke Lang <code>RL12121993</code></span><span>Jens Bock <code>JB21011978</code></span><span>Uwe Sell <code>US09041972</code></span><span>Lisa Hagge <code>LH27061999</code></span><span>Tom Kruse <code>TK02021988</code></span></div></td><td class="geld">50 €<br /><small style="color: var(--ink-muted)">5 × 10</small></td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td><td class="notiz"><span></span><span></span></td></tr>
+          <tr><td class="nr">8</td><td><div class="team-name">Vogelflug-Darter</div><div class="team-spieler"><span>Hans Ahrens <code>HA11111965</code></span><span>Gerd Fock <code>GF03031968</code></span><span>Rolf Maaß <code>RM14071970</code></span><span>Dirk Prüß <code>DP25121973</code></span><span>Ute Prüß <code>UP06061975</code></span><span>Olaf Zieh <code>OZ18101969</code></span></div></td><td class="geld">60 €<br /><small style="color: var(--ink-muted)">6 × 10</small></td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td><td class="notiz"><span></span><span></span></td></tr>
+          <tr><td class="nr">9</td><td><div class="team-name">Wurfgeschoss</div><div class="team-spieler"><span>Nele Iwers <code>NI09021998</code></span><span>Felix Otte <code>FO13131995</code></span><span>Moritz Utz <code>MU04081997</code></span><span>Jonte Kahl <code>JK22052000</code></span><span>Pia Rehse <code>PR31011996</code></span></div></td><td class="geld">50 €<br /><small style="color: var(--ink-muted)">5 × 10</small></td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td><td class="notiz"><span></span><span></span></td></tr>
+        </tbody>
+      </table>
+
+      <div class="abgemeldet">
+        <h2>Abgemeldet – spielt nicht mit</h2>
+        <s>Die Ausbuller (4 Spieler)</s>
+      </div>
+
+      <footer class="fuss">
+        <div>
+          ✓ = Anwesenheit bereits digital erfasst · Startgeld = Spieler × 10 €<br />
+          Sortiert nach Teamname · Nur für den internen Gebrauch der Turnierleitung
+        </div>
+        <div class="unterschrift">
+          <div>Kasse gezählt (€)</div>
+          <div>Kürzel Turnierleitung</div>
+        </div>
+      </footer>
+    </section>
+  </body>
+</html>

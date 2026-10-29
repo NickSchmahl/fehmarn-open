@@ -1,3 +1,4 @@
+import { DISZIPLINEN } from '../../../shared/disziplin';
 import { bereiteExportAuf } from './export-daten';
 import { berechneKennzahlen } from './kennzahlen';
 import { radikalZeilen } from './radikal-zeilen';
@@ -27,10 +28,24 @@ describe('baueMeldeliste', () => {
   const liste = baueMeldeliste(ZEILEN, false);
 
   it('zählt je Disziplin Meldungen, Spieler und neue IDs', () => {
-    expect(liste.uebersicht).toEqual([
-      { disziplin: 'HERRENEINZEL', name: 'Herreneinzel', meldungen: 2, spieler: 2, neueIds: 1 },
-      { disziplin: 'HERRENDOPPEL', name: 'Herrendoppel', meldungen: 2, spieler: 4, neueIds: 1 },
-    ]);
+    const zeile = (disziplin: string) => liste.uebersicht.find((z) => z.disziplin === disziplin);
+    expect(zeile('HERRENEINZEL')).toEqual({
+      disziplin: 'HERRENEINZEL',
+      name: 'Herreneinzel',
+      meldungen: 2,
+      spieler: 2,
+      neueIds: 1,
+    });
+    expect(zeile('HERRENDOPPEL')).toMatchObject({ meldungen: 2, spieler: 4, neueIds: 1 });
+  });
+
+  it('nennt in der Übersicht alle Disziplinen, auch ohne Meldungen (mit 0)', () => {
+    expect(liste.uebersicht.map((z) => z.disziplin)).toEqual(DISZIPLINEN.map((d) => d.value));
+    expect(liste.uebersicht.find((z) => z.disziplin === 'DAMENDOPPEL')).toMatchObject({
+      meldungen: 0,
+      spieler: 0,
+      neueIds: 0,
+    });
   });
 
   it('summiert über Disziplinen, obwohl sich Meldungsnummern je Disziplin wiederholen', () => {
@@ -111,15 +126,14 @@ describe('baueMeldeliste', () => {
         true,
       );
       expect(ohneNeue.abschnitte).toEqual([]);
-      expect(ohneNeue.uebersicht).toHaveLength(1);
+      expect(ohneNeue.gesamt).toEqual({ meldungen: 1, spieler: 1, neueIds: 0 });
     });
   });
 
-  it('liefert für keine Meldungen eine leere Liste mit Nullsummen', () => {
-    expect(baueMeldeliste([], false)).toEqual({
-      uebersicht: [],
-      gesamt: { meldungen: 0, spieler: 0, neueIds: 0 },
-      abschnitte: [],
-    });
+  it('liefert für keine Meldungen nur Nullen und keine Abschnitte', () => {
+    const leer = baueMeldeliste([], false);
+    expect(leer.uebersicht.every((z) => z.meldungen === 0 && z.spieler === 0)).toBe(true);
+    expect(leer.gesamt).toEqual({ meldungen: 0, spieler: 0, neueIds: 0 });
+    expect(leer.abschnitte).toEqual([]);
   });
 });

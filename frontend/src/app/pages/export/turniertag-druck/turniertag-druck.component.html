@@ -119,7 +119,7 @@
       } @else {
         <div class="zwei-spalten">
           @for (spalte of blatt.spalten; track $index) {
-            <table class="einzel">
+            <table class="einzel" [class.kompakt]="disziplin.kompakteLeerzeilen">
               <thead>
                 <tr>
                   <th class="nr">#</th>

@@ -1,7 +1,7 @@
 // Aufbereitung der Meldeliste für Radikal (#309) – das lesbare Gegenstück zur CSV. Baut auf
 // denselben RadikalZeilen auf wie die CSV, damit Übersichtszahlen und Inhalt übereinstimmen.
 
-import { Disziplin } from '../../../shared/disziplin';
+import { Disziplin, DISZIPLINEN } from '../../../shared/disziplin';
 import { RadikalZeile } from './radikal-zeilen';
 
 export interface MeldelisteKennzahlen {
@@ -83,7 +83,8 @@ function zuBlock(zeilen: readonly RadikalZeile[]): MeldelisteBlock {
       vorname: zeile.vorname,
       radikalId: zeile.radikalId,
       neu: zeile.idStatus === 'neu',
-      geburtsdatum: zeile.idStatus === 'neu' ? zeile.geburtsdatum : '',
+      // Nur bei NEU gefüllt – die Regel steht in export-daten.ts (zuExportSpieler).
+      geburtsdatum: zeile.geburtsdatum,
     })),
   };
 }
@@ -101,20 +102,17 @@ function zuAbschnitt(gruppe: readonly RadikalZeile[], nurNeue: boolean): Meldeli
 }
 
 /**
- * Baut die Meldeliste. Die Übersicht zählt immer **alle** aktiven Meldungen (wie die CSV); mit
- * `nurNeue` enthalten die Abschnitte nur Spieler mit neuer Radikal-ID, behalten aber ihre laufende
- * Nummer, damit sie sich weiter der CSV bzw. Turniertag-Liste zuordnen lassen.
+ * Baut die Meldeliste. Die Übersicht nennt **alle** Disziplinen (auch mit 0 Meldungen, damit Radikal
+ * „keine Meldung" von „fehlt im Export" unterscheiden kann) und zählt immer alle aktiven Meldungen
+ * wie die CSV. Mit `nurNeue` enthalten die Abschnitte nur Spieler mit neuer Radikal-ID, behalten
+ * aber ihre laufende Nummer, damit sie sich weiter der CSV bzw. Turniertag-Liste zuordnen lassen.
  */
 export function baueMeldeliste(zeilen: readonly RadikalZeile[], nurNeue: boolean): Meldeliste {
-  const alle = gruppiere(zeilen, (zeile) => zeile.disziplin).map((gruppe) =>
-    zuAbschnitt(gruppe, nurNeue),
-  );
-  const uebersicht = alle.map(({ disziplin, name, meldungen, spieler, neueIds }) => ({
-    disziplin,
-    name,
-    meldungen,
-    spieler,
-    neueIds,
+  const jeDisziplin = gruppiere(zeilen, (zeile) => zeile.disziplin);
+  const uebersicht = DISZIPLINEN.map((meta) => ({
+    disziplin: meta.value,
+    name: meta.label,
+    ...zaehle(jeDisziplin.find((gruppe) => gruppe[0].disziplin === meta.value) ?? []),
   }));
   const gesamt = uebersicht.reduce(
     (summe, zeile) => ({
@@ -127,6 +125,8 @@ export function baueMeldeliste(zeilen: readonly RadikalZeile[], nurNeue: boolean
   return {
     uebersicht,
     gesamt,
-    abschnitte: alle.filter((abschnitt) => abschnitt.bloecke.length > 0),
+    abschnitte: jeDisziplin
+      .map((gruppe) => zuAbschnitt(gruppe, nurNeue))
+      .filter((abschnitt) => abschnitt.bloecke.length > 0),
   };
 }

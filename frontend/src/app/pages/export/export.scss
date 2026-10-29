@@ -323,8 +323,8 @@ h1 {
 }
 
 /* ── Druck ────────────────────────────────────────────────── *
- * Die Druckansicht steht nur während eines Druckauftrags im DOM. Am Bildschirm bleibt sie
- * unsichtbar, im Druck ersetzt sie die Seite. Header/Footer der App blendet styles.scss aus. */
+ * Die Druckansicht entsteht beim ersten Druckauftrag. Am Bildschirm bleibt sie unsichtbar, im
+ * Druck ersetzt sie die Seite. Header/Footer der App blendet styles.scss aus. */
 .druck-bereich {
   display: none;
 }

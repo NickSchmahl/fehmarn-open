@@ -15,7 +15,8 @@ export const EINZEL_FOLGEBLATT = 102;
 
 /**
  * Zeilenhöhen in 1/100 mm – müssen zu den festen Höhen in turniertag-druck.component.scss passen.
- * Leerzeilen sind höher, damit man darin schreiben kann.
+ * Leerzeilen sind höher, damit man darin schreiben kann – außer sie würden dadurch ein eigenes
+ * Blatt erzwingen; dann werden sie kompakt (so hoch wie normale Zeilen) gedruckt.
  */
 export const HOEHE = {
   einzel: 455,
@@ -49,6 +50,8 @@ export interface TurniertagBlatt {
 
 export interface TurniertagDisziplin {
   disziplin: Disziplin;
+  /** Leerzeilen so hoch wie normale Zeilen, weil sonst ein zusätzliches Blatt nötig wäre. */
+  kompakteLeerzeilen: boolean;
   label: string;
   istTeam: boolean;
   zeitplan: FlyerZeitplanEintrag;
@@ -61,9 +64,9 @@ export interface TurniertagDisziplin {
   blaetter: readonly TurniertagBlatt[];
 }
 
-export function zeilenHoehe(zeile: TurniertagZeile, istTeam: boolean): number {
+export function zeilenHoehe(zeile: TurniertagZeile, istTeam: boolean, kompakt = false): number {
   if (!istTeam) {
-    return zeile.meldung ? HOEHE.einzel : HOEHE.einzelLeer;
+    return zeile.meldung || kompakt ? HOEHE.einzel : HOEHE.einzelLeer;
   }
   if (!zeile.meldung) {
     return HOEHE.teamLeer;
@@ -105,36 +108,47 @@ function fuelleSpalten<T>(
 }
 
 /**
- * Teilt die Zeilen des letzten Einzel-Blatts auf zwei gleich hohe Spalten auf (links eher eine
- * Zeile mehr). Gewählt wird die Trennstelle mit der kleineren der beiden Spaltenhöhen-Maxima – passt
- * der Inhalt in zwei Spalten, passt er so auch ausgeglichen hinein.
+ * Teilt die Zeilen des letzten Einzel-Blatts wie ein Telefonbuch auf zwei Spalten auf: links
+ * mindestens so hoch wie rechts, beide möglichst gleich hoch. Passt die linke Spalte so nicht ins
+ * Budget, gilt die ausgeglichenste Trennstelle – die passt immer, wenn der Inhalt vorher in zwei
+ * Spalten gepasst hat.
  */
-function teileAusgeglichen<T>(zeilen: readonly T[], hoehe: (eintrag: T) => number): T[][] {
+function teileAusgeglichen<T>(
+  zeilen: readonly T[],
+  hoehe: (eintrag: T) => number,
+  budget: number,
+): T[][] {
   const gesamt = zeilen.reduce((summe, zeile) => summe + hoehe(zeile), 0);
-  let besteStelle = zeilen.length;
-  let bestesMaximum = gesamt;
   let links = 0;
-  zeilen.forEach((zeile, index) => {
+  let ausgeglichensteStelle = zeilen.length;
+  let kleinstesMaximum = Infinity;
+  for (const [index, zeile] of zeilen.entries()) {
+    const stelle = index + 1;
     links += hoehe(zeile);
-    const maximum = Math.max(links, gesamt - links);
-    if (maximum < bestesMaximum) {
-      bestesMaximum = maximum;
-      besteStelle = index + 1;
+    const rechts = gesamt - links;
+    if (links >= rechts && links <= budget) {
+      return [zeilen.slice(0, stelle), zeilen.slice(stelle)];
     }
-  });
-  return [zeilen.slice(0, besteStelle), zeilen.slice(besteStelle)];
+    if (Math.max(links, rechts) < kleinstesMaximum) {
+      kleinstesMaximum = Math.max(links, rechts);
+      ausgeglichensteStelle = stelle;
+    }
+  }
+  return [zeilen.slice(0, ausgeglichensteStelle), zeilen.slice(ausgeglichensteStelle)];
 }
 
 /**
  * Teilt die Zeilen einer Disziplin auf Blätter auf. Einzel zweispaltig wie ein Telefonbuch (erst
  * links von oben nach unten, dann rechts), auf dem letzten Blatt beide Spalten gleich lang. Teams
- * einspaltig. Blatt 1 hat weniger Platz (voller Kopf mit Kennzahlen).
+ * einspaltig. Blatt 1 hat weniger Platz (voller Kopf mit Kennzahlen). `kompakt` = Leerzeilen so
+ * hoch wie normale Zeilen.
  */
 export function teileInBlaetter(
   zeilen: readonly TurniertagZeile[],
   istTeam: boolean,
+  kompakt = false,
 ): TurniertagBlatt[] {
-  const hoehe = (zeile: TurniertagZeile) => zeilenHoehe(zeile, istTeam);
+  const hoehe = (zeile: TurniertagZeile) => zeilenHoehe(zeile, istTeam, kompakt);
   const spaltenJeBlatt = istTeam ? 1 : 2;
   const budget = (spalte: number) =>
     spalte < spaltenJeBlatt ? BUDGET_ERSTES_BLATT : BUDGET_FOLGEBLATT;
@@ -147,7 +161,8 @@ export function teileInBlaetter(
 
   const letztes = blaetter.at(-1);
   if (!istTeam && letztes) {
-    blaetter[blaetter.length - 1] = teileAusgeglichen(letztes.flat(), hoehe);
+    const letztesBudget = blaetter.length === 1 ? BUDGET_ERSTES_BLATT : BUDGET_FOLGEBLATT;
+    blaetter[blaetter.length - 1] = teileAusgeglichen(letztes.flat(), hoehe, letztesBudget);
   }
 
   return blaetter.map((blattSpalten, index) => {
@@ -159,6 +174,25 @@ export function teileInBlaetter(
       spalten: blattSpalten,
     };
   });
+}
+
+/**
+ * Wie `teileInBlaetter`, aber ohne Blatt nur für Leerzeilen: Brauchen die hohen Leerzeilen ein
+ * Blatt mehr als kompakte, werden sie kompakt gedruckt (nur Einzel; bei Teams sind Leerzeilen
+ * ohnehin niedriger als Meldungen).
+ */
+export function teileSparsamInBlaetter(
+  zeilen: readonly TurniertagZeile[],
+  istTeam: boolean,
+): { blaetter: TurniertagBlatt[]; kompakt: boolean } {
+  const hoch = teileInBlaetter(zeilen, istTeam);
+  if (istTeam) {
+    return { blaetter: hoch, kompakt: false };
+  }
+  const kompakt = teileInBlaetter(zeilen, istTeam, true);
+  return kompakt.length < hoch.length
+    ? { blaetter: kompakt, kompakt: true }
+    : { blaetter: hoch, kompakt: false };
 }
 
 /** Meldungen durchnummeriert plus die nummerierten Leerzeilen. */
@@ -190,9 +224,14 @@ export function baueTurniertagListe(
       if (!daten) {
         return [];
       }
+      const { blaetter, kompakt } = teileSparsamInBlaetter(
+        mitLeerzeilen(daten.meldungen),
+        daten.istTeam,
+      );
       return [
         {
           disziplin: daten.disziplin,
+          kompakteLeerzeilen: kompakt,
           label: daten.label,
           istTeam: daten.istTeam,
           zeitplan,
@@ -203,7 +242,7 @@ export function baueTurniertagListe(
             (summe, meldung) => summe + startgeld(meldung, daten.preisProSpieler),
             0,
           ),
-          blaetter: teileInBlaetter(mitLeerzeilen(daten.meldungen), daten.istTeam),
+          blaetter,
         },
       ];
     },

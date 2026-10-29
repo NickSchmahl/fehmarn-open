@@ -60,7 +60,6 @@ function istAngehakt(event: Event): boolean {
   selector: 'app-export',
   standalone: true,
   imports: [ExportKarteComponent, RadikalDruckComponent, TurniertagDruckComponent],
-  host: { '(window:afterprint)': 'druckBeendet()' },
   templateUrl: './export.html',
   styleUrl: './export.scss',
 })
@@ -74,7 +73,11 @@ export class Export implements OnInit {
   readonly loading = signal(false);
   readonly error = signal(false);
   readonly uebersicht = signal<AdminUebersicht | null>(null);
-  /** Gerade gedruckte Ansicht; nur dann steht die Druck-Komponente im DOM. */
+  /**
+   * Zuletzt gedruckte Ansicht. Sie bleibt danach (unsichtbar) im DOM: Auf Mobilgeräten kehrt
+   * window.print() sofort zurück und `afterprint` kann vor dem Druck-Snapshot feuern – ein Abbau
+   * dort ergäbe ein leeres PDF. Erneutes Strg+P druckt so die zuletzt gewählte Liste.
+   */
   readonly druckAuftrag = signal<DruckArt | null>(null);
   /** Turniertag-Liste: gewählte Disziplinen (Standard: alle) und Optionen. */
   readonly turniertagAuswahl = signal<ReadonlySet<Disziplin>>(ALLE_DISZIPLINEN);
@@ -94,7 +97,7 @@ export class Export implements OnInit {
 
   readonly kennzahlen = computed<ExportKennzahlen | null>(() => {
     const daten = this.uebersicht();
-    return daten ? berechneKennzahlen(daten) : null;
+    return daten ? berechneKennzahlen(daten, this.disziplinen()) : null;
   });
 
   /** Eine Zeile je Spieler und Disziplin – Grundlage für CSV und Radikal-Meldeliste. */
@@ -235,10 +238,5 @@ export class Export implements OnInit {
       },
       { injector: this.injector },
     );
-  }
-
-  /** Nach dem Druckdialog (window:afterprint) die Druckansicht wieder entfernen. */
-  druckBeendet(): void {
-    this.druckAuftrag.set(null);
   }
 }

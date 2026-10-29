@@ -203,7 +203,7 @@
   }
 </div>
 
-<!-- Druckansicht: nur während eines Druckauftrags im DOM und nur im Druck sichtbar. -->
+<!-- Druckansicht: ab dem ersten Druckauftrag im DOM, aber nur im Druck sichtbar. -->
 @if (druckAuftrag(); as art) {
   @if (stand(); as standZeit) {
     <div class="druck-bereich">

@@ -256,7 +256,7 @@ tr.leer td.linie {
   border-bottom: 0.6px dotted druck.$ink-muted;
 }
 
-/* Einzel: zwei Spalten, Zeilenhöhe = HOEHE.einzel (4,55 mm) bzw. HOEHE.einzelLeer (5,4 mm) */
+/* Einzel: zwei Spalten, Zeilenhöhe = HOEHE.einzel (4,55 mm), leer HOEHE.einzelLeer (5,4 mm) */
 .zwei-spalten {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -275,6 +275,11 @@ tr.leer td.linie {
 
   tbody tr.leer {
     height: 5.4mm;
+  }
+
+  /* Leerzeilen würden sonst ein eigenes Blatt brauchen (teileSparsamInBlaetter) */
+  &.kompakt tbody tr.leer {
+    height: 4.55mm;
   }
 
   .id {

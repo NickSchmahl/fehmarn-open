@@ -54,13 +54,14 @@ describe('DateiDownloadService', () => {
     expect(await alsBytes(blob)).toEqual([0xef, 0xbb, 0xbf, 0x6b, 0xc3, 0xbc, 0x68, 0x6c]);
   });
 
-  it('gibt die Object-URL erst nach dem Klick frei', () => {
+  it('gibt die Object-URL erst deutlich nach dem Klick frei (Safari lädt asynchron)', () => {
     jest.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
 
     service.herunterladen('inhalt', 'test.csv', 'text/csv;charset=utf-8');
 
+    jest.advanceTimersByTime(1000);
     expect(revokeObjectURL).not.toHaveBeenCalled();
-    jest.runAllTimers();
+    jest.advanceTimersByTime(60_000);
     expect(revokeObjectURL).toHaveBeenCalledWith('blob:test');
   });
 });

@@ -15,8 +15,8 @@ $zebra: #f3f3f0;
 $gold: #e8c547;
 $gold-ink: #8a6d00;
 
-/// A4 hochkant. Die `@page`-Regel gilt nur, solange die Druck-Komponente im DOM steht – also genau
-/// während des Druckauftrags. Randboxen (Seitenzähler o. Ä.) kommen per `@content` dazu.
+/// A4 hochkant. Die `@page`-Regel gilt nur, solange die Druck-Komponente im DOM steht – also nur auf
+/// der Export-Seite nach einem Druckauftrag. Randboxen (Seitenzähler o. Ä.) kommen per `@content`.
 @mixin a4-seite($rand) {
   @page {
     size: A4;

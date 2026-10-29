@@ -208,15 +208,21 @@ describe('Export', () => {
       expect(drucken).toHaveBeenCalledTimes(1);
     });
 
-    it('entfernt die Druckansicht nach dem Druckdialog wieder', () => {
+    it('lässt die Druckansicht nach dem Druck stehen und wechselt beim nächsten Druckauftrag', () => {
       laden();
       radikalKarte().querySelector<HTMLButtonElement>('button')?.click();
       fixture.detectChanges();
 
+      // afterprint feuert auf Mobilgeräten evtl. vor dem Snapshot – darf nichts abbauen.
       window.dispatchEvent(new Event('afterprint'));
       fixture.detectChanges();
+      expect(element.querySelector('.druck-bereich app-radikal-druck')).not.toBeNull();
 
-      expect(element.querySelector('.druck-bereich')).toBeNull();
+      element.querySelector<HTMLButtonElement>('.btn--primaer')?.click();
+      fixture.detectChanges();
+      expect(element.querySelector('.druck-bereich app-radikal-druck')).toBeNull();
+      expect(element.querySelector('.druck-bereich app-turniertag-druck')).not.toBeNull();
+      expect(drucken).toHaveBeenCalledTimes(2);
     });
 
     it('reicht die Option „nur neue IDs" an die Meldeliste weiter', () => {

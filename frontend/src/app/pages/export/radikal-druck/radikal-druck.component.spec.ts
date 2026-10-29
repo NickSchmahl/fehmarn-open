@@ -60,7 +60,12 @@ describe('RadikalDruckComponent', () => {
     rendern();
     expect(zeilen('.summe tbody tr')).toEqual([
       'Herreneinzel HERRENEINZEL 2 2 1',
+      'Dameneinzel DAMENEINZEL 0 0 0',
       'Herrendoppel HERRENDOPPEL 1 2 1',
+      'Damendoppel DAMENDOPPEL 0 0 0',
+      'Triple Mix TRIPLE_MIX 0 0 0',
+      'Teamwettbewerb TEAMWETTBEWERB 0 0 0',
+      'U18-Turnier U18 0 0 0',
     ]);
     expect(zeilen('.summe tfoot tr')[0]).toBe('Gesamt  3 4 2');
   });

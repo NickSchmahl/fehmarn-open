@@ -10,6 +10,7 @@ import {
   startgeld,
   teamZeilenAnzahl,
   teileInBlaetter,
+  teileSparsamInBlaetter,
   TurniertagBlatt,
   TurniertagZeile,
   zeilenHoehe,
@@ -118,11 +119,74 @@ describe('teileInBlaetter – Einzel (zweispaltig)', () => {
     }
   });
 
+  it('hält auf dem letzten Blatt links mindestens so viel wie rechts – für jede Spielerzahl', () => {
+    for (let spieler = 0; spieler <= 400; spieler++) {
+      const meldungen = Array.from({ length: spieler }, (_, i) => exportMeldung(i + 1));
+      const { blaetter, kompakt } = teileSparsamInBlaetter(mitLeerzeilen(meldungen), false);
+      const [links = [], rechts = []] = blaetter.at(-1)?.spalten ?? [];
+      const hoehe = (spalte: readonly TurniertagZeile[]) =>
+        spalte.reduce((summe, zeile) => summe + zeilenHoehe(zeile, false, kompakt), 0);
+
+      expect({ spieler, linksMindestensRechts: hoehe(links) >= hoehe(rechts) }).toEqual({
+        spieler,
+        linksMindestensRechts: true,
+      });
+    }
+  });
+
+  it('teilt drei Leerzeilen auf dem letzten Blatt 2/1 statt 1/2', () => {
+    const zeilen = mitLeerzeilen([]).slice(0, 3);
+    expect(teileInBlaetter(zeilen, false)[0]?.spalten.map((spalte) => spalte.length)).toEqual([
+      2, 1,
+    ]);
+  });
+
   it('kommt für wenige Spieler mit einem Blatt aus', () => {
     const blaetter = einzelBlaetter(9);
 
     expect(blaetter).toHaveLength(1);
-    expect(blaetter[0]?.spalten.map((spalte) => spalte.length)).toEqual([10, 9]);
+    // Nach Höhe geteilt: links 9 Spieler + 2 Leerzeilen, rechts 8 (höhere) Leerzeilen.
+    expect(blaetter[0]?.spalten.map((spalte) => spalte.length)).toEqual([11, 8]);
+  });
+});
+
+describe('teileSparsamInBlaetter – kein Blatt nur wegen hoher Leerzeilen', () => {
+  function blaetterFuer(spieler: number): { blaetter: TurniertagBlatt[]; kompakt: boolean } {
+    const meldungen = Array.from({ length: spieler }, (_, i) => exportMeldung(i + 1));
+    return teileSparsamInBlaetter(mitLeerzeilen(meldungen), false);
+  }
+
+  /** Mindestzahl Blätter rein nach Zeilen: 92 auf Blatt 1, 102 auf jedem weiteren. */
+  function mindestBlaetter(zeilen: number): number {
+    return zeilen <= EINZEL_ERSTES_BLATT
+      ? 1
+      : 1 + Math.ceil((zeilen - EINZEL_ERSTES_BLATT) / EINZEL_FOLGEBLATT);
+  }
+
+  it('braucht für jede Spielerzahl nur so viele Blätter, wie die Zeilen erzwingen', () => {
+    for (let spieler = 0; spieler <= 400; spieler++) {
+      expect({ spieler, blaetter: blaetterFuer(spieler).blaetter.length }).toEqual({
+        spieler,
+        blaetter: mindestBlaetter(spieler + LEERZEILEN),
+      });
+    }
+  });
+
+  it('druckt Leerzeilen kompakt, wenn hohe ein Extra-Blatt bräuchten (285 Spieler)', () => {
+    const ergebnis = blaetterFuer(285);
+    expect(ergebnis.kompakt).toBe(true);
+    expect(ergebnis.blaetter).toHaveLength(3);
+  });
+
+  it('behält hohe Leerzeilen, wenn sie kein Extra-Blatt kosten (280 Spieler)', () => {
+    const ergebnis = blaetterFuer(280);
+    expect(ergebnis.kompakt).toBe(false);
+    expect(ergebnis.blaetter).toHaveLength(3);
+  });
+
+  it('macht Team-Leerzeilen nie kompakt (sie sind ohnehin niedriger als Meldungen)', () => {
+    const meldungen = Array.from({ length: 30 }, (_, i) => exportMeldung(i + 1, 6));
+    expect(teileSparsamInBlaetter(mitLeerzeilen(meldungen), true).kompakt).toBe(false);
   });
 });
 

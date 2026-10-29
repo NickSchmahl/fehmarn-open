@@ -15,8 +15,10 @@ nötigen Daten liefert bereits `GET /api/admin/teilnehmer`.
   (`pages/export/logik/`) sortiert, nummeriert und bildet Anzeige-ID + NEU-Status; CSV und beide
   PDFs bauen darauf auf und können so nicht auseinanderlaufen.
 - **PDF = Druckansicht des Browsers.** Je Export eine Druck-Komponente; der Button rendert sie und
-  ruft `window.print()` auf („Als PDF speichern"). Die Komponente steht nur während des
-  Druckauftrags im DOM und ist am Bildschirm unsichtbar; ihre `@page`-Regel gilt damit nur dann.
+  ruft `window.print()` auf („Als PDF speichern"). Die Komponente entsteht erst beim Druckauftrag,
+  ist am Bildschirm unsichtbar und bleibt danach stehen (auf Mobilgeräten kehrt `print()` sofort
+  zurück, ein Abbau bei `afterprint` könnte ein leeres PDF ergeben). Ihre `@page`-Regel gilt nur,
+  solange sie im DOM steht – also nur auf der Export-Seite.
   Gemeinsame Druck-Grundlagen liegen in `shared/druck/_druck.scss`.
 - **Blätter der Turniertag-Liste werden im Code aufgeteilt**, nicht per CSS `columns`: Die
   Mehrspaltigkeit bricht über Seitengrenzen nicht verlässlich um, mit fester Aufteilung stimmen

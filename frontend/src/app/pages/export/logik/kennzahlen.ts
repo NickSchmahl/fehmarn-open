@@ -1,7 +1,7 @@
 // Kennzahlen zum aktuellen Stand für die Export-Seite (#306).
 
 import { AdminUebersicht } from '../../../shared/admin-uebersicht';
-import { anzahlNeueIds, anzahlSpieler, bereiteExportAuf } from './export-daten';
+import { anzahlNeueIds, anzahlSpieler, bereiteExportAuf, ExportDisziplin } from './export-daten';
 
 export interface ExportKennzahlen {
   aktiveMeldungen: number;
@@ -15,9 +15,12 @@ export interface ExportKennzahlen {
 /**
  * Berechnet die Kennzahlen über dieselbe Aufbereitung wie die Exporte, damit die Zahlen auf der
  * Seite zu CSV und Meldeliste passen. Abgemeldete zählen nicht als aktiv, sondern separat.
+ * `disziplinen` = bereits aufbereitete Übersicht (spart die zweite Aufbereitung auf der Seite).
  */
-export function berechneKennzahlen(uebersicht: AdminUebersicht): ExportKennzahlen {
-  const disziplinen = bereiteExportAuf(uebersicht);
+export function berechneKennzahlen(
+  uebersicht: AdminUebersicht,
+  disziplinen: readonly ExportDisziplin[] = bereiteExportAuf(uebersicht),
+): ExportKennzahlen {
   const abgemeldet = uebersicht.disziplinen.reduce(
     (summe, gruppe) => summe + gruppe.meldungen.filter((meldung) => meldung.abgemeldet).length,
     0,

@@ -1,0 +1,93 @@
+/* ── Hinweis-Box ─────────────────────────────────────────────
+   Wiederverwendbarer Kasten für dezente Hinweise (role="note"):
+   Akzent-Hintergrund, Akzentrahmen, gedämpfte Schrift. Seiten kombinieren
+   .hinweis mit einer eigenen Modifier-Klasse für ihre Besonderheiten. */
+.hinweis {
+  margin: 0;
+  padding: 0.75rem 0.875rem;
+  line-height: 1.55;
+  color: var(--text-muted);
+  background: var(--accent-dim);
+  border: 1px solid rgba(232, 197, 71, 0.25);
+  border-radius: var(--radius);
+
+  .hint-icon {
+    color: var(--accent);
+  }
+}
+
+/* ── Fehlermeldung ───────────────────────────────────────────
+   Basis: Fehler auf Seitenebene (Laden fehlgeschlagen, Zeilen-Aktion).
+   --formular: kompakter und schüttelt kurz – Rückmeldung auf ein Absenden. */
+.alert-error {
+  padding: 0.875rem 1rem;
+  border: 1px solid rgba(224, 92, 92, 0.4);
+  border-radius: var(--radius);
+  background: var(--danger-dim);
+  color: var(--danger);
+  font-size: 0.85rem;
+}
+
+.alert-error--formular {
+  padding: 0.625rem 0.875rem;
+  border-color: rgba(224, 92, 92, 0.3);
+  font-size: 0.8125rem;
+  animation: shake 0.35s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+@keyframes shake {
+  10%,
+  90% {
+    transform: translateX(-2px);
+  }
+  20%,
+  80% {
+    transform: translateX(3px);
+  }
+  30%,
+  70% {
+    transform: translateX(-3px);
+  }
+  40%,
+  60% {
+    transform: translateX(3px);
+  }
+  50% {
+    transform: translateX(-2px);
+  }
+}
+
+/* ── Ladezustand ─────────────────────────────────────────────
+   .state-row: Zeile „Lade …“ mit Spinner. Im Absende-Button (.submit-btn)
+   wird der Spinner kleiner und dunkel auf dem Akzent-Gelb. */
+.state-row {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 2rem 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.spinner {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+.submit-btn .spinner {
+  width: 14px;
+  height: 14px;
+  border-color: rgba(13, 15, 18, 0.3);
+  border-top-color: var(--bg);
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

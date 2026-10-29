@@ -9,7 +9,7 @@ import { BrandIconComponent } from '../../ui/brand-icon/brand-icon.component';
   standalone: true,
   imports: [ReactiveFormsModule, BrandIconComponent],
   templateUrl: './login.component.html',
-  styleUrl: './login.component.css',
+  styleUrl: './login.component.scss',
 })
 export class AdminLoginComponent {
   private readonly fb = inject(FormBuilder);

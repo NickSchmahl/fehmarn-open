@@ -145,8 +145,8 @@ describe('TurniertagDruckComponent', () => {
 
     const zeile = element.querySelector('table.team tbody tr');
     expect(zeile?.querySelector('.team-name')?.textContent).toBe('Bullseye Boys');
-    expect(text('.team-spieler span', zeile ?? element)).toHaveLength(5);
-    expect(text('.team-spieler span', zeile ?? element).at(-1)).toBe('Jan Neve JN12081969 N');
+    expect(text('.team-spieler .spieler', zeile ?? element)).toHaveLength(5);
+    expect(text('.team-spieler .spieler', zeile ?? element).at(-1)).toBe('Jan Neve JN12081969 N');
     expect(text('.geld', zeile ?? element)[0]).toBe('50 € 5 × 10');
     expect(zeile?.classList.contains('z2')).toBe(true);
     expect(text('.kennzahl')[0]).toBe('1 / 96 Teams');

@@ -255,6 +255,8 @@ tbody tr:nth-child(even) td {
 }
 
 .neu {
+  /* Die Marke darf nie mit der ID zusammen abgeschnitten werden – gekürzt wird nur die ID */
+  flex-shrink: 0;
   margin-left: 0.8mm;
   padding: 0 0.7mm;
   border: 0.7px solid druck.$gold;
@@ -301,6 +303,18 @@ tr.leer td.linie {
     color: druck.$ink-soft;
     font-family: druck.$mono;
     font-size: 6.7pt;
+  }
+
+  /* Lange IDs mit „…" kürzen, die N-Marke bleibt immer sichtbar */
+  .id-inhalt {
+    display: flex;
+    align-items: baseline;
+
+    span {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
   }
 }
 
@@ -370,12 +384,23 @@ tr.leer td.linie {
   font-size: 7pt;
   line-height: 1.35;
 
-  span {
+  /* Name und ID kürzen sich mit „…", die N-Marke bleibt immer sichtbar */
+  .spieler {
+    display: flex;
+    align-items: baseline;
+    min-width: 0;
+  }
+
+  .spieler-name,
+  code {
+    min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   code {
+    margin-left: 1mm;
     color: druck.$ink-muted;
     font-family: druck.$mono;
     font-size: 6.2pt;

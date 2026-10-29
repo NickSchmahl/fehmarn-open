@@ -63,6 +63,30 @@
           <span karteBeschreibung>
             Eine Zeile je Spieler und Disziplin – zum Import ins Radikal-System oder für Excel.
           </span>
+          <div class="csv-vorschau" role="figure" aria-label="Vorschau der ersten CSV-Zeilen">
+            @for (zeile of csvVorschau(); track $index) {
+              <code [class.csv-kopf]="$first">{{ zeile }}</code>
+            }
+            @if (radikalZeilen().length > csvVorschau().length - 1) {
+              <code>…</code>
+            }
+          </div>
+          <ul class="format-badges" aria-label="Format">
+            <li>UTF-8 mit BOM</li>
+            <li>Trennzeichen ;</li>
+            <li>Datum ISO</li>
+            <li>{{ radikalZeilen().length }} Zeilen</li>
+          </ul>
+          <div karteAktionen>
+            <button
+              type="button"
+              class="btn"
+              [disabled]="radikalZeilen().length === 0"
+              (click)="csvHerunterladen()"
+            >
+              CSV herunterladen
+            </button>
+          </div>
         </app-export-karte>
 
         <app-export-karte titel="Meldeliste für Radikal" format="PDF">

@@ -3,9 +3,15 @@ import { HttpClient } from '@angular/common/http';
 import { AdminUebersicht } from '../../shared/admin-uebersicht';
 import { formatiereZeitstempel } from '../../shared/datum';
 import { ToastService } from '../../core/services/toast.service';
+import { DateiDownloadService } from '../../core/services/datei-download.service';
 import { ExportKarteComponent } from './export-karte/export-karte.component';
 import { bereiteExportAuf, ExportDisziplin } from './logik/export-daten';
 import { berechneKennzahlen, ExportKennzahlen } from './logik/kennzahlen';
+import { RadikalZeile, radikalZeilen } from './logik/radikal-zeilen';
+import { radikalCsvDateiname, zuRadikalCsv } from './logik/radikal-csv';
+
+/** Anzahl Datenzeilen in der CSV-Vorschau auf der Karte. */
+const CSV_VORSCHAU_ZEILEN = 3;
 
 /**
  * Admin-Seite `/admin/export` (#305/#306): lädt einmal die Admin-Übersicht und reicht den Stand an
@@ -21,6 +27,7 @@ import { berechneKennzahlen, ExportKennzahlen } from './logik/kennzahlen';
 export class Export implements OnInit {
   private readonly http = inject(HttpClient);
   private readonly toast = inject(ToastService);
+  private readonly download = inject(DateiDownloadService);
 
   readonly loading = signal(false);
   readonly error = signal(false);
@@ -37,6 +44,19 @@ export class Export implements OnInit {
     const daten = this.uebersicht();
     return daten ? berechneKennzahlen(daten) : null;
   });
+
+  /** Eine Zeile je Spieler und Disziplin – Grundlage für CSV und Radikal-Meldeliste. */
+  readonly radikalZeilen = computed<readonly RadikalZeile[]>(() =>
+    radikalZeilen(this.disziplinen()),
+  );
+
+  /** Kopfzeile + erste Datenzeilen der CSV, ohne BOM, für die Vorschau auf der Karte. */
+  readonly csvVorschau = computed<readonly string[]>(() =>
+    zuRadikalCsv(this.radikalZeilen().slice(0, CSV_VORSCHAU_ZEILEN))
+      .replace(/^\uFEFF/, '')
+      .trimEnd()
+      .split('\r\n'),
+  );
 
   readonly standText = computed(() => {
     const zeitpunkt = this.stand();
@@ -68,5 +88,17 @@ export class Export implements OnInit {
         }
       },
     });
+  }
+
+  csvHerunterladen(): void {
+    const stand = this.stand();
+    if (!stand) {
+      return;
+    }
+    this.download.herunterladen(
+      zuRadikalCsv(this.radikalZeilen()),
+      radikalCsvDateiname(stand),
+      'text/csv;charset=utf-8',
+    );
   }
 }

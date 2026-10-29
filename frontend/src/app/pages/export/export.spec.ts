@@ -4,6 +4,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 
 import { Export } from './export';
 import { ToastService } from '../../core/services/toast.service';
+import { DateiDownloadService } from '../../core/services/datei-download.service';
 import { gruppe, meldung, mitId, ohneId, uebersicht } from './logik/export-testdaten';
 
 const ADMIN_URL = '/api/admin/teilnehmer';
@@ -123,5 +124,55 @@ describe('Export', () => {
     expect(element.querySelector('[role="alert"]')).toBeNull();
     expect(standChips().at(-1)).toBe('Stand 28.10.2026, 14:32');
     expect(show).toHaveBeenCalledWith(expect.stringContaining('Stand 28.10.2026, 14:32'));
+  });
+
+  describe('CSV-Karte', () => {
+    function csvKarte(): HTMLElement {
+      const karte = Array.from(element.querySelectorAll<HTMLElement>('app-export-karte')).find(
+        (eintrag) => eintrag.textContent.includes('Meldungen als CSV'),
+      );
+      if (!karte) {
+        throw new Error('CSV-Karte fehlt');
+      }
+      return karte;
+    }
+
+    it('zeigt Kopfzeile, die ersten drei Zeilen und die Zeilenzahl', () => {
+      laden();
+
+      const vorschau = Array.from(csvKarte().querySelectorAll('.csv-vorschau code'), (code) =>
+        code.textContent.trim(),
+      );
+      expect(vorschau).toEqual([
+        'disziplin;disziplin_name;meldung_nr;team;nachname;vorname;radikal_id;id_status;initialen;geburtsdatum',
+        'HERRENEINZEL;Herreneinzel;1;;Albers;Jonas;JA14021991;vorhanden;;',
+        'HERRENEINZEL;Herreneinzel;2;;Claussen;Henrik;HC22111979;neu;HC;1979-11-22',
+        'HERRENDOPPEL;Herrendoppel;1;Hafenkante;Kühl;Marco;MK19041977;vorhanden;;',
+        '…',
+      ]);
+      expect(csvKarte().querySelector('.format-badges')?.textContent).toContain('4 Zeilen');
+    });
+
+    it('lädt die vollständige CSV mit datiertem Dateinamen herunter', () => {
+      const download = TestBed.inject(DateiDownloadService);
+      const herunterladen = jest.spyOn(download, 'herunterladen').mockImplementation(() => {});
+      laden();
+
+      csvKarte().querySelector<HTMLButtonElement>('button')?.click();
+
+      expect(herunterladen).toHaveBeenCalledTimes(1);
+      const [inhalt, dateiname, mimeTyp] = herunterladen.mock.calls[0];
+      expect(dateiname).toBe('fehmarn-open-2027_radikal_2026-10-28.csv');
+      expect(mimeTyp).toBe('text/csv;charset=utf-8');
+      expect(inhalt.startsWith('\uFEFFdisziplin;')).toBe(true);
+      expect(inhalt.trimEnd().split('\r\n')).toHaveLength(5);
+    });
+
+    it('sperrt den Download, wenn es keine aktiven Meldungen gibt', () => {
+      http.expectOne(ADMIN_URL).flush(uebersicht());
+      fixture.detectChanges();
+
+      expect(csvKarte().querySelector<HTMLButtonElement>('button')?.disabled).toBe(true);
+    });
   });
 });

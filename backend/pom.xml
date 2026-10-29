@@ -153,6 +153,13 @@
             <goals>
               <goal>build-info</goal>
             </goals>
+            <configuration>
+              <!-- Maven >= 3.10 setzt project.build.outputTimestamp standardmaessig auf
+                   1980-02-01 (reproduzierbare Builds). build-info uebernimmt diesen Wert
+                   sonst als Build-Zeit -> /api/version zeigte 1980. Echte Build-Zeit
+                   explizit setzen; die JAR-Eintraege bleiben reproduzierbar. -->
+              <time>${maven.build.timestamp}</time>
+            </configuration>
           </execution>
         </executions>
       </plugin>

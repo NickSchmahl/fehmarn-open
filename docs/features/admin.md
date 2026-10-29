@@ -59,7 +59,7 @@ erscheint nur mit Login. Umgesetzt in #305 (#306–#309), Technik-Entscheidung:
 
 | Export | Format | Inhalt |
 |--------|--------|--------|
-| **Turniertag-Liste** | PDF (Druckansicht) | Je Disziplin eigene A4-Blätter, chronologisch (Fr → So). Einzel zweispaltig (92 Spieler auf Blatt 1, 102 je Folgeblatt), Teams einspaltig mit Startgeld (`5 × 10`). Kästchen **Anwesend** (optional mit X vorangekreuzt) und **Bezahlt** (nur auf Papier, kein Datenfeld), 10 Leerzeilen für Nachmeldungen, Soll Kasse, Unterschriften auf dem letzten Blatt. Optionen: Disziplinen wählen, „Radikal-ID ausblenden" als Aushang-Variante. |
+| **Turniertag-Liste** | PDF (Druckansicht) | Je Disziplin eigene A4-Blätter, chronologisch (Fr → So). Einzel zweispaltig (92 Spieler auf Blatt 1, 102 je Folgeblatt), Teams einspaltig mit Startgeld (`5 × 10`). Kästchen **Anwesend** (optional mit X vorangekreuzt) und **Bezahlt** (nur auf Papier, kein Datenfeld), 10 Leerzeilen für Nachmeldungen, Soll Kasse, Unterschriften auf dem letzten Blatt. Optionen: Disziplinen wählen, „Aushang statt Kassenliste" (Teilnehmerliste zum Aufhängen: ohne Radikal-ID, Kästchen, Startgeld/Soll Kasse und Unterschriften). |
 | **Meldungen als CSV** | CSV (UTF-8 mit BOM, `;`, CRLF) | Eine Zeile je Spieler und Disziplin: `disziplin;disziplin_name;meldung_nr;team;nachname;vorname;radikal_id;id_status;initialen;geburtsdatum`. Initialen/Geburtsdatum nur bei `neu`. Schutz gegen Formel-Injection. Dateiname `fehmarn-open-2027_radikal_<Datum>.csv`. |
 | **Meldeliste für Radikal** | PDF (Druckansicht) | Dieselben Daten wie die CSV, lesbar, ohne Ankreuzfelder: Übersicht je Disziplin, Abschnitte mit `VORHANDEN`/`NEU`, Geburtsdatum nur bei NEU. Immer alle Spieler, keine Optionen. |
 

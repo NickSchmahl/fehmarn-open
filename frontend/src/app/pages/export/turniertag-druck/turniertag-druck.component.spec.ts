@@ -42,7 +42,7 @@ describe('TurniertagDruckComponent', () => {
 
   function rendern(
     auswahl: Disziplin[],
-    optionen: { vorankreuzen?: boolean; ohneId?: boolean; maxTeams?: number | null } = {},
+    optionen: { vorankreuzen?: boolean; aushang?: boolean; maxTeams?: number | null } = {},
     daten = DATEN,
   ): void {
     fixture = TestBed.createComponent(TurniertagDruckComponent);
@@ -56,7 +56,7 @@ describe('TurniertagDruckComponent', () => {
     );
     fixture.componentRef.setInput('stand', new Date(2026, 9, 28, 14, 32));
     fixture.componentRef.setInput('anwesenheitVorankreuzen', optionen.vorankreuzen ?? true);
-    fixture.componentRef.setInput('radikalIdAusblenden', optionen.ohneId ?? false);
+    fixture.componentRef.setInput('aushang', optionen.aushang ?? false);
     fixture.detectChanges();
     element = fixture.nativeElement as HTMLElement;
   }
@@ -157,9 +157,9 @@ describe('TurniertagDruckComponent', () => {
     expect(text('.kennzahl')[0]).toBe('1 Teams');
   });
 
-  describe('Aushang-Variante (Radikal-ID ausblenden)', () => {
+  describe('Aushang-Variante', () => {
     beforeEach(() => {
-      rendern(['HERRENEINZEL', 'TEAMWETTBEWERB'], { ohneId: true });
+      rendern(['HERRENEINZEL', 'TEAMWETTBEWERB'], { aushang: true });
     });
 
     it('lässt die ID-Spalte, IDs und N-Marken weg', () => {
@@ -167,8 +167,26 @@ describe('TurniertagDruckComponent', () => {
       expect(element.textContent).not.toContain('JA14021991');
     });
 
-    it('nennt im Fuß weder N-Marke noch „interner Gebrauch"', () => {
-      expect(text('.fuss')[0]).not.toMatch(/neue Radikal-ID|internen Gebrauch/);
+    it('lässt alle Kästchen weg – auch bei erfasster Anwesenheit und in den Leerzeilen', () => {
+      expect(element.querySelector('.box, .box-zelle')).toBeNull();
+    });
+
+    it('lässt Startgeld, Soll Kasse und den Anwesend-Kasten weg, behält die Meldungszahl', () => {
+      expect(element.querySelector('.geld')).toBeNull();
+      expect(text('.kennzahl')).toEqual(['1 / 96 Teams', '2 Meldungen']);
+      expect(element.textContent).not.toMatch(/Soll Kasse|Startgeld \d/);
+    });
+
+    it('lässt die Unterschriftsfelder weg', () => {
+      expect(element.querySelector('.unterschrift')).toBeNull();
+    });
+
+    it('heißt im Kopf „Teilnehmerliste" statt „Turniertag-Liste"', () => {
+      expect(text('.kopf-rechts strong')[0]).toBe('Teilnehmerliste');
+    });
+
+    it('nennt im Fuß nur Sortierung und Nummernbereich', () => {
+      expect(text('.fuss')[0]).toBe('Sortiert nach Teamname · Nr. 1–11');
     });
   });
 

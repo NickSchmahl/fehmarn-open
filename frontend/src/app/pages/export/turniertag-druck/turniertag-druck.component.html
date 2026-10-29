@@ -9,7 +9,7 @@
           </div>
         </div>
         <div class="kopf-rechts">
-          <strong>Turniertag-Liste</strong>
+          <strong>{{ aushang() ? 'Teilnehmerliste' : 'Turniertag-Liste' }}</strong>
           Stand {{ standText() }} Uhr<br />
           {{ disziplin.label }} · Blatt {{ blatt.nummer }} von {{ disziplin.blaetter.length }}
         </div>
@@ -43,14 +43,16 @@
               </div>
               <div class="label">{{ disziplin.istTeam ? 'Teams' : 'Meldungen' }}</div>
             </div>
-            <div class="kennzahl kennzahl--leer">
-              <div class="wert"></div>
-              <div class="label">Anwesend</div>
-            </div>
-            <div class="kennzahl">
-              <div class="wert">{{ euro(disziplin.sollKasse) }}</div>
-              <div class="label">Soll Kasse</div>
-            </div>
+            @if (!aushang()) {
+              <div class="kennzahl kennzahl--leer">
+                <div class="wert"></div>
+                <div class="label">Anwesend</div>
+              </div>
+              <div class="kennzahl">
+                <div class="wert">{{ euro(disziplin.sollKasse) }}</div>
+                <div class="label">Soll Kasse</div>
+              </div>
+            }
           </div>
         </div>
       } @else {
@@ -68,10 +70,12 @@
           <thead>
             <tr>
               <th class="nr">#</th>
-              <th>Team &amp; Spieler{{ radikalIdAusblenden() ? '' : ' (Radikal-ID)' }}</th>
-              <th class="geld">Startgeld</th>
-              <th class="box-zelle">Anwesend</th>
-              <th class="box-zelle">Bezahlt</th>
+              <th>Team &amp; Spieler{{ aushang() ? '' : ' (Radikal-ID)' }}</th>
+              @if (!aushang()) {
+                <th class="geld">Startgeld</th>
+                <th class="box-zelle">Anwesend</th>
+                <th class="box-zelle">Bezahlt</th>
+              }
             </tr>
           </thead>
           <tbody>
@@ -85,7 +89,7 @@
                       @for (spieler of meldung.spieler; track $index) {
                         <span
                           >{{ spieler.vorname }} {{ spieler.nachname }}
-                          @if (!radikalIdAusblenden()) {
+                          @if (!aushang()) {
                             <code>{{ spieler.radikalId }}</code>
                             @if (spieler.neu) {
                               <i class="neu">N</i>
@@ -95,22 +99,26 @@
                       }
                     </div>
                   </td>
-                  <td class="geld">
-                    {{ startgeld(meldung, disziplin)
-                    }}<small>{{ rechenweg(meldung, disziplin) }}</small>
-                  </td>
-                  <td class="box-zelle">
-                    <span class="box" [class.an]="angekreuzt(meldung)"></span>
-                  </td>
-                  <td class="box-zelle"><span class="box"></span></td>
+                  @if (!aushang()) {
+                    <td class="geld">
+                      {{ startgeld(meldung, disziplin)
+                      }}<small>{{ rechenweg(meldung, disziplin) }}</small>
+                    </td>
+                    <td class="box-zelle">
+                      <span class="box" [class.an]="angekreuzt(meldung)"></span>
+                    </td>
+                    <td class="box-zelle"><span class="box"></span></td>
+                  }
                 </tr>
               } @else {
                 <tr class="leer">
                   <td class="nr">{{ zeile.nr }}</td>
                   <td class="linie"></td>
-                  <td class="geld"></td>
-                  <td class="box-zelle"><span class="box"></span></td>
-                  <td class="box-zelle"><span class="box"></span></td>
+                  @if (!aushang()) {
+                    <td class="geld"></td>
+                    <td class="box-zelle"><span class="box"></span></td>
+                    <td class="box-zelle"><span class="box"></span></td>
+                  }
                 </tr>
               }
             }
@@ -124,11 +132,13 @@
                 <tr>
                   <th class="nr">#</th>
                   <th>Name</th>
-                  @if (!radikalIdAusblenden()) {
+                  @if (!aushang()) {
                     <th class="id">Radikal-ID</th>
                   }
-                  <th class="box-zelle">Anw.</th>
-                  <th class="box-zelle">Bez.</th>
+                  @if (!aushang()) {
+                    <th class="box-zelle">Anw.</th>
+                    <th class="box-zelle">Bez.</th>
+                  }
                 </tr>
               </thead>
               <tbody>
@@ -140,7 +150,7 @@
                         <b>{{ spieler.nachname }}</b
                         >, {{ spieler.vorname }}
                       </td>
-                      @if (!radikalIdAusblenden()) {
+                      @if (!aushang()) {
                         <td class="id">
                           {{ spieler.radikalId }}
                           @if (spieler.neu) {
@@ -148,20 +158,22 @@
                           }
                         </td>
                       }
-                      <td class="box-zelle">
-                        <span class="box" [class.an]="angekreuzt(zeile.meldung)"></span>
-                      </td>
-                      <td class="box-zelle"><span class="box"></span></td>
+                      @if (!aushang()) {
+                        <td class="box-zelle">
+                          <span class="box" [class.an]="angekreuzt(zeile.meldung)"></span>
+                        </td>
+                        <td class="box-zelle"><span class="box"></span></td>
+                      }
                     </tr>
                   } @else {
                     <tr class="leer">
                       <td class="nr">{{ zeile.nr }}</td>
                       <td class="linie"></td>
-                      @if (!radikalIdAusblenden()) {
+                      @if (!aushang()) {
                         <td class="id linie"></td>
+                        <td class="box-zelle"><span class="box"></span></td>
+                        <td class="box-zelle"><span class="box"></span></td>
                       }
-                      <td class="box-zelle"><span class="box"></span></td>
-                      <td class="box-zelle"><span class="box"></span></td>
                     </tr>
                   }
                 }
@@ -173,24 +185,20 @@
 
       <footer class="fuss">
         <div>
-          @if (anwesenheitVorankreuzen()) {
-            X = Anwesenheit bereits digital erfasst
+          @if (!aushang()) {
+            @if (anwesenheitVorankreuzen()) {
+              X = Anwesenheit bereits digital erfasst ·
+            }
+            <b>N</b> = neue Radikal-ID (aus Initialen + Geburtsdatum)<br />
           }
-          @if (anwesenheitVorankreuzen() && !radikalIdAusblenden()) {
-            ·
-          }
-          @if (!radikalIdAusblenden()) {
-            <b>N</b> = neue Radikal-ID (aus Initialen + Geburtsdatum)
-          }
-          <br />
           Sortiert nach {{ disziplin.istTeam ? 'Teamname' : 'Nachname' }} · Nr. {{ blatt.von }}–{{
             blatt.bis
           }}
-          @if (!radikalIdAusblenden()) {
+          @if (!aushang()) {
             · Nur für den internen Gebrauch der Turnierleitung
           }
         </div>
-        @if (blatt.nummer === disziplin.blaetter.length) {
+        @if (!aushang() && blatt.nummer === disziplin.blaetter.length) {
           <div class="unterschrift">
             <div>Kasse gezählt (€)</div>
             <div>Kürzel Turnierleitung</div>

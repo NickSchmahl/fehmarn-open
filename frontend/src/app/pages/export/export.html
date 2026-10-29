@@ -81,17 +81,14 @@
               <input
                 type="checkbox"
                 [checked]="anwesenheitVorankreuzen()"
+                [disabled]="aushang()"
                 (change)="setzeAnwesenheitVorankreuzen($event)"
               />
               Erfasste Anwesenheit vorankreuzen
             </label>
             <label>
-              <input
-                type="checkbox"
-                [checked]="radikalIdAusblenden()"
-                (change)="setzeRadikalIdAusblenden($event)"
-              />
-              Radikal-ID ausblenden (Aushang statt Kassenliste)
+              <input type="checkbox" [checked]="aushang()" (change)="setzeAushang($event)" />
+              Aushang statt Kassenliste (ohne Radikal-ID, Kästchen und Kasse)
             </label>
           </div>
 
@@ -203,7 +200,7 @@
             [disziplinen]="turniertagListe()"
             [stand]="standZeit"
             [anwesenheitVorankreuzen]="anwesenheitVorankreuzen()"
-            [radikalIdAusblenden]="radikalIdAusblenden()"
+            [aushang]="aushang()"
           />
         }
         @case ('radikal') {

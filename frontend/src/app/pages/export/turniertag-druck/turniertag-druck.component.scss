@@ -132,7 +132,9 @@ h1 {
 
 .kennzahlen {
   display: grid;
-  grid-template-columns: repeat(3, 23mm);
+  /* Spalten nach Anzahl der Kästen: 3 auf der Kassenliste, 1 auf dem Aushang */
+  grid-auto-columns: 23mm;
+  grid-auto-flow: column;
   gap: 1.6mm;
 }
 

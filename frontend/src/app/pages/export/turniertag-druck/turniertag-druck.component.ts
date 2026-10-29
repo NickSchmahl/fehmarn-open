@@ -29,8 +29,11 @@ export class TurniertagDruckComponent {
   readonly stand = input.required<Date>();
   /** Digital erfasste Anwesenheit beim Druck schon ankreuzen. */
   readonly anwesenheitVorankreuzen = input(true);
-  /** Aushang-Variante: ohne Radikal-ID (die ID enthält das Geburtsdatum). */
-  readonly radikalIdAusblenden = input(false);
+  /**
+   * Aushang-Variante zum Aufhängen: ohne Radikal-ID (enthält das Geburtsdatum), ohne Kästchen,
+   * ohne Startgeld/Soll Kasse und ohne Unterschriften – nur wer in welcher Disziplin gemeldet ist.
+   */
+  readonly aushang = input(false);
 
   readonly turnier = `${FLYER_TURNIER.titel} ${FLYER_TURNIER.jahr}`;
   readonly unterzeile = `Radikal-Geräte · ${FLYER_TURNIER.termin}`;
@@ -60,6 +63,6 @@ export class TurniertagDruckComponent {
   }
 
   angekreuzt(meldung: ExportMeldung | null): boolean {
-    return this.anwesenheitVorankreuzen() && !!meldung?.anwesend;
+    return this.anwesenheitVorankreuzen() && !this.aushang() && !!meldung?.anwesend;
   }
 }

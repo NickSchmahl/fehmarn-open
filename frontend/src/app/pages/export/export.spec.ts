@@ -313,12 +313,14 @@ describe('Export', () => {
       chip('Alle').click();
       chip('Herreneinzel').click();
       chip('Teamwettbewerb').click();
-      const [vorankreuzen, ohneId] = Array.from(
+      const [vorankreuzen, aushang] = Array.from(
         turniertagKarte().querySelectorAll<HTMLInputElement>('input[type="checkbox"]'),
       );
       expect(vorankreuzen.checked).toBe(true);
-      expect(ohneId.checked).toBe(false);
-      ohneId.click();
+      expect(aushang.checked).toBe(false);
+      aushang.click();
+      fixture.detectChanges();
+      expect(vorankreuzen.disabled).toBe(true);
 
       druckButton().click();
       fixture.detectChanges();
@@ -331,6 +333,7 @@ describe('Export', () => {
       ]);
       expect(druck?.querySelector('.kennzahl .von')?.textContent).toContain('/ 96');
       expect(druck?.querySelector('th.id')).toBeNull();
+      expect(druck?.querySelector('.box')).toBeNull();
     });
   });
 });

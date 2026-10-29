@@ -82,7 +82,8 @@ export class Export implements OnInit {
   /** Turniertag-Liste: gewählte Disziplinen (Standard: alle) und Optionen. */
   readonly turniertagAuswahl = signal<ReadonlySet<Disziplin>>(ALLE_DISZIPLINEN);
   readonly anwesenheitVorankreuzen = signal(true);
-  readonly radikalIdAusblenden = signal(false);
+  /** Aushang-Variante zum Aufhängen: ohne Radikal-ID, Kästchen, Startgeld/Kasse und Unterschriften. */
+  readonly aushang = signal(false);
   /** Limit des Teamwettbewerbs; null, solange unbekannt (dann ohne „/ 96"). */
   readonly maxTeams = signal<number | null>(null);
   /** Zeitpunkt, zu dem die angezeigten Daten geladen wurden („Stand" auf allen Exporten). */
@@ -214,8 +215,8 @@ export class Export implements OnInit {
     this.anwesenheitVorankreuzen.set(istAngehakt(event));
   }
 
-  setzeRadikalIdAusblenden(event: Event): void {
-    this.radikalIdAusblenden.set(istAngehakt(event));
+  setzeAushang(event: Event): void {
+    this.aushang.set(istAngehakt(event));
   }
 
   /**

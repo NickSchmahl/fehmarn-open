@@ -50,6 +50,83 @@
             Blatt. Kästchen für <b>Anwesend</b> und <b>Bezahlt</b>, am Ende 10 Leerzeilen für
             Nachmeldungen.
           </span>
+
+          <p class="label" id="turniertag-disziplinen">Disziplinen</p>
+          <div class="chips" role="group" aria-labelledby="turniertag-disziplinen">
+            <button
+              type="button"
+              class="chip"
+              [class.chip--an]="alleGewaehlt()"
+              [attr.aria-pressed]="alleGewaehlt()"
+              (click)="alleUmschalten()"
+            >
+              Alle
+            </button>
+            @for (chip of disziplinChips(); track chip.disziplin) {
+              <button
+                type="button"
+                class="chip"
+                [class.chip--an]="istGewaehlt(chip.disziplin)"
+                [attr.aria-pressed]="istGewaehlt(chip.disziplin)"
+                (click)="disziplinUmschalten(chip.disziplin)"
+              >
+                {{ chip.tag }} · {{ chip.label }} <small>{{ chip.anzahl }}</small>
+              </button>
+            }
+          </div>
+
+          <p class="label">Optionen</p>
+          <div class="optionen">
+            <label>
+              <input
+                type="checkbox"
+                [checked]="anwesenheitVorankreuzen()"
+                (change)="setzeAnwesenheitVorankreuzen($event)"
+              />
+              Erfasste Anwesenheit vorankreuzen
+            </label>
+            <label>
+              <input
+                type="checkbox"
+                [checked]="radikalIdAusblenden()"
+                (change)="setzeRadikalIdAusblenden($event)"
+              />
+              Radikal-ID ausblenden (Aushang statt Kassenliste)
+            </label>
+          </div>
+
+          @if (turniertagListe().length > 0) {
+            <ul class="vorschau" aria-label="Blätter der Turniertag-Liste">
+              @for (disziplin of turniertagListe(); track disziplin.disziplin) {
+                <li class="mini-blatt">
+                  <b>{{ disziplin.label }}</b>
+                  <span
+                    >{{ disziplin.blaetter.length }}
+                    {{ disziplin.blaetter.length === 1 ? 'Blatt' : 'Blätter' }}</span
+                  >
+                </li>
+              }
+            </ul>
+          }
+
+          <div karteAktionen>
+            <button
+              type="button"
+              class="btn btn--primaer"
+              [disabled]="turniertagListe().length === 0"
+              (click)="drucken('turniertag')"
+            >
+              Drucken / als PDF speichern
+            </button>
+            <span class="hinweis-klein">
+              @if (turniertagListe().length > 0) {
+                {{ turniertagBlaetter() }} {{ turniertagBlaetter() === 1 ? 'Blatt' : 'Blätter' }}
+                · A4 hoch · öffnet die Druckansicht
+              } @else {
+                Mindestens eine Disziplin wählen
+              }
+            </span>
+          </div>
         </app-export-karte>
       </section>
 
@@ -131,6 +208,14 @@
   @if (stand(); as standZeit) {
     <div class="druck-bereich">
       @switch (art) {
+        @case ('turniertag') {
+          <app-turniertag-druck
+            [disziplinen]="turniertagListe()"
+            [stand]="standZeit"
+            [anwesenheitVorankreuzen]="anwesenheitVorankreuzen()"
+            [radikalIdAusblenden]="radikalIdAusblenden()"
+          />
+        }
         @case ('radikal') {
           <app-radikal-druck
             [zeilen]="radikalZeilen()"

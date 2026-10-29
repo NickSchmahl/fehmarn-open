@@ -8,6 +8,7 @@ import { DateiDownloadService } from '../../core/services/datei-download.service
 import { gruppe, meldung, mitId, ohneId, uebersicht } from './logik/export-testdaten';
 
 const ADMIN_URL = '/api/admin/teilnehmer';
+const STATUS_URL = '/api/anmeldung/status';
 
 const DATEN = uebersicht(
   gruppe('HERRENEINZEL', [
@@ -38,11 +39,13 @@ describe('Export', () => {
     http = TestBed.inject(HttpTestingController);
     element = fixture.nativeElement as HTMLElement;
     fixture.detectChanges();
+    http.expectOne(STATUS_URL).flush({ teamwettbewerbAusgebucht: false, maxTeams: 96 });
   });
 
   afterEach(() => {
     http.verify();
     jest.useRealTimers();
+    jest.restoreAllMocks();
   });
 
   function laden(): void {
@@ -229,6 +232,104 @@ describe('Export', () => {
       expect(element.querySelector('app-radikal-druck .kopf')?.textContent).toContain(
         'nur Spieler mit neuer Radikal-ID',
       );
+    });
+  });
+
+  describe('Turniertag-Karte', () => {
+    function turniertagKarte(): HTMLElement {
+      const karte = element.querySelector<HTMLElement>('app-export-karte');
+      if (!karte?.textContent.includes('Turniertag-Liste')) {
+        throw new Error('Turniertag-Karte fehlt');
+      }
+      return karte;
+    }
+
+    function chips(): { text: string; an: boolean }[] {
+      return Array.from(turniertagKarte().querySelectorAll('.chip'), (chip) => ({
+        text: chip.textContent.replace(/\s+/g, ' ').trim(),
+        an: chip.getAttribute('aria-pressed') === 'true',
+      }));
+    }
+
+    function chip(text: string): HTMLButtonElement {
+      const treffer = Array.from(
+        turniertagKarte().querySelectorAll<HTMLButtonElement>('.chip'),
+      ).find((eintrag) => eintrag.textContent.includes(text));
+      if (!treffer) {
+        throw new Error(`Chip ${text} fehlt`);
+      }
+      return treffer;
+    }
+
+    function druckButton(): HTMLButtonElement {
+      const button = turniertagKarte().querySelector<HTMLButtonElement>('.btn--primaer');
+      if (!button) {
+        throw new Error('Druck-Button fehlt');
+      }
+      return button;
+    }
+
+    it('zeigt chronologische Disziplin-Chips mit Tag und Anzahl, Standard: alle gewählt', () => {
+      laden();
+
+      expect(chips()).toEqual([
+        { text: 'Alle', an: true },
+        { text: 'Fr · Teamwettbewerb 0', an: true },
+        { text: 'Sa · Herreneinzel 2', an: true },
+        { text: 'Sa · Dameneinzel 0', an: true },
+        { text: 'Sa · U18-Turnier 0', an: true },
+        { text: 'Sa · Triple Mix 0', an: true },
+        { text: 'So · Herrendoppel 1', an: true },
+        { text: 'So · Damendoppel 0', an: true },
+      ]);
+      expect(turniertagKarte().querySelector('.hinweis-klein')?.textContent).toContain('7 Blätter');
+    });
+
+    it('schaltet einzelne Disziplinen und über „Alle" alle bzw. keine um', () => {
+      laden();
+
+      chip('Herreneinzel').click();
+      fixture.detectChanges();
+      expect(chips().find((c) => c.text.includes('Herreneinzel'))?.an).toBe(false);
+      expect(chips()[0]?.an).toBe(false);
+
+      chip('Alle').click();
+      fixture.detectChanges();
+      expect(chips().every((c) => c.an)).toBe(true);
+
+      chip('Alle').click();
+      fixture.detectChanges();
+      expect(chips().some((c) => c.an)).toBe(false);
+      expect(druckButton().disabled).toBe(true);
+      expect(turniertagKarte().querySelector('.hinweis-klein')?.textContent).toContain(
+        'Mindestens eine Disziplin',
+      );
+    });
+
+    it('druckt nur die gewählten Disziplinen mit Teamlimit und den gewählten Optionen', () => {
+      const drucken = jest.spyOn(window, 'print').mockImplementation(() => {});
+      laden();
+      chip('Alle').click();
+      chip('Herreneinzel').click();
+      chip('Teamwettbewerb').click();
+      const [vorankreuzen, ohneId] = Array.from(
+        turniertagKarte().querySelectorAll<HTMLInputElement>('input[type="checkbox"]'),
+      );
+      expect(vorankreuzen.checked).toBe(true);
+      expect(ohneId.checked).toBe(false);
+      ohneId.click();
+
+      druckButton().click();
+      fixture.detectChanges();
+
+      const druck = element.querySelector('.druck-bereich app-turniertag-druck');
+      expect(drucken).toHaveBeenCalledTimes(1);
+      expect(Array.from(druck?.querySelectorAll('.blatt h1') ?? [], (h) => h.textContent)).toEqual([
+        'Teamwettbewerb',
+        'Herreneinzel',
+      ]);
+      expect(druck?.querySelector('.kennzahl .von')?.textContent).toContain('/ 96');
+      expect(druck?.querySelector('th.id')).toBeNull();
     });
   });
 });

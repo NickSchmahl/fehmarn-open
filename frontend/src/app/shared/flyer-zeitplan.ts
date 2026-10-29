@@ -1,7 +1,9 @@
 // Turnier-Zeitplan des 12. Fehmarn Open (05.–07. März 2027), reale Daten aus dem
 // Original-Flyer des Vereins. Ergänzt DISZIPLINEN (Preise/Spieleranzahl) um Tag,
 // Spielmodus, Anmeldeschluss-Uhrzeit, Turnierbeginn und Preisgelder (1. Platz +
-// weitere Platzierungen) – wird ausschließlich von der Flyer-Seite genutzt.
+// weitere Platzierungen). Genutzt von der Flyer-Seite und den Exporten (#305): Die
+// Turniertag-Liste übernimmt Tag, Meldeschluss, Beginn, Spielmodus und die chronologische
+// Reihenfolge, Turniertitel/-jahr stehen auf allen Exporten. Änderungen hier wirken also auf beides.
 
 import { Disziplin, DISZIPLINEN, DisziplinMeta } from './disziplin';
 

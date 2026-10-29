@@ -1,0 +1,395 @@
+/* Turniertag-Liste (#307). Jedes .blatt ist genau ein A4-Blatt; die Aufteilung kommt aus
+   logik/turniertag-blaetter.ts. Zeilenhöhen dort (HOEHE) und hier müssen zusammenpassen. */
+@use '../../../shared/druck/druck';
+
+@include druck.a4-seite(0);
+
+:host {
+  @include druck.basis;
+}
+
+.blatt {
+  display: flex;
+  flex-direction: column;
+  width: 210mm;
+  height: 297mm;
+  padding: 11mm 12mm 9mm;
+  overflow: hidden;
+  break-after: page;
+
+  &:last-child {
+    break-after: auto;
+  }
+}
+
+/* ── Kopf ─────────────────────────────────────────────────── */
+.kopf {
+  display: flex;
+  align-items: flex-end;
+  padding-bottom: 2.4mm;
+  border-bottom: 2.2px solid druck.$ink;
+}
+
+.marke {
+  display: flex;
+  align-items: center;
+  gap: 2.6mm;
+}
+
+.marke-icon {
+  width: 11mm;
+  height: 8.3mm;
+  color: druck.$ink;
+}
+
+.marke-text,
+.kopf-rechts strong,
+h1,
+.kennzahl .wert {
+  font-family: Anton, sans-serif;
+  font-weight: 400;
+}
+
+.marke-text {
+  font-size: 13.5pt;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  text-transform: uppercase;
+
+  small {
+    display: block;
+    margin-top: 1mm;
+    color: druck.$ink-muted;
+    font-family: druck.$sans;
+    font-size: 7pt;
+    letter-spacing: 0.14em;
+  }
+}
+
+.kopf-rechts {
+  margin-left: auto;
+  color: druck.$ink-soft;
+  font-size: 7.2pt;
+  line-height: 1.45;
+  text-align: right;
+
+  strong {
+    display: block;
+    color: druck.$ink;
+    font-size: 10.5pt;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+}
+
+/* ── Disziplin-Block (Blatt 1) / Fortsetzung ──────────────── */
+h1 {
+  margin: 0;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.disziplin {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: end;
+  gap: 4mm;
+  margin-top: 4mm;
+
+  h1 {
+    font-size: 26pt;
+    line-height: 0.95;
+
+    &::after {
+      content: '';
+      display: block;
+      width: 20mm;
+      height: 1.4mm;
+      margin-top: 1.8mm;
+      background: druck.$gold;
+    }
+  }
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4mm;
+  margin-top: 2.4mm;
+}
+
+.chip {
+  padding: 0.5mm 2.2mm;
+  border: 1px solid druck.$line;
+  border-radius: 99px;
+  color: druck.$ink-soft;
+  font-size: 7.2pt;
+
+  b {
+    color: druck.$ink;
+  }
+}
+
+.kennzahlen {
+  display: grid;
+  grid-template-columns: repeat(3, 23mm);
+  gap: 1.6mm;
+}
+
+.kennzahl {
+  padding: 1.6mm 2mm 1.4mm;
+  border: 1.2px solid druck.$ink;
+  border-radius: 2mm;
+
+  .wert {
+    height: 5mm;
+    font-size: 14pt;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  .von {
+    color: druck.$ink-muted;
+    font-family: druck.$sans;
+    font-size: 8.5pt;
+  }
+
+  .label {
+    @include druck.tabellenkopf;
+    margin-top: 1mm;
+  }
+}
+
+/* Anwesend: leer zum händischen Eintragen */
+.kennzahl--leer .wert {
+  border-bottom: 1px dashed druck.$ink-muted;
+}
+
+.fortsetzung {
+  display: flex;
+  align-items: baseline;
+  gap: 3mm;
+  margin-top: 3mm;
+
+  h1 {
+    border-bottom: 1.2mm solid druck.$gold;
+    font-size: 15pt;
+    line-height: 1.05;
+  }
+
+  span {
+    color: druck.$ink-soft;
+    font-size: 7.4pt;
+  }
+}
+
+/* ── Tabellen ─────────────────────────────────────────────── */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+th {
+  @include druck.tabellenkopf;
+  padding: 0 1.2mm 1.2mm;
+  border-bottom: 1.1px solid druck.$ink;
+  font-size: 6pt;
+}
+
+td {
+  padding: 0 1.2mm;
+  overflow: hidden;
+  border-bottom: 0.5px solid druck.$line;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+tbody tr:nth-child(even) td {
+  background: druck.$zebra;
+}
+
+.nr {
+  width: 7mm;
+  padding-right: 0;
+  color: druck.$ink-muted;
+  font-variant-numeric: tabular-nums;
+}
+
+.box-zelle {
+  width: 8.5mm;
+  padding: 0;
+  text-align: center;
+}
+
+.box {
+  position: relative;
+  display: inline-block;
+  width: 3.4mm;
+  height: 3.4mm;
+  border: 1.1px solid druck.$ink;
+  border-radius: 0.7mm;
+  vertical-align: middle;
+
+  &.an::after {
+    content: '✓';
+    position: absolute;
+    inset: -1.4mm 0 0 0.3mm;
+    font-size: 7.6pt;
+    font-weight: 700;
+  }
+}
+
+.neu {
+  margin-left: 0.8mm;
+  padding: 0 0.7mm;
+  border: 0.7px solid druck.$gold;
+  border-radius: 0.8mm;
+  color: druck.$gold-ink;
+  font-family: druck.$sans;
+  font-size: 5.6pt;
+  font-style: normal;
+  font-weight: 700;
+}
+
+tr.leer td.linie {
+  border-bottom: 0.6px dotted druck.$ink-muted;
+}
+
+/* Einzel: zwei Spalten, Zeilenhöhe = HOEHE.einzel (4,55 mm) bzw. HOEHE.einzelLeer (5,4 mm) */
+.zwei-spalten {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  /* Ohne start streckt das Grid die kürzere Spalte – und damit ihre Zeilen */
+  align-items: start;
+  gap: 5mm;
+  margin-top: 4mm;
+}
+
+.einzel {
+  font-size: 7.6pt;
+
+  tbody tr {
+    height: 4.55mm;
+  }
+
+  tbody tr.leer {
+    height: 5.4mm;
+  }
+
+  .id {
+    width: 25mm;
+    color: druck.$ink-soft;
+    font-family: druck.$mono;
+    font-size: 6.7pt;
+  }
+}
+
+/* Team: einspaltig, Zeilenhöhe = HOEHE.team (9,5 mm, mit 4–6 Spielern 13 mm), leer 7 mm */
+.team {
+  margin-top: 4mm;
+  font-size: 8.2pt;
+
+  td {
+    padding: 0 1.4mm;
+  }
+
+  .nr {
+    width: 8mm;
+  }
+
+  tbody tr {
+    height: 9.5mm;
+  }
+
+  tbody tr.z2 {
+    height: 13mm;
+  }
+
+  tbody tr.leer {
+    height: 7mm;
+  }
+
+  .geld {
+    width: 17mm;
+    font-variant-numeric: tabular-nums;
+    font-weight: 500;
+    text-align: right;
+
+    small {
+      display: block;
+      color: druck.$ink-muted;
+      font-weight: 400;
+    }
+  }
+
+  .box-zelle {
+    width: 18mm;
+  }
+
+  .box {
+    width: 4.4mm;
+    height: 4.4mm;
+
+    &.an::after {
+      inset: -1.6mm 0 0 0.4mm;
+      font-size: 9.6pt;
+    }
+  }
+}
+
+.team-name {
+  overflow: hidden;
+  font-size: 8.5pt;
+  font-weight: 700;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+}
+
+/* Bis zu drei Spieler je Zeile, lange Namen mit „…" gekürzt */
+.team-spieler {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  column-gap: 2.6mm;
+  margin-top: 0.4mm;
+  color: druck.$ink-soft;
+  font-size: 7pt;
+  line-height: 1.35;
+
+  span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  code {
+    color: druck.$ink-muted;
+    font-family: druck.$mono;
+    font-size: 6.2pt;
+  }
+}
+
+/* ── Fuß ──────────────────────────────────────────────────── */
+.fuss {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: end;
+  gap: 6mm;
+  margin-top: auto;
+  padding-top: 2.4mm;
+  border-top: 0.8px solid druck.$line;
+  color: druck.$ink-muted;
+  font-size: 6.6pt;
+  line-height: 1.5;
+}
+
+.unterschrift {
+  display: flex;
+  gap: 5mm;
+
+  div {
+    width: 38mm;
+    padding-top: 1mm;
+    border-top: 0.8px solid druck.$ink;
+    color: druck.$ink-soft;
+  }
+}

@@ -87,8 +87,10 @@
                     <div class="team-name">{{ meldung.teamName }}</div>
                     <div class="team-spieler">
                       @for (spieler of meldung.spieler; track $index) {
-                        <span
-                          >{{ spieler.vorname }} {{ spieler.nachname }}
+                        <span class="spieler">
+                          <span class="spieler-name"
+                            >{{ spieler.vorname }} {{ spieler.nachname }}</span
+                          >
                           @if (!aushang()) {
                             <code>{{ spieler.radikalId }}</code>
                             @if (spieler.neu) {
@@ -152,10 +154,12 @@
                       </td>
                       @if (!aushang()) {
                         <td class="id">
-                          {{ spieler.radikalId }}
-                          @if (spieler.neu) {
-                            <i class="neu">N</i>
-                          }
+                          <div class="id-inhalt">
+                            <span>{{ spieler.radikalId }}</span>
+                            @if (spieler.neu) {
+                              <i class="neu">N</i>
+                            }
+                          </div>
                         </td>
                       }
                       @if (!aushang()) {

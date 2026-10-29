@@ -94,6 +94,27 @@
             Dieselben Daten als lesbare Liste – ohne Ankreuzfelder, mit Übersicht und markierten
             neuen IDs.
           </span>
+          <div class="optionen">
+            <label>
+              <input
+                type="checkbox"
+                [checked]="radikalNurNeue()"
+                (change)="setzeRadikalNurNeue($event)"
+              />
+              Nur Spieler mit neuer Radikal-ID
+            </label>
+          </div>
+          <div karteAktionen>
+            <button
+              type="button"
+              class="btn"
+              [disabled]="radikalZeilen().length === 0"
+              (click)="drucken('radikal')"
+            >
+              Drucken / als PDF speichern
+            </button>
+            <span class="hinweis-klein">A4 hoch · öffnet die Druckansicht</span>
+          </div>
         </app-export-karte>
       </section>
     </div>
@@ -104,3 +125,20 @@
     </div>
   }
 </div>
+
+<!-- Druckansicht: nur während eines Druckauftrags im DOM und nur im Druck sichtbar. -->
+@if (druckAuftrag(); as art) {
+  @if (stand(); as standZeit) {
+    <div class="druck-bereich">
+      @switch (art) {
+        @case ('radikal') {
+          <app-radikal-druck
+            [zeilen]="radikalZeilen()"
+            [stand]="standZeit"
+            [nurNeue]="radikalNurNeue()"
+          />
+        }
+      }
+    </div>
+  }
+}

@@ -1,0 +1,109 @@
+<header class="kopf">
+  <div>
+    <h1>Meldeliste für Radikal</h1>
+    <p>
+      {{ turnier }} ·
+      {{ nurNeue() ? 'nur Spieler mit neuer Radikal-ID' : 'alle aktiven Meldungen' }}
+    </p>
+  </div>
+  <div class="meta">
+    Export <b>{{ standIso() }}</b>
+  </div>
+</header>
+
+<div class="summe">
+  <table>
+    <thead>
+      <tr>
+        <th>Disziplin</th>
+        <th>Code</th>
+        <th>Meldungen</th>
+        <th>Spieler</th>
+        <th>neue IDs</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (zeile of liste().uebersicht; track zeile.disziplin) {
+        <tr>
+          <td>{{ zeile.name }}</td>
+          <td class="mono klein">{{ zeile.disziplin }}</td>
+          <td>{{ zeile.meldungen }}</td>
+          <td>{{ zeile.spieler }}</td>
+          <td>{{ zeile.neueIds }}</td>
+        </tr>
+      }
+    </tbody>
+    <tfoot>
+      <tr>
+        <td>Gesamt</td>
+        <td></td>
+        <td>{{ liste().gesamt.meldungen }}</td>
+        <td>{{ liste().gesamt.spieler }}</td>
+        <td>{{ liste().gesamt.neueIds }}</td>
+      </tr>
+    </tfoot>
+  </table>
+
+  <div class="legende">
+    <h2>Legende</h2>
+    <p><span class="status">VORHANDEN</span> Radikal-ID vom Spieler angegeben.</p>
+    <p>
+      <span class="status status--neu">NEU</span> Keine ID angegeben – aus Initialen + Geburtsdatum
+      gebildet, bitte im Radikal-System anlegen.
+    </p>
+    <p>
+      Abgemeldete Meldungen sind nicht enthalten. Ein Spieler kann in mehreren Disziplinen stehen.
+    </p>
+  </div>
+</div>
+
+@for (abschnitt of liste().abschnitte; track abschnitt.disziplin) {
+  <section class="abschnitt">
+    <div class="gruppe">
+      <h2>{{ abschnitt.name }}</h2>
+      <span>
+        {{ abschnitt.meldungen }} Meldungen · {{ abschnitt.spieler }} Spieler
+        @if (nurNeue()) {
+          · {{ abschnitt.neueIds }} neu
+        }
+      </span>
+      <code>{{ abschnitt.disziplin }}</code>
+    </div>
+    <table class="liste" [class.liste--team]="abschnitt.istTeam">
+      <thead>
+        <tr>
+          <th>Lfd</th>
+          @if (abschnitt.istTeam) {
+            <th>Team</th>
+          }
+          <th>Nachname</th>
+          <th>Vorname</th>
+          <th>Radikal-ID</th>
+          <th>Status</th>
+          <th>Geb.-Datum</th>
+        </tr>
+      </thead>
+      @for (block of abschnitt.bloecke; track block.meldungNr) {
+        <tbody>
+          @for (zeile of block.zeilen; track zeile.lfd) {
+            <tr>
+              <td class="klein">{{ zeile.lfd }}</td>
+              @if (abschnitt.istTeam) {
+                <td [class.klein]="!$first">{{ zeile.team }}</td>
+              }
+              <td>{{ zeile.nachname }}</td>
+              <td>{{ zeile.vorname }}</td>
+              <td class="mono">{{ zeile.radikalId }}</td>
+              <td>
+                <span class="status" [class.status--neu]="zeile.neu">{{
+                  zeile.neu ? 'NEU' : 'VORHANDEN'
+                }}</span>
+              </td>
+              <td class="mono" [class.klein]="!zeile.neu">{{ zeile.geburtsdatum || '–' }}</td>
+            </tr>
+          }
+        </tbody>
+      }
+    </table>
+  </section>
+}

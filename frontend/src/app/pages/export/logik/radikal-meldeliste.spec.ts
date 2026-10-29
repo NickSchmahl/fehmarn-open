@@ -1,0 +1,125 @@
+import { bereiteExportAuf } from './export-daten';
+import { berechneKennzahlen } from './kennzahlen';
+import { radikalZeilen } from './radikal-zeilen';
+import { zuRadikalCsv } from './radikal-csv';
+import { baueMeldeliste, WIEDERHOLUNGSZEICHEN } from './radikal-meldeliste';
+import { gruppe, meldung, mitId, ohneId, uebersicht } from './export-testdaten';
+
+const DATEN = uebersicht(
+  gruppe('HERRENEINZEL', [
+    meldung([mitId('Jonas', 'Albers', 'JA14021991')]),
+    meldung([ohneId('Henrik', 'Claussen', 'HC', '1979-11-22')]),
+    meldung([mitId('Malte', 'Brandt', 'MB03071985')], { abgemeldet: true }),
+  ]),
+  gruppe('HERRENDOPPEL', [
+    meldung([mitId('Dennis', 'Hinz', 'DH25061990'), mitId('Bjarne', 'Jessen', 'BJ08081994')], {
+      teamName: 'Doppelt hält besser',
+    }),
+    meldung([mitId('Marco', 'Kühl', 'MK19041977'), ohneId('Hauke', 'Nissen', 'HN', '1981-11-11')], {
+      teamName: 'Hafenkante',
+    }),
+  ]),
+);
+
+const ZEILEN = radikalZeilen(bereiteExportAuf(DATEN));
+
+describe('baueMeldeliste', () => {
+  const liste = baueMeldeliste(ZEILEN, false);
+
+  it('zählt je Disziplin Meldungen, Spieler und neue IDs', () => {
+    expect(liste.uebersicht).toEqual([
+      { disziplin: 'HERRENEINZEL', name: 'Herreneinzel', meldungen: 2, spieler: 2, neueIds: 1 },
+      { disziplin: 'HERRENDOPPEL', name: 'Herrendoppel', meldungen: 2, spieler: 4, neueIds: 1 },
+    ]);
+  });
+
+  it('summiert über Disziplinen, obwohl sich Meldungsnummern je Disziplin wiederholen', () => {
+    expect(liste.gesamt).toEqual({ meldungen: 4, spieler: 6, neueIds: 2 });
+  });
+
+  it('passt zu CSV und Kennzahlen der Export-Seite (gleicher Stand → gleiche Zahlen)', () => {
+    const csvDatenzeilen = zuRadikalCsv(ZEILEN).trimEnd().split('\r\n').length - 1;
+    const kennzahlen = berechneKennzahlen(DATEN);
+
+    expect(liste.gesamt.spieler).toBe(csvDatenzeilen);
+    expect(liste.gesamt).toEqual({
+      meldungen: kennzahlen.aktiveMeldungen,
+      spieler: kennzahlen.spieler,
+      neueIds: kennzahlen.neueRadikalIds,
+    });
+  });
+
+  it('nummeriert Einzel schlicht und Teams als Meldung.Spieler', () => {
+    const [einzel, doppel] = liste.abschnitte;
+    expect(einzel.bloecke.flatMap((block) => block.zeilen.map((zeile) => zeile.lfd))).toEqual([
+      '1',
+      '2',
+    ]);
+    expect(doppel.bloecke.flatMap((block) => block.zeilen.map((zeile) => zeile.lfd))).toEqual([
+      '1.1',
+      '1.2',
+      '2.1',
+      '2.2',
+    ]);
+  });
+
+  it('nennt den Teamnamen nur in der ersten Zeile eines Teams, danach 〃', () => {
+    const doppel = liste.abschnitte[1];
+    expect(doppel.bloecke.map((block) => block.zeilen.map((zeile) => zeile.team))).toEqual([
+      ['Doppelt hält besser', WIEDERHOLUNGSZEICHEN],
+      ['Hafenkante', WIEDERHOLUNGSZEICHEN],
+    ]);
+    expect(liste.abschnitte[0]?.bloecke[0]?.zeilen[0]?.team).toBe('');
+  });
+
+  it('zeigt das Geburtsdatum nur bei neuen IDs', () => {
+    const zeilen = liste.abschnitte.flatMap((a) => a.bloecke.flatMap((b) => b.zeilen));
+    expect(zeilen.filter((zeile) => zeile.geburtsdatum !== '').map((z) => z.nachname)).toEqual([
+      'Claussen',
+      'Nissen',
+    ]);
+    expect(zeilen.every((zeile) => zeile.neu === (zeile.geburtsdatum !== ''))).toBe(true);
+  });
+
+  describe('nur Spieler mit neuer Radikal-ID', () => {
+    const nurNeue = baueMeldeliste(ZEILEN, true);
+
+    it('zeigt nur NEU-Spieler, behält aber ihre laufende Nummer', () => {
+      const zeilen = nurNeue.abschnitte.flatMap((a) => a.bloecke.flatMap((b) => b.zeilen));
+      expect(zeilen.map((zeile) => [zeile.lfd, zeile.nachname])).toEqual([
+        ['2', 'Claussen'],
+        ['2.2', 'Nissen'],
+      ]);
+    });
+
+    it('nennt den Teamnamen, wenn das erste sichtbare Teammitglied nicht das erste im Team ist', () => {
+      expect(nurNeue.abschnitte[1]?.bloecke[0]?.zeilen[0]?.team).toBe('Hafenkante');
+    });
+
+    it('lässt Übersicht und Summen unverändert vollständig', () => {
+      expect(nurNeue.uebersicht).toEqual(liste.uebersicht);
+      expect(nurNeue.gesamt).toEqual(liste.gesamt);
+    });
+
+    it('lässt Disziplinen ohne neue IDs als Abschnitt weg', () => {
+      const ohneNeue = baueMeldeliste(
+        radikalZeilen(
+          bereiteExportAuf(
+            uebersicht(gruppe('DAMENEINZEL', [meldung([mitId('A', 'A', 'AA01011990')])])),
+          ),
+        ),
+        true,
+      );
+      expect(ohneNeue.abschnitte).toEqual([]);
+      expect(ohneNeue.uebersicht).toHaveLength(1);
+    });
+  });
+
+  it('liefert für keine Meldungen eine leere Liste mit Nullsummen', () => {
+    expect(baueMeldeliste([], false)).toEqual({
+      uebersicht: [],
+      gesamt: { meldungen: 0, spieler: 0, neueIds: 0 },
+      abschnitte: [],
+    });
+  });
+});

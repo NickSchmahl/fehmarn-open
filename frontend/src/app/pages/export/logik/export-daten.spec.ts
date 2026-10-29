@@ -88,6 +88,26 @@ describe('bereiteExportAuf', () => {
     ]);
   });
 
+  it('sortiert Zahlen in Teamnamen numerisch', () => {
+    const daten = bereiteExportAuf(
+      uebersicht(
+        gruppe('DAMENDOPPEL', [
+          meldung([mitId('A', 'A', 'AA01011990'), mitId('B', 'B', 'BB01011990')], {
+            teamName: 'Team 11',
+          }),
+          meldung([mitId('C', 'C', 'CC01011990'), mitId('D', 'D', 'DD01011990')], {
+            teamName: 'Team 2',
+          }),
+        ]),
+      ),
+    );
+
+    expect(disziplin(daten, 'DAMENDOPPEL').meldungen.map((m) => m.teamName)).toEqual([
+      'Team 2',
+      'Team 11',
+    ]);
+  });
+
   it('nummeriert je Disziplin ab 1 in Sortierreihenfolge', () => {
     const daten = bereiteExportAuf(
       uebersicht(

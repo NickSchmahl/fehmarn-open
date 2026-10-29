@@ -175,4 +175,60 @@ describe('Export', () => {
       expect(csvKarte().querySelector<HTMLButtonElement>('button')?.disabled).toBe(true);
     });
   });
+
+  describe('Druck', () => {
+    let drucken: jest.SpyInstance;
+
+    beforeEach(() => {
+      // jsdom kennt keinen Druckdialog.
+      drucken = jest.spyOn(window, 'print').mockImplementation(() => {});
+    });
+
+    function radikalKarte(): HTMLElement {
+      const karte = Array.from(element.querySelectorAll<HTMLElement>('app-export-karte')).find(
+        (eintrag) => eintrag.textContent.includes('Meldeliste für Radikal'),
+      );
+      if (!karte) {
+        throw new Error('Radikal-Karte fehlt');
+      }
+      return karte;
+    }
+
+    it('rendert die Druckansicht erst beim Drucken und öffnet dann den Druckdialog', () => {
+      laden();
+      expect(element.querySelector('.druck-bereich')).toBeNull();
+
+      radikalKarte().querySelector<HTMLButtonElement>('button')?.click();
+      fixture.detectChanges();
+
+      expect(element.querySelector('.druck-bereich app-radikal-druck')).not.toBeNull();
+      expect(drucken).toHaveBeenCalledTimes(1);
+    });
+
+    it('entfernt die Druckansicht nach dem Druckdialog wieder', () => {
+      laden();
+      radikalKarte().querySelector<HTMLButtonElement>('button')?.click();
+      fixture.detectChanges();
+
+      window.dispatchEvent(new Event('afterprint'));
+      fixture.detectChanges();
+
+      expect(element.querySelector('.druck-bereich')).toBeNull();
+    });
+
+    it('reicht die Option „nur neue IDs" an die Meldeliste weiter', () => {
+      laden();
+      const option = radikalKarte().querySelector<HTMLInputElement>('input[type="checkbox"]');
+      if (!option) {
+        throw new Error('Option fehlt');
+      }
+      option.click();
+      radikalKarte().querySelector<HTMLButtonElement>('button')?.click();
+      fixture.detectChanges();
+
+      expect(element.querySelector('app-radikal-druck .kopf')?.textContent).toContain(
+        'nur Spieler mit neuer Radikal-ID',
+      );
+    });
+  });
 });

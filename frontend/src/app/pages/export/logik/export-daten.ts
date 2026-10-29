@@ -39,7 +39,8 @@ export interface ExportDisziplin {
   meldungen: readonly ExportMeldung[];
 }
 
-const SORTIERUNG = new Intl.Collator('de');
+// numeric: „Team 2“ vor „Team 11“ statt reiner Textsortierung.
+const SORTIERUNG = new Intl.Collator('de', { numeric: true });
 
 function vergleicheSpieler(a: AdminSpielerEintrag, b: AdminSpielerEintrag): number {
   return SORTIERUNG.compare(a.nachname, b.nachname) || SORTIERUNG.compare(a.vorname, b.vorname);
@@ -57,7 +58,7 @@ function vergleicheErstenSpieler(a: AdminMeldungEintrag, b: AdminMeldungEintrag)
 /**
  * Sortierung innerhalb einer Disziplin: Einzel nach Nachname, dann Vorname; Team-Disziplinen nach
  * Teamname (gleichnamige Teams dann nach ihrem ersten Spieler). Umlaute sortiert der deutsche
- * Collator wie im Telefonbuch zum Grundbuchstaben (Möller bei Moller).
+ * Collator wie im Telefonbuch zum Grundbuchstaben (Möller bei Moller), Zahlen numerisch.
  */
 function vergleicheMeldungen(istTeam: boolean) {
   return (a: AdminMeldungEintrag, b: AdminMeldungEintrag): number => {

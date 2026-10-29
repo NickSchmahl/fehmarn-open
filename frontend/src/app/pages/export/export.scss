@@ -144,6 +144,34 @@ h1 {
   }
 }
 
+/* ── Optionen ─────────────────────────────────────────────── */
+.optionen {
+  display: grid;
+  gap: 0.55rem;
+  margin-top: 1rem;
+  color: var(--text-soft);
+  font-size: 0.9rem;
+
+  label {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    cursor: pointer;
+  }
+
+  input {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    accent-color: var(--accent);
+  }
+}
+
+.hinweis-klein {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
 /* ── Buttons ──────────────────────────────────────────────── */
 .btn {
   padding: 0.7rem 1.15rem;
@@ -208,4 +236,21 @@ h1 {
   background: rgba(224, 92, 92, 0.12);
   color: #e05c5c;
   font-size: 0.85rem;
+}
+
+/* ── Druck ────────────────────────────────────────────────── *
+ * Die Druckansicht steht nur während eines Druckauftrags im DOM. Am Bildschirm bleibt sie
+ * unsichtbar, im Druck ersetzt sie die Seite. Header/Footer der App blendet styles.scss aus. */
+.druck-bereich {
+  display: none;
+}
+
+@media print {
+  .export-seite {
+    display: none;
+  }
+
+  .druck-bereich {
+    display: block;
+  }
 }

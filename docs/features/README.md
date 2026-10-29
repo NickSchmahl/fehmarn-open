@@ -22,7 +22,8 @@ Teilnehmer                                  Admin
    ├─ Öffentliche Teilnehmerliste ◄───────────┤  Teilnehmerverwaltung / manuelle Abmeldung
    │   (Disziplin-Filter)                     │  Anwesenheit am Turniertag
    └─ Flyer-Ansicht ◄──────────────────────── ┤  Anmeldeschluss setzen/sperren
-                                              │  Flyer-Upload · Excel-Export · QR-Code
+                                              │  Export: Turniertag-PDF · Radikal-CSV/-PDF
+                                              │  Flyer-Upload · QR-Code
 ```
 
 ## Disziplinen (fachliche Konstante)

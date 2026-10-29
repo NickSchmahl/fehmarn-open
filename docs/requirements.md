@@ -26,7 +26,7 @@
 - 🚫 ~~Anmeldeschluss sperren / Datum setzen~~ — **soll raus** (`TurnierConfig` = overengineered, toter Code)
 - [ ] **Flyer-Upload** — kein Endpunkt (**erforderlich vor Testabnahme**)
 - [ ] **QR-Code für Anmeldelink** — kein Code (gewünscht)
-- [ ] Excel-Export — kein Code (**verschoben**, nicht vor Testabnahme)
+- [x] ~~Excel-Export~~ → **Export-Seite** `/admin/export`: Turniertag-Liste (PDF), Radikal-CSV + Meldeliste (PDF) — #305
 
 ## Soll-Zustand / Scope (Stand 2026-07-04, siehe [ADR 0008](adr/0008-scope-reduktion-testabnahme.md))
 
@@ -37,7 +37,7 @@ alten README-/„fertig"-Angaben:
 |-------|--------------|------------------|
 | Flyer-Upload | **umsetzen** | ✅ ja |
 | QR-Code Anmeldelink | umsetzen | ⭕ gewünscht, nicht zwingend |
-| Excel-Export | verschoben | ❌ nein |
+| Excel-Export | ersetzt durch Export-Seite (#305), umgesetzt | – |
 | Selbst-Abmeldung | **gestrichen** (Code liegen lassen) | – |
 | E-Mail-Versand | **entfernt (#113)** – Mail-Layer + `email`-Feld gelöscht | – |
 | Anmeldeschluss / `TurnierConfig` | **entfernen** (overengineered) | – |

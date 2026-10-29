@@ -1,0 +1,53 @@
+/* Tokens, .seite, .seiten-karte, .alert-error, .submit-btn und .spinner kommen
+   global aus src/styles/ (#126). */
+
+.login-page {
+  place-items: center;
+  padding: 2rem 1rem;
+}
+
+.login-card {
+  max-width: 400px;
+  padding: 2.5rem 2rem 2rem;
+}
+
+/* ── Header / Bullseye ──────────────────────────────────── */
+.login-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.brand-logo {
+  display: block;
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 1.25rem;
+  color: var(--text);
+}
+
+.login-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text);
+  margin: 0 0 0.25rem;
+}
+
+.login-subtitle {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  margin: 0;
+  letter-spacing: 0.04em;
+}
+
+/* ── Form ───────────────────────────────────────────────── */
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.submit-btn {
+  margin-top: 0.5rem;
+}

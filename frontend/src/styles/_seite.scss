@@ -1,0 +1,75 @@
+/* ── Seiten-Layout ───────────────────────────────────────────
+   .seite: Rasterhintergrund mit Goldschimmer, auf dem Anmeldung, Teilnehmer,
+   Login und Flyer ihre Karte zeigen. Die Seite füllt den Platz zwischen
+   App-Header und Footer (app-main ist eine Flex-Spalte) – kein eigenes
+   min-height: 100vh, das würde die Seite um Header + Footer zu hoch machen.
+   Abweichendes Padding/Ausrichtung setzt die Komponente selbst. */
+.app-main > :has(> .seite) {
+  display: flex;
+  flex: 1 0 auto;
+  flex-direction: column;
+}
+
+.seite {
+  flex: 1 0 auto;
+  display: grid;
+  place-items: start center;
+  padding: 3rem 1rem;
+  background-color: var(--bg);
+  background-image:
+    radial-gradient(ellipse 60% 50% at 50% 0%, rgba(232, 197, 71, 0.06) 0%, transparent 70%),
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 39px,
+      var(--text-dim) 39px,
+      var(--text-dim) 40px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 39px,
+      var(--text-dim) 39px,
+      var(--text-dim) 40px
+    );
+  background-size:
+    100% 100%,
+    40px 40px,
+    40px 40px;
+}
+
+/* .seiten-karte: die schwebende Fläche auf der .seite. Breite und Innenabstand
+   bestimmt die Komponente (max-width, padding). */
+.seiten-karte {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.03),
+    0 24px 64px rgba(0, 0, 0, 0.6);
+  animation: card-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes card-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Abschnittsüberschrift mit Trennlinie (Anmeldung, Teilnehmer). */
+.section-title {
+  margin: 0;
+  padding-bottom: 0.625rem;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}

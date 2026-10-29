@@ -30,6 +30,19 @@ umgebaute Signal-Zustände:
 
 Bestehende Signale werden **nicht** pauschal umgestellt – nur beim Anfassen der Komponente.
 
+## Styles
+
+Details und Begründung: `docs/quality/frontend-code-qualitaet.md`, Abschnitt 5 (#126).
+
+- Design-Tokens stehen **nur** in `src/styles/_tokens.scss` (`:root`). Kein `:host { --bg: … }`
+  in Komponenten.
+- Was mehrere Seiten teilen, wird eine **globale Klasse** unter `src/styles/` – kein Mixin, kein
+  Kopieren. Seitenspezifisches bleibt im Komponenten-Stylesheet.
+- Globale Klassen nicht auf den Host einer Kind-Komponente setzen (deren `:host` gewinnt) und
+  Namen vorher auf lokale Kollisionen prüfen.
+- Kein `min-height: 100vh` in Seiten – `.seite` füllt den Platz zwischen Header und Footer.
+- Budget `anyComponentStyle` 4 kB / 8 kB **nicht** anheben; stattdessen schneiden oder teilen.
+
 ## Linting
 
 `eslint.config.js` fährt `typescript-eslint` **strict-type-checked** plus

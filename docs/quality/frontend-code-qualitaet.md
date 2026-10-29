@@ -97,6 +97,48 @@ export default tseslint.config(
 - Ungenutzte Dev-Dependency prüfen: `vitest` ist installiert, Tests laufen aber über
   **Jest** – klären, ob `vitest` raus kann (verwirrt sonst über die Testinfrastruktur).
 
+## 5. Styles – globale Bausteine, Komponenten-Budget (#126)
+
+**Wo liegt was?**
+
+| Ort | Inhalt |
+|-----|--------|
+| `src/styles/_tokens.scss` | **Einzige** Quelle der Design-Tokens (`--bg`, `--surface`, `--text-muted`, `--accent`, `--danger`, `--radius` …) auf `:root`. Komponenten definieren **keine** eigenen Tokens. |
+| `src/styles/_seite.scss` | `.seite` (Rasterhintergrund, füllt den Platz zwischen Header und Footer), `.seiten-karte`, `.section-title` |
+| `src/styles/_feedback.scss` | `.hinweis`, `.alert-error` (+ `--formular`), `.state-row`, `.spinner` |
+| `src/styles/_formular.scss` | `.field-*`-Primitives, `.submit-btn` |
+| `src/styles/_rechtstext.scss`, `_export-druck.scss` | Impressum/Datenschutz-Layout, Druckregeln der Export-PDFs |
+| `src/app/shared/druck/_druck.scss` | Mixins für die Druckansichten (per `@use`, erzeugt selbst kein CSS) |
+| Komponenten-Stylesheet | alles Seitenspezifische: Layout, Abstände, `max-width`, eigene Elemente |
+
+**Regeln**
+
+- **Global nur echte Bausteine**, die auf den Tokens aufbauen und von mindestens zwei Seiten
+  genutzt werden. Die Komponente kombiniert sie mit einer eigenen Klasse für ihre Abweichungen
+  (`class="seiten-karte login-card"`); die lokale Regel gewinnt automatisch, weil Angular sie
+  um ein Attribut ergänzt (höhere Spezifität).
+- **Teilen per globaler Klasse, nicht per Mixin.** Ein `@include` erzeugt das CSS in jeder
+  Komponente neu – das Budget wird davon nicht kleiner. `@use` nur für Mixins/Variablen ohne
+  eigene Ausgabe (wie `_druck.scss`).
+- **Keine globale Klasse auf den Host einer Kind-Komponente** (z. B. `<app-brand-icon class="…">`):
+  dort gewinnt das `:host`-Styling der Kind-Komponente gegen die gleich spezifische globale
+  Klasse. Solche Klassen bleiben lokal (Beispiel: `.brand-logo`).
+- **Globale Namen kollisionsfrei wählen.** Vor dem Anlegen einer globalen Klasse prüfen, dass
+  keine Komponente den Namen schon lokal nutzt – sonst greift die globale Regel dort mit
+  (passiert beim Umbau mit `.karte` in der Export-Karte, deshalb `.seiten-karte`).
+- **Kein `min-height: 100vh` in Seiten.** `app-main` ist bereits eine Flex-Spalte über die
+  volle Höhe; `.seite` füllt den Rest. Ein eigenes `100vh` macht die Seite um Header + Footer
+  zu hoch.
+
+**Budget** (`angular.json`, `anyComponentStyle`): Warnung **4 kB**, Fehler **8 kB**. Wird es
+knapp, ist die Antwort ein Komponentenschnitt oder ein globaler Baustein – nicht ein höheres
+Budget. Stand nach #126: Teilnehmer (~4,9 kB, Schnitt in #317), Flyer (~6,6 kB, reines
+Seitendesign) und Turniertag-Druck (~5,2 kB, Drucklayout) liegen über der Warnschwelle.
+
+**Regressionscheck bei Style-Umbauten:** Screenshots vorher/nachher (Playwright, gemockte
+`/api`, Desktop + Mobil) und Pixel-Diff. Unterschiede von 1–2 Farbstufen sind Render-Rauschen,
+alles darüber erklären oder beheben.
+
 ## Architekturregeln
 Import-Grenzen (welche Schicht darf welche importieren) sind ein eigenes Thema:
 [frontend-architektur-tests.md](frontend-architektur-tests.md).

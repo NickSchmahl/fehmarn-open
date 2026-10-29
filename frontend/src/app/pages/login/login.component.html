@@ -1,5 +1,5 @@
-<div class="login-page">
-  <div class="login-card">
+<div class="seite login-page">
+  <div class="seiten-karte login-card">
     <header class="login-header">
       <app-brand-icon class="brand-logo" />
       <h1 class="login-title">Admin</h1>
@@ -42,7 +42,7 @@
       </div>
 
       @if (errorMessage()) {
-        <div class="alert-error" role="alert">
+        <div class="alert-error alert-error--formular" role="alert">
           {{ errorMessage() }}
         </div>
       }

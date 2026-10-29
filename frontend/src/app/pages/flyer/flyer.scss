@@ -1,48 +1,6 @@
-:host {
-  --bg: #0d0f12;
-  --surface: #141720;
-  --surface-2: #1c2030;
-  --border: #2a2f42;
-  --text: #eceef4;
-  --text-soft: #a7adc8;
-  --text-muted: #6b7394;
-  --text-dim: #3a4060;
-  --accent: #e8c547;
-  --accent-dim: rgba(232, 197, 71, 0.12);
-  --radius: 6px;
-  --radius-lg: 12px;
-
-  display: block;
-}
+/* Tokens und der Rasterhintergrund (.seite) kommen global aus src/styles/ (#126). */
 
 .flyer-page {
-  // Kein eigenes min-height:100vh – app-main (app.scss) stellt das schon für die
-  // gesamte Seite bereit; ein zweites min-height:100vh hier würde die Seite auf
-  // volle Viewport-Höhe aufblasen und einen Leerraum vor dem Footer erzeugen.
-  display: grid;
-  place-items: start center;
-  background-color: var(--bg);
-  background-image:
-    radial-gradient(ellipse 60% 50% at 50% 0%, rgba(232, 197, 71, 0.06) 0%, transparent 70%),
-    repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 39px,
-      var(--text-dim) 39px,
-      var(--text-dim) 40px
-    ),
-    repeating-linear-gradient(
-      90deg,
-      transparent,
-      transparent 39px,
-      var(--text-dim) 39px,
-      var(--text-dim) 40px
-    );
-  background-size:
-    100% 100%,
-    40px 40px,
-    40px 40px;
-  font-family: 'DM Sans', 'Helvetica Neue', sans-serif;
   padding: 2rem 1rem;
 }
 

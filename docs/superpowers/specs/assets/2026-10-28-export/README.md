@@ -7,6 +7,6 @@ Issues eingebunden.
 | Datei | Issue | Inhalt |
 |-------|-------|--------|
 | `export-seite.html` / `.png` | #306 | Admin-Seite `/admin/export` im Dark-Theme |
-| `turniertag-liste.html`, `turniertag-liste-einzel.png`, `turniertag-liste-team.png` | #307 | Turniertag-Liste (Anwesend + Bezahlt) |
+| `turniertag-liste.html`, `turniertag-liste-einzel.png`, `turniertag-liste-einzel-ende.png`, `turniertag-liste-team.png` | #307 | Turniertag-Liste (Anwesend + Bezahlt), Einzel zweispaltig, 10 Leerzeilen am Ende |
 | – (nur Beispiel im Issue) | #308 | Radikal-CSV |
 | `radikal-meldeliste.html` / `.png` | #309 | Meldeliste für Radikal, ohne Ankreuzfelder |

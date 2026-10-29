@@ -205,7 +205,9 @@
     bottom: 0;
     left: 0;
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    /* Spaltenzahl folgt den Tabs: 4 öffentlich, 5 eingeloggt (mit Export). */
+    grid-auto-columns: minmax(0, 1fr);
+    grid-auto-flow: column;
     gap: 0.25rem;
     padding: 0.5rem 0.5rem calc(0.5rem + env(safe-area-inset-bottom));
     border-top: 1px solid rgba(42, 47, 66, 0.95);

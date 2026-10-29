@@ -1,0 +1,171 @@
+/* Export-Seite (#306). Farb-Tokens (--surface, --accent …) erbt die Seite vom app-root-:host. */
+
+.export-seite {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: clamp(1.5rem, 4vw, 2.5rem) clamp(1rem, 4vw, 3rem) 3rem;
+  color: var(--text);
+}
+
+/* ── Kopf ─────────────────────────────────────────────────── */
+.eyebrow {
+  margin: 0;
+  color: var(--accent);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+h1 {
+  margin: 0.3rem 0 0.4rem;
+  font-family: Anton, sans-serif;
+  font-size: clamp(2rem, 6vw, 2.6rem);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.lead {
+  max-width: 60ch;
+  margin: 0;
+  color: var(--text-soft);
+  line-height: 1.5;
+}
+
+/* ── Stand / Kennzahlen ───────────────────────────────────── */
+.stand {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 1.25rem;
+}
+
+.stand-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    padding: 0.35rem 0.85rem;
+    border: 1px solid var(--border);
+    border-radius: 99px;
+    background: var(--surface);
+    color: var(--text-muted);
+    font-size: 0.82rem;
+  }
+
+  b {
+    color: var(--text);
+  }
+}
+
+/* ── Raster: links Turniertag, rechts Radikal ─────────────── */
+.bereiche {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: 1.25rem;
+  margin-top: 2rem;
+}
+
+.bereich {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  min-width: 0;
+}
+
+.bereich-titel {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.75rem;
+  margin-bottom: -0.4rem;
+
+  h2 {
+    margin: 0;
+    font-size: 1.05rem;
+  }
+
+  small {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 900px) {
+  .bereiche {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ── Buttons ──────────────────────────────────────────────── */
+.btn {
+  padding: 0.7rem 1.15rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 700;
+
+  &:hover:not(:disabled) {
+    border-color: rgba(232, 197, 71, 0.5);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+}
+
+.btn--klein {
+  padding: 0.35rem 0.85rem;
+  font-size: 0.82rem;
+}
+
+/* ── Zustände ─────────────────────────────────────────────── */
+.state-row {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 2rem 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.alert-error {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  padding: 0.875rem 1rem;
+  border: 1px solid rgba(224, 92, 92, 0.4);
+  border-radius: var(--radius);
+  background: rgba(224, 92, 92, 0.12);
+  color: #e05c5c;
+  font-size: 0.85rem;
+}

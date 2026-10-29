@@ -13,6 +13,7 @@
     <a routerLink="/flyer" routerLinkActive="active">Flyer</a>
 
     @if (authService.isLoggedIn()) {
+      <a routerLink="/admin/export" routerLinkActive="active">Export</a>
       <button type="button" class="nav-action" (click)="logout()">Logout</button>
     } @else {
       <a routerLink="/admin/login" routerLinkActive="active">Login</a>
@@ -88,6 +89,26 @@
   </a>
 
   @if (authService.isLoggedIn()) {
+    <a routerLink="/admin/export" routerLinkActive="active">
+      <svg
+        class="tab-icon"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path
+          d="M14 3H7.5A1.5 1.5 0 0 0 6 4.5v15A1.5 1.5 0 0 0 7.5 21h9a1.5 1.5 0 0 0 1.5-1.5V7z"
+        />
+        <path d="M14 3v4h4" />
+        <path d="M12 10.5v6" />
+        <path d="M9.5 14l2.5 2.5 2.5-2.5" />
+      </svg>
+      <span>Export</span>
+    </a>
     <button type="button" (click)="logout()">
       <svg
         class="tab-icon"

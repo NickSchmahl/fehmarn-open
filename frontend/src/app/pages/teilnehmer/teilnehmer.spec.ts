@@ -2,12 +2,8 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 
-import {
-  Teilnehmer,
-  meldungPasstZurSuche,
-  sortiereAbgemeldeteAnsEnde,
-  AdminMeldungEintrag,
-} from './teilnehmer';
+import { Teilnehmer, meldungPasstZurSuche, sortiereAbgemeldeteAnsEnde } from './teilnehmer';
+import { AdminMeldungEintrag } from '../../shared/admin-uebersicht';
 import { AuthService } from '../../auth/service/auth.service';
 
 function adminMeldung(over: Partial<AdminMeldungEintrag>): AdminMeldungEintrag {

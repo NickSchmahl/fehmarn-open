@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { App } from './app';
 import { provideRouter } from '@angular/router';
+import { AuthService } from './auth/service/auth.service';
 
 describe('App', () => {
   beforeEach(async () => {
@@ -34,5 +35,32 @@ describe('App', () => {
     const mark = element.querySelector('.brand app-brand-icon');
     expect(mark).not.toBeNull();
     expect(element.querySelector('.brand-mark span')).toBeNull();
+  });
+
+  describe('Export-Link', () => {
+    function exportLinks(eingeloggt: boolean): (string | null)[] {
+      localStorage.clear();
+      if (eingeloggt) {
+        localStorage.setItem(AuthService.TOKEN_KEY, 'token');
+      }
+      const fixture = TestBed.createComponent(App);
+      fixture.detectChanges();
+      const element = fixture.nativeElement as HTMLElement;
+      return Array.from(element.querySelectorAll('.desktop-nav a, .mobile-tabs a'), (link) =>
+        link.getAttribute('href'),
+      ).filter((href) => href === '/admin/export');
+    }
+
+    afterEach(() => {
+      localStorage.clear();
+    });
+
+    it('erscheint eingeloggt in Desktop- und Mobil-Navigation', () => {
+      expect(exportLinks(true)).toHaveLength(2);
+    });
+
+    it('fehlt ohne Login', () => {
+      expect(exportLinks(false)).toHaveLength(0);
+    });
   });
 });

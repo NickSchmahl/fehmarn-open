@@ -1,0 +1,82 @@
+<div class="export-seite">
+  <header class="export-kopf">
+    <p class="eyebrow">Admin</p>
+    <h1>Export</h1>
+    <p class="lead">
+      Listen für den Turniertag ausdrucken und die Meldungen an Radikal weitergeben. Alle Exporte
+      nutzen den geladenen Stand – vor dem Druck kurz aktualisieren.
+    </p>
+  </header>
+
+  @if (error()) {
+    <div class="alert-error" role="alert">
+      Die Meldungen konnten nicht geladen werden.
+      <button type="button" class="btn btn--klein" (click)="laden()">Erneut versuchen</button>
+    </div>
+  } @else if (kennzahlen(); as zahlen) {
+    <div class="stand">
+      <ul class="stand-chips" aria-label="Aktueller Stand">
+        <li>
+          <b>{{ zahlen.aktiveMeldungen }}</b> aktive Meldungen
+        </li>
+        <li title="Je Disziplin gezählt – wer zwei Disziplinen spielt, zählt doppelt">
+          <b>{{ zahlen.spieler }}</b> Spieler
+        </li>
+        <li title="Spieler ohne angegebene Radikal-ID">
+          <b>{{ zahlen.neueRadikalIds }}</b> neue Radikal-IDs
+        </li>
+        <li>
+          <b>{{ zahlen.abgemeldet }}</b> abgemeldet
+        </li>
+        <li>
+          Stand <b>{{ standText() }}</b>
+        </li>
+      </ul>
+      <button type="button" class="btn btn--klein" [disabled]="loading()" (click)="laden()">
+        {{ loading() ? 'Lädt…' : 'Aktualisieren' }}
+      </button>
+    </div>
+
+    <div class="bereiche">
+      <section class="bereich" aria-labelledby="bereich-turniertag">
+        <div class="bereich-titel">
+          <h2 id="bereich-turniertag">Für den Turniertag</h2>
+          <small>Druckvorlage für Check-in und Kasse</small>
+        </div>
+
+        <app-export-karte titel="Turniertag-Liste" format="PDF" [haupt]="true">
+          <span karteBeschreibung>
+            Jede Disziplin auf eigenen Blättern, Einzel zweispaltig mit bis zu 102 Spielern je
+            Blatt. Kästchen für <b>Anwesend</b> und <b>Bezahlt</b>, am Ende 10 Leerzeilen für
+            Nachmeldungen.
+          </span>
+        </app-export-karte>
+      </section>
+
+      <section class="bereich" aria-labelledby="bereich-radikal">
+        <div class="bereich-titel">
+          <h2 id="bereich-radikal">Für Radikal</h2>
+          <small>Technisch, zum Übertragen ins Radikal-System</small>
+        </div>
+
+        <app-export-karte titel="Meldungen als CSV" format="CSV">
+          <span karteBeschreibung>
+            Eine Zeile je Spieler und Disziplin – zum Import ins Radikal-System oder für Excel.
+          </span>
+        </app-export-karte>
+
+        <app-export-karte titel="Meldeliste für Radikal" format="PDF">
+          <span karteBeschreibung>
+            Dieselben Daten als lesbare Liste – ohne Ankreuzfelder, mit Übersicht und markierten
+            neuen IDs.
+          </span>
+        </app-export-karte>
+      </section>
+    </div>
+  } @else {
+    <div class="state-row" role="status">
+      <span class="spinner" aria-hidden="true"></span>
+      Wird geladen…
+    </div>
+  }
+</div>

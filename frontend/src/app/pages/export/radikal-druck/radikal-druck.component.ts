@@ -21,11 +21,10 @@ export const FUSS_VARIABLE = '--radikal-druck-fuss';
 export class RadikalDruckComponent {
   readonly zeilen = input.required<readonly RadikalZeile[]>();
   readonly stand = input.required<Date>();
-  readonly nurNeue = input(false);
 
   readonly turnier = `${FLYER_TURNIER.titel} ${FLYER_TURNIER.jahr} · ${FLYER_TURNIER.termin}`;
 
-  readonly liste = computed<Meldeliste>(() => baueMeldeliste(this.zeilen(), this.nurNeue()));
+  readonly liste = computed<Meldeliste>(() => baueMeldeliste(this.zeilen()));
   readonly standIso = computed(() => formatiereIsoZeitstempel(this.stand()));
 
   constructor() {

@@ -1,10 +1,7 @@
 <header class="kopf">
   <div>
     <h1>Meldeliste für Radikal</h1>
-    <p>
-      {{ turnier }} ·
-      {{ nurNeue() ? 'nur Spieler mit neuer Radikal-ID' : 'alle aktiven Meldungen' }}
-    </p>
+    <p>{{ turnier }} · alle aktiven Meldungen</p>
   </div>
   <div class="meta">
     Export <b>{{ standIso() }}</b>
@@ -61,12 +58,7 @@
   <section class="abschnitt">
     <div class="gruppe">
       <h2>{{ abschnitt.name }}</h2>
-      <span>
-        {{ abschnitt.meldungen }} Meldungen · {{ abschnitt.spieler }} Spieler
-        @if (nurNeue()) {
-          · {{ abschnitt.neueIds }} neu
-        }
-      </span>
+      <span>{{ abschnitt.meldungen }} Meldungen · {{ abschnitt.spieler }} Spieler</span>
       <code>{{ abschnitt.disziplin }}</code>
     </div>
     <table class="liste" [class.liste--team]="abschnitt.istTeam">

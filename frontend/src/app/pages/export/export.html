@@ -171,16 +171,6 @@
             Dieselben Daten als lesbare Liste – ohne Ankreuzfelder, mit Übersicht und markierten
             neuen IDs.
           </span>
-          <div class="optionen">
-            <label>
-              <input
-                type="checkbox"
-                [checked]="radikalNurNeue()"
-                (change)="setzeRadikalNurNeue($event)"
-              />
-              Nur Spieler mit neuer Radikal-ID
-            </label>
-          </div>
           <div karteAktionen>
             <button
               type="button"
@@ -217,11 +207,7 @@
           />
         }
         @case ('radikal') {
-          <app-radikal-druck
-            [zeilen]="radikalZeilen()"
-            [stand]="standZeit"
-            [nurNeue]="radikalNurNeue()"
-          />
+          <app-radikal-druck [zeilen]="radikalZeilen()" [stand]="standZeit" />
         }
       }
     </div>

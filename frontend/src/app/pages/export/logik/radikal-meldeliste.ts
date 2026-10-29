@@ -89,25 +89,23 @@ function zuBlock(zeilen: readonly RadikalZeile[]): MeldelisteBlock {
   };
 }
 
-function zuAbschnitt(gruppe: readonly RadikalZeile[], nurNeue: boolean): MeldelisteAbschnitt {
+function zuAbschnitt(gruppe: readonly RadikalZeile[]): MeldelisteAbschnitt {
   const erste = gruppe[0];
-  const sichtbar = nurNeue ? gruppe.filter((zeile) => zeile.idStatus === 'neu') : gruppe;
   return {
     disziplin: erste.disziplin,
     name: erste.disziplinName,
     istTeam: erste.istTeam,
     ...zaehle(gruppe),
-    bloecke: gruppiere(sichtbar, (zeile) => zeile.meldungNr).map(zuBlock),
+    bloecke: gruppiere(gruppe, (zeile) => zeile.meldungNr).map(zuBlock),
   };
 }
 
 /**
  * Baut die Meldeliste. Die Übersicht nennt **alle** Disziplinen (auch mit 0 Meldungen, damit Radikal
- * „keine Meldung" von „fehlt im Export" unterscheiden kann) und zählt immer alle aktiven Meldungen
- * wie die CSV. Mit `nurNeue` enthalten die Abschnitte nur Spieler mit neuer Radikal-ID, behalten
- * aber ihre laufende Nummer, damit sie sich weiter der CSV bzw. Turniertag-Liste zuordnen lassen.
+ * „keine Meldung" von „fehlt im Export" unterscheiden kann) und zählt alle aktiven Meldungen wie
+ * die CSV. Die Abschnitte enthalten immer alle Spieler (entschieden in #314).
  */
-export function baueMeldeliste(zeilen: readonly RadikalZeile[], nurNeue: boolean): Meldeliste {
+export function baueMeldeliste(zeilen: readonly RadikalZeile[]): Meldeliste {
   const jeDisziplin = gruppiere(zeilen, (zeile) => zeile.disziplin);
   const uebersicht = DISZIPLINEN.map((meta) => ({
     disziplin: meta.value,
@@ -125,8 +123,6 @@ export function baueMeldeliste(zeilen: readonly RadikalZeile[], nurNeue: boolean
   return {
     uebersicht,
     gesamt,
-    abschnitte: jeDisziplin
-      .map((gruppe) => zuAbschnitt(gruppe, nurNeue))
-      .filter((abschnitt) => abschnitt.bloecke.length > 0),
+    abschnitte: jeDisziplin.map(zuAbschnitt),
   };
 }

@@ -25,7 +25,7 @@ const DATEN = uebersicht(
 const ZEILEN = radikalZeilen(bereiteExportAuf(DATEN));
 
 describe('baueMeldeliste', () => {
-  const liste = baueMeldeliste(ZEILEN, false);
+  const liste = baueMeldeliste(ZEILEN);
 
   it('zählt je Disziplin Meldungen, Spieler und neue IDs', () => {
     const zeile = (disziplin: string) => liste.uebersicht.find((z) => z.disziplin === disziplin);
@@ -96,42 +96,14 @@ describe('baueMeldeliste', () => {
     expect(zeilen.every((zeile) => zeile.neu === (zeile.geburtsdatum !== ''))).toBe(true);
   });
 
-  describe('nur Spieler mit neuer Radikal-ID', () => {
-    const nurNeue = baueMeldeliste(ZEILEN, true);
-
-    it('zeigt nur NEU-Spieler, behält aber ihre laufende Nummer', () => {
-      const zeilen = nurNeue.abschnitte.flatMap((a) => a.bloecke.flatMap((b) => b.zeilen));
-      expect(zeilen.map((zeile) => [zeile.lfd, zeile.nachname])).toEqual([
-        ['2', 'Claussen'],
-        ['2.2', 'Nissen'],
-      ]);
-    });
-
-    it('nennt den Teamnamen, wenn das erste sichtbare Teammitglied nicht das erste im Team ist', () => {
-      expect(nurNeue.abschnitte[1]?.bloecke[0]?.zeilen[0]?.team).toBe('Hafenkante');
-    });
-
-    it('lässt Übersicht und Summen unverändert vollständig', () => {
-      expect(nurNeue.uebersicht).toEqual(liste.uebersicht);
-      expect(nurNeue.gesamt).toEqual(liste.gesamt);
-    });
-
-    it('lässt Disziplinen ohne neue IDs als Abschnitt weg', () => {
-      const ohneNeue = baueMeldeliste(
-        radikalZeilen(
-          bereiteExportAuf(
-            uebersicht(gruppe('DAMENEINZEL', [meldung([mitId('A', 'A', 'AA01011990')])])),
-          ),
-        ),
-        true,
-      );
-      expect(ohneNeue.abschnitte).toEqual([]);
-      expect(ohneNeue.gesamt).toEqual({ meldungen: 1, spieler: 1, neueIds: 0 });
-    });
+  it('enthält immer alle Spieler, auch die mit vorhandener ID', () => {
+    const zeilen = liste.abschnitte.flatMap((a) => a.bloecke.flatMap((b) => b.zeilen));
+    expect(zeilen).toHaveLength(liste.gesamt.spieler);
+    expect(zeilen.some((zeile) => !zeile.neu)).toBe(true);
   });
 
   it('liefert für keine Meldungen nur Nullen und keine Abschnitte', () => {
-    const leer = baueMeldeliste([], false);
+    const leer = baueMeldeliste([]);
     expect(leer.uebersicht.every((z) => z.meldungen === 0 && z.spieler === 0)).toBe(true);
     expect(leer.gesamt).toEqual({ meldungen: 0, spieler: 0, neueIds: 0 });
     expect(leer.abschnitte).toEqual([]);

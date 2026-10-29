@@ -26,11 +26,10 @@ describe('RadikalDruckComponent', () => {
   let fixture: ComponentFixture<RadikalDruckComponent>;
   let element: HTMLElement;
 
-  function rendern(nurNeue = false): void {
+  function rendern(): void {
     fixture = TestBed.createComponent(RadikalDruckComponent);
     fixture.componentRef.setInput('zeilen', ZEILEN);
     fixture.componentRef.setInput('stand', new Date(2026, 9, 28, 14, 32));
-    fixture.componentRef.setInput('nurNeue', nurNeue);
     fixture.detectChanges();
     element = fixture.nativeElement as HTMLElement;
   }
@@ -93,15 +92,6 @@ describe('RadikalDruckComponent', () => {
       tr.textContent.includes('Team'),
     );
     expect(koepfe).toEqual([false, true]);
-  });
-
-  it('zeigt mit „nur neue" nur Spieler ohne Radikal-ID', () => {
-    rendern(true);
-    expect(text('.kopf p')[0]).toContain('nur Spieler mit neuer Radikal-ID');
-    expect(zeilen('.liste tbody tr')).toEqual([
-      '2 Claussen Henrik HC22111979 NEU 1979-11-22',
-      '1.2 Hafenkante Nissen Hauke HN11111981 NEU 1981-11-11',
-    ]);
   });
 
   it('setzt den Fußzeilen-Text für @page am Wurzelelement und räumt ihn wieder ab', () => {

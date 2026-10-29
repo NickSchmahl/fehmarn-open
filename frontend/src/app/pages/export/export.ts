@@ -85,8 +85,6 @@ export class Export implements OnInit {
   readonly radikalIdAusblenden = signal(false);
   /** Limit des Teamwettbewerbs; null, solange unbekannt (dann ohne „/ 96"). */
   readonly maxTeams = signal<number | null>(null);
-  /** Option der Radikal-Meldeliste: nur Spieler mit neuer Radikal-ID. */
-  readonly radikalNurNeue = signal(false);
   /** Zeitpunkt, zu dem die angezeigten Daten geladen wurden („Stand" auf allen Exporten). */
   readonly stand = signal<Date | null>(null);
 
@@ -218,10 +216,6 @@ export class Export implements OnInit {
 
   setzeRadikalIdAusblenden(event: Event): void {
     this.radikalIdAusblenden.set(istAngehakt(event));
-  }
-
-  setzeRadikalNurNeue(event: Event): void {
-    this.radikalNurNeue.set(istAngehakt(event));
   }
 
   /**

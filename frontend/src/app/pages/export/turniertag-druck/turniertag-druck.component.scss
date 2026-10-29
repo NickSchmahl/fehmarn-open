@@ -231,12 +231,24 @@ tbody tr:nth-child(even) td {
   border-radius: 0.7mm;
   vertical-align: middle;
 
+  /* Vorangekreuzt: ein mittiges X aus zwei gedrehten Strichen (unabhängig von der Schrift) */
+  &.an::before,
   &.an::after {
-    content: '✓';
+    content: '';
     position: absolute;
-    inset: -1.4mm 0 0 0.3mm;
-    font-size: 7.6pt;
-    font-weight: 700;
+    top: 50%;
+    left: 50%;
+    width: 120%;
+    height: 1.1px;
+    background: druck.$ink;
+  }
+
+  &.an::before {
+    transform: translate(-50%, -50%) rotate(45deg);
+  }
+
+  &.an::after {
+    transform: translate(-50%, -50%) rotate(-45deg);
   }
 }
 
@@ -335,11 +347,6 @@ tr.leer td.linie {
   .box {
     width: 4.4mm;
     height: 4.4mm;
-
-    &.an::after {
-      inset: -1.6mm 0 0 0.4mm;
-      font-size: 9.6pt;
-    }
   }
 }
 

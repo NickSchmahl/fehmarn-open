@@ -225,19 +225,14 @@ describe('Export', () => {
       expect(drucken).toHaveBeenCalledTimes(2);
     });
 
-    it('reicht die Option „nur neue IDs" an die Meldeliste weiter', () => {
+    it('druckt die Meldeliste ohne Optionen – immer mit allen Spielern', () => {
       laden();
-      const option = radikalKarte().querySelector<HTMLInputElement>('input[type="checkbox"]');
-      if (!option) {
-        throw new Error('Option fehlt');
-      }
-      option.click();
+      expect(radikalKarte().querySelector('input[type="checkbox"]')).toBeNull();
+
       radikalKarte().querySelector<HTMLButtonElement>('button')?.click();
       fixture.detectChanges();
 
-      expect(element.querySelector('app-radikal-druck .kopf')?.textContent).toContain(
-        'nur Spieler mit neuer Radikal-ID',
-      );
+      expect(element.querySelectorAll('app-radikal-druck .liste tbody tr')).toHaveLength(4);
     });
   });
 

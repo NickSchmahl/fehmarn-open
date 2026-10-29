@@ -59,6 +59,6 @@ sobald wir es angehen:
 Nicht Teil dieser Härtungsphase. Vorhandene/relevante Issues:
 - **Flyer-Upload**: #29, #30 (Backend), #31 (Admin-FE), #32 (öffentliche Ansicht), #33 (Admin-Nav) — vor Testabnahme.
 - **QR-Code** für Anmeldelink — gewünscht (Issue anlegen, wenn dran).
-- **Excel-Export** — verschoben.
+- **Export-Seite** (ersetzt den Excel-Export): Turniertag-Liste als PDF, Radikal-Export als CSV + PDF — Epic #305, Teil-Issues #306–#309 mit Mockups.
 
 Scope/Begründung: [ADR 0008](../adr/0008-scope-reduktion-testabnahme.md), [features/admin.md](../features/admin.md).

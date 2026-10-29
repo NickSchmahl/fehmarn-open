@@ -22,7 +22,7 @@ Läuft als Big-Bang, getrackt in GitHub. Sammelticket **#55**, Einzeltickets **#
 ### Features (NACH der Härtung, siehe [ADR 0008](adr/0008-scope-reduktion-testabnahme.md))
 - [ ] **Flyer-Upload** (Admin) — **vor Testabnahme** — Issues #29/#30/#31/#32/#33
 - [ ] QR-Code für Anmeldelink — gewünscht (Issue anlegen, wenn dran)
-- [ ] Excel-Export — **verschoben**
+- [ ] Export-Seite (Turniertag-PDF, Radikal-CSV + -PDF) statt Excel-Export — **Konzept steht** — #305 (#306–#309)
 - 🚫 ~~Selbst-Abmeldung~~ — gestrichen (#18/#20 wontfix)
 - 🚫 ~~Anmeldeschluss durchsetzen~~ — umgekehrt, Code soll raus (#16/#17 wontfix)
 

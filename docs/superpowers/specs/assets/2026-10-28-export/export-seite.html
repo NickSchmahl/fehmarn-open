@@ -1,0 +1,472 @@
+<!doctype html>
+<!--
+  Design-Mockup (#Export-Seite): Admin-Seite /admin/export im bestehenden Dark-Theme.
+  Statischer Entwurf mit Beispieldaten – kein Produktivcode.
+-->
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <title>Export-Seite – Mockup</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Anton&family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #0d0f12;
+        --surface: #141720;
+        --surface-2: #1c2030;
+        --border: #2a2f42;
+        --text: #eceef4;
+        --text-soft: #a7adc8;
+        --text-muted: #8c94b2;
+        --text-dim: #3a4060;
+        --accent: #e8c547;
+        --accent-dim: rgba(232, 197, 71, 0.12);
+        --radius: 6px;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family: 'DM Sans', 'Helvetica Neue', sans-serif;
+      }
+      #app {
+        width: 1280px;
+        min-height: 1010px;
+        padding-bottom: 48px;
+      }
+      header {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        min-height: 72px;
+        padding: 0.75rem 3rem;
+        border-bottom: 1px solid rgba(42, 47, 66, 0.85);
+        background: rgba(13, 15, 18, 0.88);
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 0.7rem;
+        font-family: Anton, sans-serif;
+        font-size: 1.25rem;
+        letter-spacing: 0.04em;
+      }
+      .brand i {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: radial-gradient(circle, var(--accent) 0 26%, transparent 27% 44%, var(--text) 45% 54%, transparent 55%);
+      }
+      nav {
+        margin-left: auto;
+        display: flex;
+        gap: 0.4rem;
+        font-size: 0.92rem;
+      }
+      nav a {
+        color: var(--text-muted);
+        padding: 0.5rem 0.85rem;
+        border-radius: var(--radius);
+        text-decoration: none;
+      }
+      nav a.active {
+        color: var(--accent);
+        background: var(--accent-dim);
+      }
+      main {
+        padding: 2.5rem 3rem 0;
+      }
+      .eyebrow {
+        font-size: 0.72rem;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--accent);
+        font-weight: 700;
+      }
+      h1 {
+        font-family: Anton, sans-serif;
+        font-weight: 400;
+        font-size: 2.6rem;
+        letter-spacing: 0.02em;
+        margin: 0.3rem 0 0.4rem;
+      }
+      .lead {
+        color: var(--text-soft);
+        margin: 0;
+        max-width: 60ch;
+        line-height: 1.5;
+      }
+      .stand {
+        display: flex;
+        gap: 0.6rem;
+        margin-top: 1.25rem;
+        flex-wrap: wrap;
+      }
+      .stand span {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 99px;
+        padding: 0.35rem 0.85rem;
+        font-size: 0.82rem;
+        color: var(--text-muted);
+      }
+      .stand b {
+        color: var(--text);
+      }
+
+      .bereich {
+        margin-top: 2rem;
+        display: grid;
+        grid-template-columns: 1.15fr 1fr;
+        gap: 1.25rem;
+      }
+      .bereich-titel {
+        display: flex;
+        align-items: baseline;
+        gap: 0.75rem;
+        margin-bottom: -0.4rem;
+      }
+      .bereich-titel h2 {
+        margin: 0;
+        font-size: 1.05rem;
+      }
+      .bereich-titel small {
+        color: var(--text-muted);
+        font-size: 0.85rem;
+      }
+
+      .karte {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 1.4rem 1.5rem 1.5rem;
+        display: flex;
+        flex-direction: column;
+      }
+      .karte.haupt {
+        border-color: rgba(232, 197, 71, 0.45);
+        box-shadow: 0 0 0 1px rgba(232, 197, 71, 0.08), 0 20px 48px rgba(0, 0, 0, 0.35);
+      }
+      .karte-kopf {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.9rem;
+      }
+      .format {
+        flex: none;
+        width: 46px;
+        height: 54px;
+        border-radius: 6px;
+        border: 1px solid var(--border);
+        background: var(--surface-2);
+        display: grid;
+        place-items: end center;
+        padding-bottom: 7px;
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        color: var(--text-soft);
+        position: relative;
+      }
+      .format::before {
+        content: '';
+        position: absolute;
+        top: 9px;
+        left: 10px;
+        right: 10px;
+        height: 14px;
+        background: repeating-linear-gradient(var(--text-dim) 0 2px, transparent 2px 5px);
+      }
+      .format.pdf {
+        color: var(--accent);
+        border-color: rgba(232, 197, 71, 0.4);
+      }
+      .karte h3 {
+        margin: 0;
+        font-size: 1.15rem;
+      }
+      .karte p {
+        margin: 0.35rem 0 0;
+        color: var(--text-soft);
+        font-size: 0.9rem;
+        line-height: 1.5;
+      }
+      .label {
+        margin: 1.2rem 0 0.5rem;
+        font-size: 0.72rem;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        font-weight: 700;
+      }
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.45rem;
+      }
+      .chip {
+        font-size: 0.82rem;
+        padding: 0.38rem 0.75rem;
+        border-radius: 99px;
+        border: 1px solid var(--border);
+        color: var(--text-muted);
+        background: var(--surface-2);
+      }
+      .chip.an {
+        color: var(--accent);
+        border-color: rgba(232, 197, 71, 0.5);
+        background: var(--accent-dim);
+      }
+      .chip small {
+        color: var(--text-muted);
+        margin-left: 0.25rem;
+      }
+      .optionen {
+        display: grid;
+        gap: 0.55rem;
+        font-size: 0.9rem;
+        color: var(--text-soft);
+      }
+      .optionen label {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+      }
+      .cb {
+        width: 18px;
+        height: 18px;
+        border-radius: 4px;
+        border: 1.5px solid var(--border);
+        background: var(--surface-2);
+        display: grid;
+        place-items: center;
+        font-size: 12px;
+        color: #14161c;
+      }
+      .cb.an {
+        background: var(--accent);
+        border-color: var(--accent);
+      }
+      .aktionen {
+        margin-top: auto;
+        padding-top: 1.4rem;
+        display: flex;
+        gap: 0.7rem;
+        align-items: center;
+      }
+      .btn {
+        font: inherit;
+        font-weight: 700;
+        font-size: 0.92rem;
+        border-radius: var(--radius);
+        padding: 0.7rem 1.15rem;
+        border: 1px solid var(--border);
+        background: var(--surface-2);
+        color: var(--text);
+      }
+      .btn.primaer {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #14161c;
+      }
+      .btn small {
+        font-weight: 400;
+        opacity: 0.7;
+        margin-left: 0.3rem;
+      }
+      .hinweis-klein {
+        color: var(--text-muted);
+        font-size: 0.8rem;
+      }
+      .vorschau {
+        margin-top: 1rem;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.9rem;
+      }
+      .mini-blatt {
+        background: #f4f4f1;
+        border-radius: 4px;
+        height: 150px;
+        padding: 10px 12px;
+        position: relative;
+        overflow: hidden;
+      }
+      .mini-blatt b {
+        display: block;
+        font-family: Anton, sans-serif;
+        font-weight: 400;
+        color: #14161c;
+        font-size: 15px;
+        letter-spacing: 0.02em;
+      }
+      .mini-blatt i {
+        display: block;
+        width: 26px;
+        height: 3px;
+        background: var(--accent);
+        margin: 3px 0 8px;
+      }
+      .mini-blatt div {
+        height: 9px;
+        margin-bottom: 5px;
+        background: linear-gradient(90deg, #c9ccd4 0 46%, transparent 46% 66%, #14161c 66% 70%, transparent 70% 80%, #14161c 80% 84%, transparent 84%);
+        opacity: 0.55;
+      }
+      .mini-blatt span {
+        position: absolute;
+        right: 8px;
+        bottom: 6px;
+        font-size: 10px;
+        color: #7d8396;
+      }
+      pre {
+        margin: 1rem 0 0;
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 0.8rem 0.9rem;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.72rem;
+        line-height: 1.6;
+        color: var(--text-soft);
+        overflow: hidden;
+        white-space: pre;
+      }
+      pre .k {
+        color: var(--accent);
+      }
+      .rechts {
+        display: grid;
+        gap: 1.25rem;
+      }
+      .meta-zeile {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        margin-top: 0.8rem;
+      }
+      .meta-zeile span {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        padding: 0.15rem 0.5rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <header>
+        <div class="brand"><i></i>FEHMARN OPEN</div>
+        <nav>
+          <a>Anmeldung</a><a>Teilnehmer</a><a>Flyer</a><a class="active">Export</a><a>Logout</a>
+        </nav>
+      </header>
+
+      <main>
+        <div class="eyebrow">Admin</div>
+        <h1>EXPORT</h1>
+        <p class="lead">
+          Listen für den Turniertag ausdrucken und die Meldungen an Radikal weitergeben. Alle Exporte nutzen den
+          aktuellen Stand – vor dem Druck einfach neu erzeugen.
+        </p>
+        <div class="stand">
+          <span><b>327</b> aktive Meldungen</span>
+          <span><b>397</b> Spieler</span>
+          <span><b>52</b> neue Radikal-IDs</span>
+          <span><b>3</b> abgemeldet</span>
+          <span>Stand <b>28.10.2026, 14:32</b></span>
+        </div>
+
+        <section class="bereich">
+          <div class="bereich-titel"><h2>Für den Turniertag</h2><small>Druckvorlage für Check-in und Kasse</small></div>
+          <div class="bereich-titel"><h2>Für Radikal</h2><small>Technisch, zum Übertragen ins Radikal-System</small></div>
+
+          <article class="karte haupt">
+            <div class="karte-kopf">
+              <div class="format pdf">PDF</div>
+              <div>
+                <h3>Turniertag-Liste</h3>
+                <p>
+                  Jede Disziplin auf eigenen Blättern, Einzel zweispaltig mit bis zu 102 Spielern je Blatt.
+                  Kästchen für <b>Anwesend</b> und <b>Bezahlt</b>, am Ende 10 Leerzeilen für Nachmeldungen.
+                </p>
+              </div>
+            </div>
+
+            <div class="label">Disziplinen</div>
+            <div class="chips">
+              <span class="chip an">Alle</span>
+              <span class="chip">Fr · Teamwettbewerb <small>9</small></span>
+              <span class="chip">Sa · Herreneinzel <small>280</small></span>
+              <span class="chip">Sa · Dameneinzel <small>9</small></span>
+              <span class="chip">Sa · U18 <small>4</small></span>
+              <span class="chip">Sa · Triple Mix <small>8</small></span>
+              <span class="chip">So · Herrendoppel <small>12</small></span>
+              <span class="chip">So · Damendoppel <small>5</small></span>
+            </div>
+
+            <div class="label">Optionen</div>
+            <div class="optionen">
+              <label><span class="cb an">✓</span>Erfasste Anwesenheit vorankreuzen</label>
+              <label><span class="cb"></span>Radikal-ID ausblenden (Aushang statt Kassenliste)</label>
+            </div>
+
+            <div class="vorschau">
+              <div class="mini-blatt"><b>TEAMWETTBEWERB</b><i></i><div></div><div></div><div></div><div></div><div></div><div></div><span>Seite 1</span></div>
+              <div class="mini-blatt"><b>HERRENEINZEL</b><i></i><div></div><div></div><div></div><div></div><div></div><div></div><span>Seite 2</span></div>
+            </div>
+
+            <div class="aktionen">
+              <button class="btn primaer">Drucken / als PDF speichern</button>
+              <span class="hinweis-klein">9 Blätter · A4 hoch · öffnet die Druckansicht</span>
+            </div>
+          </article>
+
+          <div class="rechts">
+            <article class="karte">
+              <div class="karte-kopf">
+                <div class="format">CSV</div>
+                <div>
+                  <h3>Meldungen als CSV</h3>
+                  <p>Eine Zeile je Spieler und Disziplin – zum Import ins Radikal-System oder für Excel.</p>
+                </div>
+              </div>
+              <pre><span class="k">disziplin;meldung_nr;team;nachname;vorname;radikal_id;id_status;geburtsdatum</span>
+HERRENEINZEL;1;;Albers;Jonas;JA14021991;vorhanden;
+HERRENEINZEL;3;;Claussen;Henrik;HC22111979;neu;1979-11-22
+HERRENDOPPEL;2;Hafenkante;Kühl;Marco;MK19041977;vorhanden;
+…</pre>
+              <div class="meta-zeile"><span>UTF-8 mit BOM</span><span>Trennzeichen ;</span><span>Datum ISO</span><span>397 Zeilen</span></div>
+              <div class="aktionen">
+                <button class="btn">CSV herunterladen</button>
+              </div>
+            </article>
+
+            <article class="karte">
+              <div class="karte-kopf">
+                <div class="format pdf">PDF</div>
+                <div>
+                  <h3>Meldeliste für Radikal</h3>
+                  <p>Dieselben Daten als lesbare Liste – ohne Ankreuzfelder, mit Übersicht und markierten neuen IDs.</p>
+                </div>
+              </div>
+              <div class="optionen" style="margin-top: 1rem">
+                <label><span class="cb"></span>Nur Spieler mit neuer Radikal-ID</label>
+              </div>
+              <div class="aktionen">
+                <button class="btn">Drucken / als PDF speichern</button>
+              </div>
+            </article>
+          </div>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,727 @@
+<!doctype html>
+<!--
+  Design-Mockup (#305/#307): Turniertag-Liste als druckbares A4-PDF.
+  Einzel-Disziplinen zweispaltig (92 Spieler auf Blatt 1, 102 auf Folgeblättern),
+  am Ende 10 Leerzeilen für Nachmeldungen. Team-Disziplinen einspaltig.
+  Statischer Entwurf mit erfundenen Beispieldaten – kein Produktivcode.
+-->
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <title>Turniertag-Liste – Mockup</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Anton&family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --ink: #14161c;
+        --ink-soft: #4b5163;
+        --ink-muted: #7d8396;
+        --line: #d9dbe2;
+        --zebra: #f3f3f0;
+        --gold: #e8c547;
+        --gold-ink: #8a6d00;
+        --paper: #ffffff;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: #6b6f7a;
+        font-family: 'DM Sans', 'Helvetica Neue', sans-serif;
+        color: var(--ink);
+      }
+      .page {
+        width: 210mm;
+        height: 297mm;
+        margin: 10mm auto;
+        padding: 11mm 12mm 9mm;
+        background: var(--paper);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      @media print {
+        body {
+          background: none;
+        }
+        .page {
+          margin: 0;
+          break-after: page;
+        }
+      }
+
+      /* Kopfzeile */
+      .kopf {
+        display: flex;
+        align-items: flex-end;
+        border-bottom: 2.2px solid var(--ink);
+        padding-bottom: 2.4mm;
+      }
+      .marke {
+        display: flex;
+        align-items: center;
+        gap: 2.6mm;
+      }
+      .marke-punkt {
+        width: 8mm;
+        height: 8mm;
+        border-radius: 50%;
+        background: radial-gradient(circle, var(--gold) 0 28%, var(--ink) 29% 46%, var(--gold) 47% 58%, var(--ink) 59%);
+      }
+      .marke-text {
+        font-family: Anton, sans-serif;
+        font-size: 13.5pt;
+        letter-spacing: 0.04em;
+        line-height: 1;
+      }
+      .marke-text small {
+        display: block;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 7pt;
+        letter-spacing: 0.14em;
+        color: var(--ink-muted);
+        margin-top: 1mm;
+        text-transform: uppercase;
+      }
+      .kopf-rechts {
+        margin-left: auto;
+        text-align: right;
+        font-size: 7.2pt;
+        color: var(--ink-soft);
+        line-height: 1.45;
+      }
+      .kopf-rechts strong {
+        display: block;
+        font-family: Anton, sans-serif;
+        font-weight: 400;
+        font-size: 10.5pt;
+        letter-spacing: 0.08em;
+        color: var(--ink);
+      }
+
+      /* Disziplin-Block (Blatt 1) */
+      .disziplin {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 4mm;
+        margin-top: 4mm;
+        align-items: end;
+      }
+      .disziplin h1 {
+        margin: 0;
+        font-family: Anton, sans-serif;
+        font-weight: 400;
+        font-size: 26pt;
+        line-height: 0.95;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+      }
+      .disziplin h1::after {
+        content: '';
+        display: block;
+        width: 20mm;
+        height: 1.4mm;
+        background: var(--gold);
+        margin-top: 1.8mm;
+      }
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.4mm;
+        margin-top: 2.4mm;
+      }
+      .chip {
+        font-size: 7.2pt;
+        border: 1px solid var(--line);
+        border-radius: 99px;
+        padding: 0.5mm 2.2mm;
+        color: var(--ink-soft);
+      }
+      .chip b {
+        color: var(--ink);
+      }
+      .kennzahlen {
+        display: grid;
+        grid-template-columns: repeat(3, 23mm);
+        gap: 1.6mm;
+      }
+      .kennzahl {
+        border: 1.2px solid var(--ink);
+        border-radius: 2mm;
+        padding: 1.6mm 2mm 1.4mm;
+      }
+      .kennzahl .wert {
+        font-family: Anton, sans-serif;
+        font-size: 14pt;
+        line-height: 1;
+      }
+      .kennzahl .von {
+        font-size: 8.5pt;
+        color: var(--ink-muted);
+      }
+      .kennzahl .label {
+        font-size: 6.2pt;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--ink-muted);
+        margin-top: 1mm;
+      }
+      .kennzahl.leer .wert {
+        color: transparent;
+        border-bottom: 1px dashed var(--ink-muted);
+        height: 5mm;
+      }
+
+      /* Folgeblatt: nur eine schmale Titelzeile */
+      .fortsetzung {
+        display: flex;
+        align-items: baseline;
+        gap: 3mm;
+        margin-top: 3mm;
+      }
+      .fortsetzung h1 {
+        margin: 0;
+        font-family: Anton, sans-serif;
+        font-weight: 400;
+        font-size: 15pt;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+        border-bottom: 1.2mm solid var(--gold);
+        line-height: 1.05;
+      }
+      .fortsetzung span {
+        font-size: 7.4pt;
+        color: var(--ink-soft);
+      }
+
+      /* Gemeinsame Tabellen-Basis */
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      thead th {
+        text-align: left;
+        font-size: 6pt;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: var(--ink-muted);
+        font-weight: 700;
+        padding: 0 1.2mm 1.2mm;
+        border-bottom: 1.1px solid var(--ink);
+      }
+      tbody tr:nth-child(even) td {
+        background: var(--zebra);
+      }
+      .nr {
+        color: var(--ink-muted);
+        font-variant-numeric: tabular-nums;
+      }
+      .box-zelle {
+        text-align: center;
+      }
+      .box {
+        display: inline-block;
+        border: 1.1px solid var(--ink);
+        border-radius: 0.7mm;
+        vertical-align: middle;
+        position: relative;
+      }
+      .box.an::after {
+        content: '✓';
+        position: absolute;
+        font-weight: 700;
+      }
+
+      /* Einzel: zwei Spalten, kompakte Zeilen */
+      .zwei-spalten {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 5mm;
+        margin-top: 4mm;
+      }
+      table.einzel {
+        font-size: 7.6pt;
+        table-layout: fixed;
+      }
+      table.einzel td {
+        height: 4.55mm;
+        padding: 0 1.2mm;
+        border-bottom: 0.5px solid var(--line);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      table.einzel th.nr,
+      table.einzel td.nr {
+        width: 7mm;
+        padding-right: 0;
+      }
+      table.einzel .id {
+        width: 25mm;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 6.7pt;
+        color: var(--ink-soft);
+      }
+      table.einzel .box-zelle {
+        width: 8.5mm;
+        padding: 0;
+      }
+      table.einzel .box {
+        width: 3.4mm;
+        height: 3.4mm;
+      }
+      table.einzel .box.an::after {
+        inset: -1.4mm 0 0 0.3mm;
+        font-size: 7.6pt;
+      }
+      .neu {
+        font-family: 'DM Sans', sans-serif;
+        font-size: 5.6pt;
+        font-weight: 700;
+        color: var(--gold-ink);
+        border: 0.7px solid var(--gold);
+        border-radius: 0.8mm;
+        padding: 0 0.7mm;
+        margin-left: 0.8mm;
+        vertical-align: 0.4mm;
+      }
+      tr.leer td {
+        height: 5.4mm;
+      }
+      tr.leer td.name,
+      tr.leer td.id {
+        border-bottom: 0.6px dotted var(--ink-muted);
+      }
+
+      /* Team: einspaltig, Spieler unter dem Teamnamen */
+      table.team {
+        margin-top: 4mm;
+        font-size: 8.2pt;
+      }
+      table.team td {
+        padding: 1.3mm 1.4mm;
+        border-bottom: 0.6px solid var(--line);
+        vertical-align: middle;
+      }
+      table.team .nr {
+        width: 8mm;
+      }
+      table.team .geld {
+        width: 17mm;
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+        font-weight: 500;
+      }
+      table.team .geld small {
+        color: var(--ink-muted);
+        font-weight: 400;
+      }
+      table.team .box-zelle {
+        width: 18mm;
+      }
+      table.team .box {
+        width: 4.4mm;
+        height: 4.4mm;
+      }
+      table.team .box.an::after {
+        inset: -1.6mm 0 0 0.4mm;
+        font-size: 9.6pt;
+      }
+      table.team tr.leer td {
+        height: 6.2mm;
+        padding-block: 0;
+      }
+      table.team tr.leer td:nth-child(2) {
+        border-bottom: 0.6px dotted var(--ink-muted);
+      }
+      .team-name {
+        font-weight: 700;
+        font-size: 9pt;
+      }
+      .team-spieler {
+        display: flex;
+        flex-wrap: wrap;
+        column-gap: 2.6mm;
+        margin-top: 0.5mm;
+        font-size: 7.2pt;
+        color: var(--ink-soft);
+        line-height: 1.45;
+      }
+      .team-spieler span {
+        white-space: nowrap;
+      }
+      .team-spieler code {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 6.4pt;
+        color: var(--ink-muted);
+      }
+
+      /* Fuß */
+      .fuss {
+        margin-top: auto;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: end;
+        gap: 6mm;
+        border-top: 0.8px solid var(--line);
+        padding-top: 2.4mm;
+        font-size: 6.6pt;
+        color: var(--ink-muted);
+      }
+      .unterschrift {
+        display: flex;
+        gap: 5mm;
+      }
+      .unterschrift div {
+        width: 38mm;
+        border-top: 0.8px solid var(--ink);
+        padding-top: 1mm;
+        color: var(--ink-soft);
+      }
+
+    </style>
+  </head>
+  <body>
+    <section class="page" id="seite-einzel">
+      <header class="kopf">
+        <div class="marke">
+          <div class="marke-punkt"></div>
+          <div class="marke-text">12. FEHMARN OPEN 2027<small>Radikal-Geräte · 05.–07. März</small></div>
+        </div>
+        <div class="kopf-rechts">
+          <strong>TURNIERTAG-LISTE</strong>
+          Stand 28.10.2026, 14:32 Uhr<br />
+          Herreneinzel · Blatt 1 von 3
+        </div>
+      </header>
+      <div class="disziplin">
+        <div>
+          <h1>Herreneinzel</h1>
+          <div class="chips">
+            <span class="chip"><b>Sa 06.03.</b></span>
+            <span class="chip">Meldeschluss vor Ort <b>10:00</b></span>
+            <span class="chip">Beginn <b>11:00</b></span>
+            <span class="chip">501 · Bo3</span>
+            <span class="chip">10 € / Spieler</span>
+          </div>
+        </div>
+        <div class="kennzahlen">
+          <div class="kennzahl"><div class="wert">280</div><div class="label">Meldungen</div></div>
+          <div class="kennzahl leer"><div class="wert">–</div><div class="label">Anwesend</div></div>
+          <div class="kennzahl"><div class="wert">2.800 €</div><div class="label">Soll Kasse</div></div>
+        </div>
+      </div>
+      <div class="zwei-spalten">
+        <table class="einzel">
+          <thead><tr><th class="nr">#</th><th>Name</th><th>Radikal-ID</th><th class="box-zelle">Anw.</th><th class="box-zelle">Bez.</th></tr></thead>
+          <tbody>
+<tr><td class="nr">1</td><td class="name"><b>Ahrens</b>, Heiko</td><td class="id">HA07021976</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">2</td><td class="name"><b>Ahrens</b>, Hendrik</td><td class="id">HA09061980<span class="neu">N</span></td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">3</td><td class="name"><b>Ahrens</b>, Kim</td><td class="id">KA25091979</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">4</td><td class="name"><b>Ahrens</b>, Leon</td><td class="id">LA14111992</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">5</td><td class="name"><b>Ahrens</b>, Timo</td><td class="id">TA28121967</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">6</td><td class="name"><b>Albers</b>, Arne</td><td class="id">AA04101972</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">7</td><td class="name"><b>Asmussen</b>, Kim</td><td class="id">KA06051981<span class="neu">N</span></td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">8</td><td class="name"><b>Asmussen</b>, Olaf</td><td class="id">OA11071999</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">9</td><td class="name"><b>Asmussen</b>, Rune</td><td class="id">RA02021963<span class="neu">N</span></td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">10</td><td class="name"><b>Asmussen</b>, Torben</td><td class="id">TA19021985</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">11</td><td class="name"><b>Bock</b>, Dennis</td><td class="id">DB18032002</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">12</td><td class="name"><b>Bock</b>, Jonte</td><td class="id">JB03092002</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">13</td><td class="name"><b>Bock</b>, Kim</td><td class="id">KB10091968</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">14</td><td class="name"><b>Bock</b>, Michael</td><td class="id">MB19091988</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">15</td><td class="name"><b>Boysen</b>, Ben</td><td class="id">BB02021996</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">16</td><td class="name"><b>Boysen</b>, Christian</td><td class="id">CB13051970<span class="neu">N</span></td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">17</td><td class="name"><b>Boysen</b>, Jonas</td><td class="id">JB22071970</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">18</td><td class="name"><b>Boysen</b>, Tom</td><td class="id">TB20011975</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">19</td><td class="name"><b>Brandt</b>, Andreas</td><td class="id">AB04011996</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">20</td><td class="name"><b>Brandt</b>, Ben</td><td class="id">BB14071974<span class="neu">N</span></td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">21</td><td class="name"><b>Brandt</b>, Dennis</td><td class="id">DB05111997</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">22</td><td class="name"><b>Brandt</b>, Erik</td><td class="id">EB13111999</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">23</td><td class="name"><b>Brandt</b>, Knut</td><td class="id">KB12091962</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">24</td><td class="name"><b>Bruhn</b>, Erik</td><td class="id">EB23032003</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">25</td><td class="name"><b>Bruhn</b>, Holger</td><td class="id">HB01082000</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">26</td><td class="name"><b>Carstens</b>, Rune</td><td class="id">RC22101967</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">27</td><td class="name"><b>Christiansen</b>, Bent</td><td class="id">BC11121978</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">28</td><td class="name"><b>Christiansen</b>, Detlef</td><td class="id">DC27011993</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">29</td><td class="name"><b>Christiansen</b>, Stefan</td><td class="id">SC10091986</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">30</td><td class="name"><b>Clausen</b>, Bent</td><td class="id">BC14061983</td><td class="box-zelle"><span class="box an"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">31</td><td class="name"><b>Clausen</b>, Jannik</td><td class="id">JC28041962</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">32</td><td class="name"><b>Clausen</b>, Rolf</td><td class="id">RC14101972</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">33</td><td class="name"><b>Claussen</b>, Claas</td><td class="id">CC15031963</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">34</td><td class="name"><b>Dau</b>, Erik</td><td class="id">ED09031988</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">35</td><td class="name"><b>Dau</b>, Hauke</td><td class="id">HD27091997</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">36</td><td class="name"><b>Dau</b>, Jan</td><td class="id">JD18031973</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">37</td><td class="name"><b>Dau</b>, Piet</td><td class="id">PD18051978</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">38</td><td class="name"><b>Detlefsen</b>, Asmus</td><td class="id">AD02051978</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">39</td><td class="name"><b>Detlefsen</b>, Keno</td><td class="id">KD12041989</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">40</td><td class="name"><b>Detlefsen</b>, Piet</td><td class="id">PD05082000</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">41</td><td class="name"><b>Dittmer</b>, Asmus</td><td class="id">AD03091963</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">42</td><td class="name"><b>Dittmer</b>, Fabian</td><td class="id">FD19041995</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">43</td><td class="name"><b>Dittmer</b>, Gerd</td><td class="id">GD06091996</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">44</td><td class="name"><b>Dittmer</b>, Leon</td><td class="id">LD01111975</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">45</td><td class="name"><b>Dittmer</b>, Tobias</td><td class="id">TD19081992</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">46</td><td class="name"><b>Dreyer</b>, Detlef</td><td class="id">DD10011998</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+          </tbody>
+        </table>
+        <table class="einzel">
+          <thead><tr><th class="nr">#</th><th>Name</th><th>Radikal-ID</th><th class="box-zelle">Anw.</th><th class="box-zelle">Bez.</th></tr></thead>
+          <tbody>
+<tr><td class="nr">47</td><td class="name"><b>Dreyer</b>, Fabian</td><td class="id">FD12082001</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">48</td><td class="name"><b>Dreyer</b>, Uwe</td><td class="id">UD11031962</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">49</td><td class="name"><b>Ehlers</b>, Finn</td><td class="id">FE03021990</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">50</td><td class="name"><b>Ehlers</b>, Heiko</td><td class="id">HE02081983</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">51</td><td class="name"><b>Ehlers</b>, Torben</td><td class="id">TE15021965</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">52</td><td class="name"><b>Engel</b>, Jan</td><td class="id">JE26031978</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">53</td><td class="name"><b>Engel</b>, Lukas</td><td class="id">LE08071974</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">54</td><td class="name"><b>Evers</b>, Arne</td><td class="id">AE21032001</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">55</td><td class="name"><b>Evers</b>, Nils</td><td class="id">NE27101997</td><td class="box-zelle"><span class="box an"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">56</td><td class="name"><b>Feddersen</b>, Jan</td><td class="id">JF05122000</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">57</td><td class="name"><b>Fischer</b>, Leon</td><td class="id">LF13022003<span class="neu">N</span></td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">58</td><td class="name"><b>Fock</b>, Jonte</td><td class="id">JF05091991</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">59</td><td class="name"><b>Fock</b>, Michael</td><td class="id">MF18011977</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">60</td><td class="name"><b>Frahm</b>, Holger</td><td class="id">HF16081962</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">61</td><td class="name"><b>Frahm</b>, Sven</td><td class="id">SF18102001</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">62</td><td class="name"><b>Gosch</b>, Detlef</td><td class="id">DG27011997</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">63</td><td class="name"><b>Groth</b>, Gerd</td><td class="id">GG13031972</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">64</td><td class="name"><b>Groth</b>, Lars</td><td class="id">LG15011998</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">65</td><td class="name"><b>Gröning</b>, Keno</td><td class="id">KG26091981</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">66</td><td class="name"><b>Gröning</b>, Moritz</td><td class="id">MG28051994<span class="neu">N</span></td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">67</td><td class="name"><b>Gröning</b>, Philipp</td><td class="id">PG23031965</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">68</td><td class="name"><b>Gröning</b>, Volker</td><td class="id">VG17051963</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">69</td><td class="name"><b>Hagge</b>, Jan</td><td class="id">JH10091983</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">70</td><td class="name"><b>Hagge</b>, Sebastian</td><td class="id">SH18062004</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">71</td><td class="name"><b>Hamann</b>, Bernd</td><td class="id">BH17091984</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">72</td><td class="name"><b>Hamann</b>, Christian</td><td class="id">CH03081963</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">73</td><td class="name"><b>Hamann</b>, Claas</td><td class="id">CH06111979</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">74</td><td class="name"><b>Hamann</b>, Hauke</td><td class="id">HH10041982</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">75</td><td class="name"><b>Hamann</b>, Stefan</td><td class="id">SH22071970</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">76</td><td class="name"><b>Hansen</b>, Heiko</td><td class="id">HH25092001</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">77</td><td class="name"><b>Hansen</b>, Henrik</td><td class="id">HH02032002</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">78</td><td class="name"><b>Hansen</b>, Marco</td><td class="id">MH12081988</td><td class="box-zelle"><span class="box an"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">79</td><td class="name"><b>Hansen</b>, Rainer</td><td class="id">RH28081971</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">80</td><td class="name"><b>Harms</b>, Gunnar</td><td class="id">GH15111967</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">81</td><td class="name"><b>Harms</b>, Philipp</td><td class="id">PH19021973</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">82</td><td class="name"><b>Harms</b>, Tobias</td><td class="id">TH07042000<span class="neu">N</span></td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">83</td><td class="name"><b>Hein</b>, André</td><td class="id">AH14101993</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">84</td><td class="name"><b>Hein</b>, Christian</td><td class="id">CH09022004</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">85</td><td class="name"><b>Hein</b>, Dennis</td><td class="id">DH10031980</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">86</td><td class="name"><b>Hein</b>, Gunnar</td><td class="id">GH20101962</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">87</td><td class="name"><b>Hein</b>, Sören</td><td class="id">SH02081980</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">88</td><td class="name"><b>Hinz</b>, Tim</td><td class="id">TH27041986</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">89</td><td class="name"><b>Hoop</b>, Arne</td><td class="id">AH18121981</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">90</td><td class="name"><b>Hoop</b>, Bjarne</td><td class="id">BH28021980</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">91</td><td class="name"><b>Hoop</b>, Detlef</td><td class="id">DH14111969</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">92</td><td class="name"><b>Hoop</b>, Heiko</td><td class="id">HH16111990<span class="neu">N</span></td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <footer class="fuss">
+        <div>
+          ✓ = Anwesenheit bereits digital erfasst · <b>N</b> = neue Radikal-ID (aus Initialen + Geburtsdatum)<br />
+          Sortiert nach Nachname · Nr. 1–92 · Nur für den internen Gebrauch der Turnierleitung
+        </div>
+        
+      </footer>
+    </section>
+    <section class="page" id="seite-einzel-ende">
+      <header class="kopf">
+        <div class="marke">
+          <div class="marke-punkt"></div>
+          <div class="marke-text">12. FEHMARN OPEN 2027<small>Radikal-Geräte · 05.–07. März</small></div>
+        </div>
+        <div class="kopf-rechts">
+          <strong>TURNIERTAG-LISTE</strong>
+          Stand 28.10.2026, 14:32 Uhr<br />
+          Herreneinzel · Blatt 3 von 3
+        </div>
+      </header>
+      <div class="fortsetzung">
+        <h1>Herreneinzel</h1><span>Fortsetzung · Sa 06.03. · Meldeschluss 10:00 · 10 € / Spieler</span>
+      </div>
+      <div class="zwei-spalten">
+        <table class="einzel">
+          <thead><tr><th class="nr">#</th><th>Name</th><th>Radikal-ID</th><th class="box-zelle">Anw.</th><th class="box-zelle">Bez.</th></tr></thead>
+          <tbody>
+<tr><td class="nr">195</td><td class="name"><b>Prange</b>, Stefan</td><td class="id">SP26062001</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">196</td><td class="name"><b>Rahlf</b>, Bjarne</td><td class="id">BR23071981</td><td class="box-zelle"><span class="box an"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">197</td><td class="name"><b>Rahlf</b>, Uwe</td><td class="id">UR20091993</td><td class="box-zelle"><span class="box an"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">198</td><td class="name"><b>Rathje</b>, Holger</td><td class="id">HR24122004</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">199</td><td class="name"><b>Rathje</b>, Jens</td><td class="id">JR12052004</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">200</td><td class="name"><b>Rathje</b>, Leon</td><td class="id">LR13101997</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">201</td><td class="name"><b>Rathje</b>, Tim</td><td class="id">TR15081964</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">202</td><td class="name"><b>Rehse</b>, Hans</td><td class="id">HR26091964</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">203</td><td class="name"><b>Rehse</b>, Mats</td><td class="id">MR15011970<span class="neu">N</span></td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">204</td><td class="name"><b>Reimers</b>, Florian</td><td class="id">FR04021968<span class="neu">N</span></td><td class="box-zelle"><span class="box an"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">205</td><td class="name"><b>Reimers</b>, Gerd</td><td class="id">GR13051980</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">206</td><td class="name"><b>Reimers</b>, Peter</td><td class="id">PR16071968</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">207</td><td class="name"><b>Reimers</b>, Volker</td><td class="id">VR20071969</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">208</td><td class="name"><b>Rix</b>, Paul</td><td class="id">PR17051973</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">209</td><td class="name"><b>Rix</b>, Peter</td><td class="id">PR25061988</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">210</td><td class="name"><b>Rohwer</b>, Jonas</td><td class="id">JR08041962</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">211</td><td class="name"><b>Rohwer</b>, Ole</td><td class="id">OR07081970</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">212</td><td class="name"><b>Sach</b>, Torben</td><td class="id">TS11011963</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">213</td><td class="name"><b>Schmidt</b>, Rainer</td><td class="id">RS12081987<span class="neu">N</span></td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">214</td><td class="name"><b>Schröder</b>, Holger</td><td class="id">HS16021986</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">215</td><td class="name"><b>Schröder</b>, Knut</td><td class="id">KS06052004</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">216</td><td class="name"><b>Schulz</b>, Asmus</td><td class="id">AS03021999</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">217</td><td class="name"><b>Schulz</b>, Erik</td><td class="id">ES14071981</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">218</td><td class="name"><b>Schulz</b>, Lukas</td><td class="id">LS23041981</td><td class="box-zelle"><span class="box an"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">219</td><td class="name"><b>Schulz</b>, Volker</td><td class="id">VS01041988<span class="neu">N</span></td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">220</td><td class="name"><b>Sell</b>, Bernd</td><td class="id">BS14031971</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">221</td><td class="name"><b>Sell</b>, Heiko</td><td class="id">HS09041978</td><td class="box-zelle"><span class="box an"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">222</td><td class="name"><b>Sell</b>, Nils</td><td class="id">NS22091997</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">223</td><td class="name"><b>Sievers</b>, Andreas</td><td class="id">AS06081979</td><td class="box-zelle"><span class="box an"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">224</td><td class="name"><b>Sievers</b>, Hauke</td><td class="id">HS03012003</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">225</td><td class="name"><b>Sievers</b>, Henrik</td><td class="id">HS27041975</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">226</td><td class="name"><b>Stamer</b>, André</td><td class="id">AS26051971</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">227</td><td class="name"><b>Stamer</b>, Jan</td><td class="id">JS13021969</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">228</td><td class="name"><b>Stamer</b>, Kai</td><td class="id">KS24071965</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">229</td><td class="name"><b>Stoltenberg</b>, Finn</td><td class="id">FS23102003</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">230</td><td class="name"><b>Stoltenberg</b>, Rainer</td><td class="id">RS14101962</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">231</td><td class="name"><b>Stoltenberg</b>, Sören</td><td class="id">SS11061979</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">232</td><td class="name"><b>Tams</b>, Ben</td><td class="id">BT22101997</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">233</td><td class="name"><b>Tams</b>, Bjarne</td><td class="id">BT22061981<span class="neu">N</span></td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">234</td><td class="name"><b>Tams</b>, Knut</td><td class="id">KT21091966</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">235</td><td class="name"><b>Tams</b>, Malte</td><td class="id">MT01101973</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">236</td><td class="name"><b>Tams</b>, Marco</td><td class="id">MT07031989</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">237</td><td class="name"><b>Tams</b>, Tim</td><td class="id">TT16111977</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">238</td><td class="name"><b>Thomsen</b>, Claas</td><td class="id">CT13111973</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">239</td><td class="name"><b>Thomsen</b>, Felix</td><td class="id">FT24041999</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">240</td><td class="name"><b>Thomsen</b>, Kai</td><td class="id">KT04021995</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">241</td><td class="name"><b>Thomsen</b>, Volker</td><td class="id">VT08121972</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">242</td><td class="name"><b>Tiedemann</b>, Andreas</td><td class="id">AT18091979</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+          </tbody>
+        </table>
+        <table class="einzel">
+          <thead><tr><th class="nr">#</th><th>Name</th><th>Radikal-ID</th><th class="box-zelle">Anw.</th><th class="box-zelle">Bez.</th></tr></thead>
+          <tbody>
+<tr><td class="nr">243</td><td class="name"><b>Tiedemann</b>, André</td><td class="id">AT20101986</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">244</td><td class="name"><b>Tiedemann</b>, Florian</td><td class="id">FT24042003</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">245</td><td class="name"><b>Tiedemann</b>, Michael</td><td class="id">MT16041991</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">246</td><td class="name"><b>Tiedemann</b>, Stefan</td><td class="id">ST28041962</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">247</td><td class="name"><b>Timm</b>, Heiko</td><td class="id">HT03061987</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">248</td><td class="name"><b>Timm</b>, Niklas</td><td class="id">NT22121990</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">249</td><td class="name"><b>Ullrich</b>, Gerd</td><td class="id">GU03101972</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">250</td><td class="name"><b>Ullrich</b>, Rune</td><td class="id">RU01091975<span class="neu">N</span></td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">251</td><td class="name"><b>Utz</b>, Leon</td><td class="id">LU28082003</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">252</td><td class="name"><b>Utz</b>, Olaf</td><td class="id">OU21041994</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">253</td><td class="name"><b>Vogt</b>, Florian</td><td class="id">FV17042000</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">254</td><td class="name"><b>Vogt</b>, Frank</td><td class="id">FV01111987</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">255</td><td class="name"><b>Vogt</b>, Gerd</td><td class="id">GV02061992</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">256</td><td class="name"><b>Vogt</b>, Jan</td><td class="id">JV13111980</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">257</td><td class="name"><b>Vogt</b>, Jens</td><td class="id">JV01032004</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">258</td><td class="name"><b>Vogt</b>, Sven</td><td class="id">SV26061979</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">259</td><td class="name"><b>Vollmer</b>, Andreas</td><td class="id">AV22121980</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">260</td><td class="name"><b>Vollmer</b>, Frank</td><td class="id">FV16061977</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">261</td><td class="name"><b>Voss</b>, Fiete</td><td class="id">FV01021962</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">262</td><td class="name"><b>Voss</b>, Uwe</td><td class="id">UV13101981</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">263</td><td class="name"><b>Weber</b>, Hendrik</td><td class="id">HW07091979<span class="neu">N</span></td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">264</td><td class="name"><b>Weber</b>, Nils</td><td class="id">NW03021995</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">265</td><td class="name"><b>Weber</b>, Volker</td><td class="id">VW06071983</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">266</td><td class="name"><b>Wiese</b>, Andreas</td><td class="id">AW25011987</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">267</td><td class="name"><b>Wiese</b>, Ben</td><td class="id">BW14011980</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">268</td><td class="name"><b>Wiese</b>, Finn</td><td class="id">FW08041978</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">269</td><td class="name"><b>Wiese</b>, Frank</td><td class="id">FW08111996</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">270</td><td class="name"><b>Witt</b>, Fiete</td><td class="id">FW03101978</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">271</td><td class="name"><b>Witt</b>, Momme</td><td class="id">MW03091970</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">272</td><td class="name"><b>Witt</b>, Niklas</td><td class="id">NW27101965</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">273</td><td class="name"><b>Witt</b>, Stefan</td><td class="id">SW21091991</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">274</td><td class="name"><b>Witt</b>, Tim</td><td class="id">TW17091975<span class="neu">N</span></td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">275</td><td class="name"><b>Witt</b>, Tobias</td><td class="id">TW27031987<span class="neu">N</span></td><td class="box-zelle"><span class="box an"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">276</td><td class="name"><b>Zander</b>, Kai</td><td class="id">KZ25121991</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">277</td><td class="name"><b>Zieh</b>, Gerd</td><td class="id">GZ15041967<span class="neu">N</span></td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">278</td><td class="name"><b>Zieh</b>, Hans</td><td class="id">HZ20111979</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">279</td><td class="name"><b>Zieh</b>, Hendrik</td><td class="id">HZ17101965</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">280</td><td class="name"><b>Zieh</b>, Tom</td><td class="id">TZ09081996</td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr class="leer"><td class="nr">281</td><td class="name"></td><td class="id"></td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr class="leer"><td class="nr">282</td><td class="name"></td><td class="id"></td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr class="leer"><td class="nr">283</td><td class="name"></td><td class="id"></td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr class="leer"><td class="nr">284</td><td class="name"></td><td class="id"></td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr class="leer"><td class="nr">285</td><td class="name"></td><td class="id"></td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr class="leer"><td class="nr">286</td><td class="name"></td><td class="id"></td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr class="leer"><td class="nr">287</td><td class="name"></td><td class="id"></td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr class="leer"><td class="nr">288</td><td class="name"></td><td class="id"></td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr class="leer"><td class="nr">289</td><td class="name"></td><td class="id"></td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr class="leer"><td class="nr">290</td><td class="name"></td><td class="id"></td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <footer class="fuss">
+        <div>
+          ✓ = Anwesenheit bereits digital erfasst · <b>N</b> = neue Radikal-ID (aus Initialen + Geburtsdatum)<br />
+          Sortiert nach Nachname · Nr. 195–290 · Nur für den internen Gebrauch der Turnierleitung
+        </div>
+        <div class="unterschrift">
+          <div>Kasse gezählt (€)</div>
+          <div>Kürzel Turnierleitung</div>
+        </div>
+      </footer>
+    </section>
+    <section class="page" id="seite-team">
+      <header class="kopf">
+        <div class="marke">
+          <div class="marke-punkt"></div>
+          <div class="marke-text">12. FEHMARN OPEN 2027<small>Radikal-Geräte · 05.–07. März</small></div>
+        </div>
+        <div class="kopf-rechts">
+          <strong>TURNIERTAG-LISTE</strong>
+          Stand 28.10.2026, 14:32 Uhr<br />
+          Teamwettbewerb · Blatt 1 von 1
+        </div>
+      </header>
+      <div class="disziplin">
+        <div>
+          <h1>Teamwettbewerb</h1>
+          <div class="chips">
+            <span class="chip"><b>Fr 05.03.</b></span>
+            <span class="chip">Meldeschluss vor Ort <b>18:00</b></span>
+            <span class="chip">Beginn <b>19:00</b></span>
+            <span class="chip">501 · Bo7</span>
+            <span class="chip">10 € / Spieler</span>
+          </div>
+        </div>
+        <div class="kennzahlen">
+          <div class="kennzahl"><div class="wert">8<span class="von"> / 96</span></div><div class="label">Teams</div></div>
+          <div class="kennzahl leer"><div class="wert">–</div><div class="label">Anwesend</div></div>
+          <div class="kennzahl"><div class="wert">390 €</div><div class="label">Soll Kasse</div></div>
+        </div>
+      </div>
+      <table class="team">
+        <thead><tr><th class="nr">#</th><th>Team &amp; Spieler (Radikal-ID)</th><th class="geld">Startgeld</th><th class="box-zelle">Anwesend</th><th class="box-zelle">Bezahlt</th></tr></thead>
+        <tbody>
+<tr><td class="nr">1</td><td><div class="team-name">Bullseye Boys</div><div class="team-spieler"><span>Rainer Wulf <code>RW15091984</code></span><span>Rainer Möller <code>RM16072001</code></span><span>Florian Hein <code>FH25081995</code></span><span>Finn Oldenburg <code>FO11071988</code></span></div></td><td class="geld">40 €<br /><small>4 × 10</small></td><td class="box-zelle"><span class="box an"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">2</td><td><div class="team-name">Darts Vader</div><div class="team-spieler"><span>Michael Lang <code>ML23062002</code></span><span>Bent Peters <code>BP01081969</code></span><span>Kim Hagge <code>KH03101985</code></span><span>Jan Neve <code>JN12081969</code></span><span>Finn Martens <code>FM16021999</code></span></div></td><td class="geld">50 €<br /><small>5 × 10</small></td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">3</td><td><div class="team-name">Fehmarnsund Flyers</div><div class="team-spieler"><span>Heiko Gosch <code>HG08031995</code></span><span>Bernd Rehse <code>BR25092002</code></span><span>Timo Kahl <code>TK01041966</code></span><span>Fiete Mewes <code>FM26031969</code></span><span>Momme Möller <code>MM23051992</code></span><span>Olaf Sell <code>OS03061976</code></span></div></td><td class="geld">60 €<br /><small>6 × 10</small></td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">4</td><td><div class="team-name">Inselkönige</div><div class="team-spieler"><span>Kim Bock <code>KB01112002</code></span><span>Bent Ivens <code>BI01021987</code></span><span>Holger Evers <code>HE12051979</code></span><span>Thomas Harms <code>TH26041984</code></span></div></td><td class="geld">40 €<br /><small>4 × 10</small></td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">5</td><td><div class="team-name">Ostsee Treble</div><div class="team-spieler"><span>Hauke Pahl <code>HP24021965</code></span><span>Torben Carstens <code>TC17091989</code></span><span>Malte Lindemann <code>ML26041989</code></span><span>Asmus Petersen <code>AP24071974</code></span><span>Tom Rix <code>TR19061964</code></span></div></td><td class="geld">50 €<br /><small>5 × 10</small></td><td class="box-zelle"><span class="box an"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">6</td><td><div class="team-name">Puttgarden Pfeile</div><div class="team-spieler"><span>Lars Nommensen <code>LN18021975</code></span><span>Kim Bruhn <code>KB07051967</code></span><span>Nils Dreyer <code>ND06101991</code></span><span>Ben Evers <code>BE16071966</code></span></div></td><td class="geld">40 €<br /><small>4 × 10</small></td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">7</td><td><div class="team-name">Triple Twenty Crew</div><div class="team-spieler"><span>Volker Neve <code>VN03031983</code></span><span>Christian Sach <code>CS20082000</code></span><span>Rolf Albers <code>RA11031984</code></span><span>Detlef Nommensen <code>DN24121978</code></span><span>Peter Stoltenberg <code>PS12021996</code></span></div></td><td class="geld">50 €<br /><small>5 × 10</small></td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr><td class="nr">8</td><td><div class="team-name">Vogelflug-Darter</div><div class="team-spieler"><span>Malte Rix <code>MR02061986</code></span><span>Uwe Möller <code>UM07121984</code></span><span>Jens Lohse <code>JL13021991</code></span><span>Sven Petersen <code>SP12081987</code></span><span>Bernd Bruhn <code>BB21061990</code></span><span>Philipp Voss <code>PV05011982</code></span></div></td><td class="geld">60 €<br /><small>6 × 10</small></td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr class="leer"><td class="nr">9</td><td></td><td class="geld"></td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr class="leer"><td class="nr">10</td><td></td><td class="geld"></td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr class="leer"><td class="nr">11</td><td></td><td class="geld"></td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr class="leer"><td class="nr">12</td><td></td><td class="geld"></td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr class="leer"><td class="nr">13</td><td></td><td class="geld"></td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr class="leer"><td class="nr">14</td><td></td><td class="geld"></td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr class="leer"><td class="nr">15</td><td></td><td class="geld"></td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr class="leer"><td class="nr">16</td><td></td><td class="geld"></td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr class="leer"><td class="nr">17</td><td></td><td class="geld"></td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+<tr class="leer"><td class="nr">18</td><td></td><td class="geld"></td><td class="box-zelle"><span class="box"></span></td><td class="box-zelle"><span class="box"></span></td></tr>
+        </tbody>
+      </table>
+      <footer class="fuss">
+        <div>
+          ✓ = Anwesenheit bereits digital erfasst · <b>N</b> = neue Radikal-ID (aus Initialen + Geburtsdatum)<br />
+          Sortiert nach Teamname · Nur für den internen Gebrauch der Turnierleitung
+        </div>
+        <div class="unterschrift">
+          <div>Kasse gezählt (€)</div>
+          <div>Kürzel Turnierleitung</div>
+        </div>
+      </footer>
+    </section>
+  </body>
+</html>

@@ -59,7 +59,8 @@ im kommenden Jahr statt.
   → Anwesenheitskontrolle. Das ist implementiert.
 - **Scope-Stand 2026-07-04** (siehe `docs/adr/0008-scope-reduktion-testabnahme.md`):
   - **Flyer-Upload** → umsetzen (vor Testabnahme), **QR-Code** → gewünscht.
-  - **Excel-Export** → ersetzt durch Export-Seite (Turniertag-PDF, Radikal-CSV/-PDF), Konzept in #305. **Anmeldeschluss** → als Server-Config umgesetzt (#153, ADR 0013);
+  - **Excel-Export** → ersetzt durch die Export-Seite `/admin/export` (Turniertag-PDF, Radikal-CSV/-PDF,
+    rein im Frontend, #305, ADR 0017). **Anmeldeschluss** → als Server-Config umgesetzt (#153, ADR 0013);
     die tote `TurnierConfig`-Tabelle wurde entfernt.
   - **Selbst-Abmeldung** → gestrichen (Teil-Code bleibt liegen). **E-Mail/Mailversand** →
     per #113 vollständig entfernt (kein Mail-Layer, kein `email`-Feld mehr).

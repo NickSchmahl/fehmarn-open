@@ -5,6 +5,12 @@ import { formatiereIsoDatum } from '../../shared/datum';
 import { AuthService } from '../../auth/service/auth.service';
 import { MeldungAktionenComponent } from '../../ui/meldung-aktionen/meldung-aktionen.component';
 import { BrandIconComponent } from '../../ui/brand-icon/brand-icon.component';
+import {
+  AdminGruppe,
+  AdminMeldungEintrag,
+  AdminSpielerEintrag,
+  AdminUebersicht,
+} from '../../shared/admin-uebersicht';
 
 // ── Typen: öffentliche Übersicht (TeilnehmerUebersichtResponse) ───────────────
 
@@ -41,34 +47,7 @@ export interface AnzeigeGruppe {
   meldungen: AnzeigeMeldung[];
 }
 
-// ── Typen: Admin-Übersicht (AdminUebersichtResponse) ──────────────────────────
-
-export interface AdminSpielerEintrag {
-  vorname: string;
-  nachname: string;
-  radikalId: string | null;
-  initialen: string | null;
-  geburtsdatum: string | null; // ISO yyyy-MM-dd, nur Admin-Sicht
-}
-
-/** Eine Meldung im Admin: Status liegt pro Meldung, die Spieler hängen darunter. */
-export interface AdminMeldungEintrag {
-  id: number;
-  teamName: string | null;
-  anwesend: boolean;
-  abgemeldet: boolean;
-  spieler: AdminSpielerEintrag[];
-}
-
-interface AdminGruppe {
-  disziplin: Disziplin;
-  anzahl: number;
-  meldungen: AdminMeldungEintrag[];
-}
-
-interface AdminUebersicht {
-  disziplinen: AdminGruppe[];
-}
+// ── Typen: Admin-Übersicht (AdminUebersichtResponse, Typen in shared/admin-uebersicht) ──
 
 export interface AdminAnzeigeGruppe {
   disziplin: Disziplin;

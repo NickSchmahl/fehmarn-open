@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { AdminLoginComponent } from './pages/login/login.component';
+import { authGuard } from './auth/guard/auth.guard';
 
 const BASISTITEL = '12. Fehmarn Open 2027';
 
@@ -37,6 +38,13 @@ export const routes: Routes = [
     path: 'admin/login',
     title: `${BASISTITEL} – Admin-Login`,
     component: AdminLoginComponent,
+  },
+  {
+    // /admin/** deckt der SpaFallbackController bereits ab.
+    path: 'admin/export',
+    title: `${BASISTITEL} – Export`,
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/export/export').then((m) => m.Export),
   },
   { path: '**', redirectTo: 'anmeldung' },
 ];

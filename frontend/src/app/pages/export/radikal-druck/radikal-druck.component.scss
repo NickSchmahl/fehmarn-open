@@ -1,0 +1,195 @@
+/* Meldeliste für Radikal (#309): Datenblatt-Optik, nur Graustufen, liest sich auch s/w. */
+@use '../../../shared/druck/druck';
+
+@include druck.a4-seite(12mm 12mm 14mm) {
+  @bottom-left {
+    @include druck.fuss-schrift;
+    content: var(--radikal-druck-fuss, 'fehmarn-open · Radikal-Meldeliste');
+  }
+  @bottom-right {
+    @include druck.fuss-schrift;
+    content: 'Seite ' counter(page) ' / ' counter(pages);
+  }
+}
+
+:host {
+  @include druck.basis;
+  font-size: 7.6pt;
+}
+
+.mono {
+  font-family: druck.$mono;
+  font-size: 7pt;
+}
+
+.klein {
+  color: druck.$ink-muted;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th {
+  @include druck.tabellenkopf;
+}
+
+/* ── Kopf ─────────────────────────────────────────────────── */
+.kopf {
+  display: flex;
+  justify-content: space-between;
+  gap: 6mm;
+  padding-bottom: 3mm;
+  border-bottom: 1.2px solid druck.$ink;
+
+  h1 {
+    margin: 0;
+    font-size: 14pt;
+  }
+
+  p {
+    margin: 1mm 0 0;
+    color: druck.$ink-soft;
+    font-size: 8pt;
+  }
+}
+
+.meta {
+  color: druck.$ink-soft;
+  font-family: druck.$mono;
+  font-size: 7pt;
+
+  b {
+    color: druck.$ink;
+  }
+}
+
+/* ── Übersicht + Legende ──────────────────────────────────── */
+.summe {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  align-items: start;
+  gap: 6mm;
+  margin-top: 4mm;
+  break-inside: avoid;
+
+  th,
+  td {
+    padding: 0.9mm 1.5mm;
+    border-bottom: 0.6px solid druck.$line;
+    text-align: right;
+  }
+
+  th:first-child,
+  td:first-child {
+    text-align: left;
+  }
+
+  th {
+    border-bottom: 1px solid druck.$ink;
+  }
+
+  tfoot td {
+    border-top: 1px solid druck.$ink;
+    border-bottom: none;
+    font-weight: 700;
+  }
+}
+
+.legende {
+  padding: 2.4mm 3mm;
+  border: 0.8px solid druck.$line;
+  border-radius: 1.5mm;
+  color: druck.$ink-soft;
+  font-size: 7.2pt;
+  line-height: 1.55;
+
+  h2 {
+    @include druck.tabellenkopf;
+    margin: 0 0 1mm;
+  }
+
+  p {
+    margin: 0;
+  }
+}
+
+/* ── Abschnitte je Disziplin (fließend, kein Umbruch je Disziplin) ── */
+.gruppe {
+  display: flex;
+  align-items: baseline;
+  gap: 3mm;
+  margin-top: 5mm;
+  padding-bottom: 1mm;
+  border-bottom: 1px solid druck.$ink;
+  /* Abschnittstitel nie allein am Seitenende */
+  break-after: avoid;
+
+  h2 {
+    margin: 0;
+    font-size: 10pt;
+  }
+
+  span {
+    color: druck.$ink-muted;
+    font-size: 7pt;
+  }
+
+  code {
+    margin-left: auto;
+    color: druck.$ink-muted;
+    font-family: druck.$mono;
+    font-size: 6.8pt;
+  }
+}
+
+.liste {
+  thead {
+    /* Tabellenkopf wiederholt sich auf jeder Folgeseite */
+    display: table-header-group;
+  }
+
+  th {
+    padding: 1.2mm 1.4mm 0.8mm;
+  }
+
+  td {
+    padding: 0.55mm 1.4mm;
+    border-bottom: 0.5px solid druck.$line;
+    line-height: 1.25;
+  }
+
+  tbody {
+    /* Ein Team bleibt auf einer Seite zusammen */
+    break-inside: avoid;
+  }
+
+  /* Zebra je Meldung: bei Einzel jede zweite Zeile, bei Teams jedes zweite Team */
+  tbody:nth-of-type(even) td {
+    background: druck.$zebra;
+  }
+}
+
+/* Teams zusätzlich mit Trennlinie zwischen den Teams */
+.liste--team tbody + tbody tr:first-child td {
+  border-top: 0.8px solid druck.$ink-muted;
+}
+
+.status {
+  padding: 0 1.2mm;
+  border: 0.7px solid druck.$line;
+  border-radius: 1mm;
+  color: druck.$ink-soft;
+  font-size: 6.2pt;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+/* NEU: schwarz hinterlegt; der Rahmen hält die Marke auch ohne Hintergrunddruck sichtbar */
+.status--neu {
+  border-color: druck.$ink;
+  background: druck.$ink;
+  color: #fff;
+}

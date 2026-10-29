@@ -1,0 +1,54 @@
+// Gemeinsame Druck-Grundlagen der Export-PDFs (Turniertag-Liste #307, Radikal-Meldeliste #309).
+// PDFs entstehen über die Druckansicht des Browsers („Als PDF speichern", ADR 0017): helle
+// Druckfarben, App-Schrift, Monospace für IDs und Codes. Die Komponenten binden das per
+// `@use '…/shared/druck/druck';` ein, statt die Grundlagen zu kopieren.
+
+$sans: 'DM Sans', 'Helvetica Neue', Arial, sans-serif;
+$mono: ui-monospace, 'SFMono-Regular', Menlo, Consolas, 'Liberation Mono', monospace;
+
+// Druckfarben: nur Graustufen; Gold setzt die Turniertag-Liste sparsam als Akzent (druckt schlecht).
+$ink: #14161c;
+$ink-soft: #4b5163;
+$ink-muted: #7d8396;
+$line: #d9dbe2;
+$zebra: #f3f3f0;
+$gold: #e8c547;
+$gold-ink: #8a6d00;
+
+/// A4 hochkant. Die `@page`-Regel gilt nur, solange die Druck-Komponente im DOM steht – also nur auf
+/// der Export-Seite nach einem Druckauftrag. Randboxen (Seitenzähler o. Ä.) kommen per `@content`.
+@mixin a4-seite($rand) {
+  @page {
+    size: A4;
+    margin: $rand;
+    @content;
+  }
+}
+
+/// Grundlage jeder Druck-Komponente: Schrift, Farbe, weißes Papier. `print-color-adjust: exact`
+/// sorgt dafür, dass Zebra-Streifen, Kästchen und Marken auch ohne „Hintergrundgrafiken" drucken.
+@mixin basis {
+  display: block;
+  background: #fff;
+  color: $ink;
+  font-family: $sans;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+/// Kleine, gedämpfte Fußzeilen-Schrift (Monospace), z. B. für Stand und Seitenzahl.
+@mixin fuss-schrift {
+  color: $ink-muted;
+  font-family: $mono;
+  font-size: 6.6pt;
+}
+
+/// Tabellenkopf in Kapitälchen-Optik, wie in beiden Mockups.
+@mixin tabellenkopf {
+  color: $ink-muted;
+  font-size: 6.2pt;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-align: left;
+  text-transform: uppercase;
+}

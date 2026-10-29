@@ -1,4 +1,12 @@
-import { formatiereIsoDatum, heuteAlsIso, istGueltigesIsoDatum, liegtInZukunft } from './datum';
+import {
+  alsLokalesIsoDatum,
+  formatiereIsoDatum,
+  formatiereIsoZeitstempel,
+  formatiereZeitstempel,
+  heuteAlsIso,
+  istGueltigesIsoDatum,
+  liegtInZukunft,
+} from './datum';
 
 describe('formatiereIsoDatum', () => {
   it('formatiert ISO yyyy-MM-dd zu dd.MM.yyyy', () => {
@@ -59,5 +67,26 @@ describe('liegtInZukunft', () => {
     const monat = String(heute.getMonth() + 1).padStart(2, '0');
     const tag = String(heute.getDate()).padStart(2, '0');
     expect(liegtInZukunft(`${jahr}-${monat}-${tag}`)).toBe(false);
+  });
+});
+
+describe('Zeitstempel', () => {
+  // Monate zählen in Date ab 0: new Date(2026, 9, 8, 7, 5) = 08.10.2026, 07:05 Ortszeit.
+  const zeitpunkt = new Date(2026, 9, 8, 7, 5);
+
+  it('alsLokalesIsoDatum liefert das lokale Datum als yyyy-MM-dd', () => {
+    expect(alsLokalesIsoDatum(zeitpunkt)).toBe('2026-10-08');
+  });
+
+  it('formatiereZeitstempel liefert dd.MM.yyyy, HH:mm', () => {
+    expect(formatiereZeitstempel(zeitpunkt)).toBe('08.10.2026, 07:05');
+  });
+
+  it('formatiereIsoZeitstempel liefert yyyy-MM-dd HH:mm', () => {
+    expect(formatiereIsoZeitstempel(zeitpunkt)).toBe('2026-10-08 07:05');
+  });
+
+  it('nimmt kurz vor Mitternacht das lokale, nicht das UTC-Datum', () => {
+    expect(alsLokalesIsoDatum(new Date(2026, 11, 31, 23, 59))).toBe('2026-12-31');
   });
 });

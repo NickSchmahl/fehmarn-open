@@ -15,7 +15,7 @@ Webanwendung zur Verwaltung von Anmeldungen für das jährliche Fehmarn Open Dar
 - Anwesenheitskontrolle am Turniertag
 - Anmeldeschluss manuell sperren oder Datum setzen
 - Flyer hochladen
-- Excel-Export aller Anmeldungen
+- Export-Seite: Turniertag-Liste zum Ausdrucken (PDF), Meldungen für Radikal als CSV und PDF
 - QR-Code für den Anmeldelink generieren
 
 ## Disziplinen

@@ -49,3 +49,27 @@ export function liegtInZukunft(iso: string): boolean {
   heute.setHours(0, 0, 0, 0);
   return datum.getTime() > heute.getTime();
 }
+
+function zweistellig(zahl: number): string {
+  return String(zahl).padStart(2, '0');
+}
+
+/** Lokales Kalenderdatum eines Zeitpunkts als `yyyy-MM-dd` (z. B. für Dateinamen). */
+export function alsLokalesIsoDatum(zeitpunkt: Date): string {
+  return `${zeitpunkt.getFullYear()}-${zweistellig(zeitpunkt.getMonth() + 1)}-${zweistellig(zeitpunkt.getDate())}`;
+}
+
+/** Lokale Uhrzeit eines Zeitpunkts als `HH:mm`. */
+function alsUhrzeit(zeitpunkt: Date): string {
+  return `${zweistellig(zeitpunkt.getHours())}:${zweistellig(zeitpunkt.getMinutes())}`;
+}
+
+/** Zeitstempel für Menschen: `dd.MM.yyyy, HH:mm` (lokale Zeit). */
+export function formatiereZeitstempel(zeitpunkt: Date): string {
+  return `${formatiereIsoDatum(alsLokalesIsoDatum(zeitpunkt))}, ${alsUhrzeit(zeitpunkt)}`;
+}
+
+/** Technischer Zeitstempel: `yyyy-MM-dd HH:mm` (lokale Zeit), z. B. für die Radikal-Meldeliste. */
+export function formatiereIsoZeitstempel(zeitpunkt: Date): string {
+  return `${alsLokalesIsoDatum(zeitpunkt)} ${alsUhrzeit(zeitpunkt)}`;
+}

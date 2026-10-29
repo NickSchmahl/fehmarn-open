@@ -1,0 +1,210 @@
+@for (disziplin of disziplinen(); track disziplin.disziplin) {
+  @for (blatt of disziplin.blaetter; track blatt.nummer) {
+    <section class="blatt">
+      <header class="kopf">
+        <div class="marke">
+          <app-brand-icon class="marke-icon" />
+          <div class="marke-text">
+            {{ turnier }}<small>{{ unterzeile }}</small>
+          </div>
+        </div>
+        <div class="kopf-rechts">
+          <strong>{{ aushang() ? 'Teilnehmerliste' : 'Turniertag-Liste' }}</strong>
+          Stand {{ standText() }} Uhr<br />
+          {{ disziplin.label }} · Blatt {{ blatt.nummer }} von {{ disziplin.blaetter.length }}
+        </div>
+      </header>
+
+      @if (blatt.nummer === 1) {
+        <div class="disziplin">
+          <div>
+            <h1>{{ disziplin.label }}</h1>
+            <div class="chips">
+              <span class="chip"
+                ><b>{{ disziplin.zeitplan.tag }}</b></span
+              >
+              <span class="chip"
+                >Meldeschluss vor Ort <b>{{ disziplin.zeitplan.anmeldeschluss }}</b></span
+              >
+              <span class="chip"
+                >Beginn <b>{{ disziplin.zeitplan.turnierbeginn }}</b></span
+              >
+              <span class="chip">{{ disziplin.zeitplan.spielmodus }}</span>
+              <span class="chip">{{ preis(disziplin) }}</span>
+            </div>
+          </div>
+          <div class="kennzahlen">
+            <div class="kennzahl">
+              <div class="wert">
+                {{ disziplin.meldungen }}
+                @if (disziplin.maxMeldungen) {
+                  <span class="von">/ {{ disziplin.maxMeldungen }}</span>
+                }
+              </div>
+              <div class="label">{{ disziplin.istTeam ? 'Teams' : 'Meldungen' }}</div>
+            </div>
+            @if (!aushang()) {
+              <div class="kennzahl kennzahl--leer">
+                <div class="wert"></div>
+                <div class="label">Anwesend</div>
+              </div>
+              <div class="kennzahl">
+                <div class="wert">{{ euro(disziplin.sollKasse) }}</div>
+                <div class="label">Soll Kasse</div>
+              </div>
+            }
+          </div>
+        </div>
+      } @else {
+        <div class="fortsetzung">
+          <h1>{{ disziplin.label }}</h1>
+          <span
+            >Fortsetzung · {{ disziplin.zeitplan.tag }} · Meldeschluss
+            {{ disziplin.zeitplan.anmeldeschluss }} · {{ preis(disziplin) }}</span
+          >
+        </div>
+      }
+
+      @if (disziplin.istTeam) {
+        <table class="team">
+          <thead>
+            <tr>
+              <th class="nr">#</th>
+              <th>Team &amp; Spieler{{ aushang() ? '' : ' (Radikal-ID)' }}</th>
+              @if (!aushang()) {
+                <th class="geld">Startgeld</th>
+                <th class="box-zelle">Anwesend</th>
+                <th class="box-zelle">Bezahlt</th>
+              }
+            </tr>
+          </thead>
+          <tbody>
+            @for (zeile of blatt.spalten[0]; track zeile.nr) {
+              @if (zeile.meldung; as meldung) {
+                <tr [class.z2]="zweizeilig(meldung)">
+                  <td class="nr">{{ zeile.nr }}</td>
+                  <td>
+                    <div class="team-name">{{ meldung.teamName }}</div>
+                    <div class="team-spieler">
+                      @for (spieler of meldung.spieler; track $index) {
+                        <span
+                          >{{ spieler.vorname }} {{ spieler.nachname }}
+                          @if (!aushang()) {
+                            <code>{{ spieler.radikalId }}</code>
+                            @if (spieler.neu) {
+                              <i class="neu">N</i>
+                            }
+                          }
+                        </span>
+                      }
+                    </div>
+                  </td>
+                  @if (!aushang()) {
+                    <td class="geld">
+                      {{ startgeld(meldung, disziplin)
+                      }}<small>{{ rechenweg(meldung, disziplin) }}</small>
+                    </td>
+                    <td class="box-zelle">
+                      <span class="box" [class.an]="angekreuzt(meldung)"></span>
+                    </td>
+                    <td class="box-zelle"><span class="box"></span></td>
+                  }
+                </tr>
+              } @else {
+                <tr class="leer">
+                  <td class="nr">{{ zeile.nr }}</td>
+                  <td class="linie"></td>
+                  @if (!aushang()) {
+                    <td class="geld"></td>
+                    <td class="box-zelle"><span class="box"></span></td>
+                    <td class="box-zelle"><span class="box"></span></td>
+                  }
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      } @else {
+        <div class="zwei-spalten">
+          @for (spalte of blatt.spalten; track $index) {
+            <table class="einzel" [class.kompakt]="disziplin.kompakteLeerzeilen">
+              <thead>
+                <tr>
+                  <th class="nr">#</th>
+                  <th>Name</th>
+                  @if (!aushang()) {
+                    <th class="id">Radikal-ID</th>
+                  }
+                  @if (!aushang()) {
+                    <th class="box-zelle">Anw.</th>
+                    <th class="box-zelle">Bez.</th>
+                  }
+                </tr>
+              </thead>
+              <tbody>
+                @for (zeile of spalte; track zeile.nr) {
+                  @if (zeile.meldung?.spieler[0]; as spieler) {
+                    <tr>
+                      <td class="nr">{{ zeile.nr }}</td>
+                      <td>
+                        <b>{{ spieler.nachname }}</b
+                        >, {{ spieler.vorname }}
+                      </td>
+                      @if (!aushang()) {
+                        <td class="id">
+                          {{ spieler.radikalId }}
+                          @if (spieler.neu) {
+                            <i class="neu">N</i>
+                          }
+                        </td>
+                      }
+                      @if (!aushang()) {
+                        <td class="box-zelle">
+                          <span class="box" [class.an]="angekreuzt(zeile.meldung)"></span>
+                        </td>
+                        <td class="box-zelle"><span class="box"></span></td>
+                      }
+                    </tr>
+                  } @else {
+                    <tr class="leer">
+                      <td class="nr">{{ zeile.nr }}</td>
+                      <td class="linie"></td>
+                      @if (!aushang()) {
+                        <td class="id linie"></td>
+                        <td class="box-zelle"><span class="box"></span></td>
+                        <td class="box-zelle"><span class="box"></span></td>
+                      }
+                    </tr>
+                  }
+                }
+              </tbody>
+            </table>
+          }
+        </div>
+      }
+
+      <footer class="fuss">
+        <div>
+          @if (!aushang()) {
+            @if (anwesenheitVorankreuzen()) {
+              X = Anwesenheit bereits digital erfasst ·
+            }
+            <b>N</b> = neue Radikal-ID (aus Initialen + Geburtsdatum)<br />
+          }
+          Sortiert nach {{ disziplin.istTeam ? 'Teamname' : 'Nachname' }} · Nr. {{ blatt.von }}–{{
+            blatt.bis
+          }}
+          @if (!aushang()) {
+            · Nur für den internen Gebrauch der Turnierleitung
+          }
+        </div>
+        @if (!aushang() && blatt.nummer === disziplin.blaetter.length) {
+          <div class="unterschrift">
+            <div>Kasse gezählt (€)</div>
+            <div>Kürzel Turnierleitung</div>
+          </div>
+        }
+      </footer>
+    </section>
+  }
+}

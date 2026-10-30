@@ -36,7 +36,7 @@ export class TurniertagDruckComponent {
   readonly aushang = input(false);
 
   readonly turnier = `${FLYER_TURNIER.titel} ${FLYER_TURNIER.jahr}`;
-  readonly unterzeile = `Radikal-Geräte · ${FLYER_TURNIER.termin}`;
+  readonly unterzeile = FLYER_TURNIER.termin;
   readonly standText = computed(() => formatiereZeitstempel(this.stand()));
   readonly euro = euro;
 

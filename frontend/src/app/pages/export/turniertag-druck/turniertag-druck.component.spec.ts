@@ -152,6 +152,28 @@ describe('TurniertagDruckComponent', () => {
     expect(text('.kennzahl')[0]).toBe('1 / 96 Teams');
   });
 
+  it('teilt die Spielerzeile nach Spielerzahl auf: Doppel zweispaltig, ab drei Spielern dreispaltig', () => {
+    const daten = bereiteExportAuf(
+      uebersicht(
+        gruppe('HERRENDOPPEL', [
+          meldung(
+            [mitId('Jonas', 'Albers', 'JA14021991'), mitId('Malte', 'Brandt', 'MB03071985')],
+            {
+              teamName: 'Doppelpack',
+            },
+          ),
+        ]),
+      ),
+    );
+    rendern(['HERRENDOPPEL'], {}, daten);
+    const doppel = element.querySelector<HTMLElement>('.team-spieler');
+    expect(doppel?.style.getPropertyValue('--spalten')).toBe('2');
+
+    rendern(['TEAMWETTBEWERB']);
+    const team = element.querySelector<HTMLElement>('.team-spieler');
+    expect(team?.style.getPropertyValue('--spalten')).toBe('3');
+  });
+
   it('zeigt ohne bekanntes Teamlimit nur die Anzahl', () => {
     rendern(['TEAMWETTBEWERB'], { maxTeams: null });
     expect(text('.kennzahl')[0]).toBe('1 Teams');

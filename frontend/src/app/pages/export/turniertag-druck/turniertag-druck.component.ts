@@ -3,7 +3,12 @@ import { formatiereZeitstempel } from '../../../shared/datum';
 import { FLYER_TURNIER } from '../../../shared/flyer-zeitplan';
 import { BrandIconComponent } from '../../../ui/brand-icon/brand-icon.component';
 import { ExportMeldung } from '../logik/export-daten';
-import { startgeld, teamZeilenAnzahl, TurniertagDisziplin } from '../logik/turniertag-blaetter';
+import {
+  startgeld,
+  TEAM_SPIELER_JE_ZEILE,
+  teamZeilenAnzahl,
+  TurniertagDisziplin,
+} from '../logik/turniertag-blaetter';
 
 const EURO = new Intl.NumberFormat('de-DE', { maximumFractionDigits: 0 });
 
@@ -36,7 +41,7 @@ export class TurniertagDruckComponent {
   readonly aushang = input(false);
 
   readonly turnier = `${FLYER_TURNIER.titel} ${FLYER_TURNIER.jahr}`;
-  readonly unterzeile = `Radikal-Geräte · ${FLYER_TURNIER.termin}`;
+  readonly unterzeile = FLYER_TURNIER.termin;
   readonly standText = computed(() => formatiereZeitstempel(this.stand()));
   readonly euro = euro;
 
@@ -60,6 +65,11 @@ export class TurniertagDruckComponent {
 
   zweizeilig(meldung: ExportMeldung): boolean {
     return teamZeilenAnzahl(meldung) > 1;
+  }
+
+  /** Spielerspalten je Team-Zeile: so viele wie Spieler, höchstens drei – kein leeres Drittel. */
+  spielerSpalten(meldung: ExportMeldung): number {
+    return Math.min(meldung.spieler.length, TEAM_SPIELER_JE_ZEILE);
   }
 
   angekreuzt(meldung: ExportMeldung | null): boolean {

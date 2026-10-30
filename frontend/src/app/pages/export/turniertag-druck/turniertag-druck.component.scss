@@ -374,10 +374,11 @@ tr.leer td.linie {
   text-overflow: ellipsis;
 }
 
-/* Bis zu drei Spieler je Zeile, lange Namen mit „…" gekürzt */
+/* Bis zu drei Spieler je Zeile, lange Namen mit „…" gekürzt. --spalten = Spielerzahl (max. 3),
+   damit ein Doppel die ganze Breite nutzt statt zwei Drittel */
 .team-spieler {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(var(--spalten, 3), minmax(0, 1fr));
   column-gap: 2.6mm;
   margin-top: 0.4mm;
   color: druck.$ink-soft;

@@ -85,7 +85,7 @@
                   <td class="nr">{{ zeile.nr }}</td>
                   <td>
                     <div class="team-name">{{ meldung.teamName }}</div>
-                    <div class="team-spieler">
+                    <div class="team-spieler" [style.--spalten]="spielerSpalten(meldung)">
                       @for (spieler of meldung.spieler; track $index) {
                         <span class="spieler">
                           <span class="spieler-name"

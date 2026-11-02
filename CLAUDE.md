@@ -22,6 +22,10 @@ welche Werkzeuge im Repo liegen und wann sie zu benutzen sind. Warum es sie gibt
 - `.claude/hooks/git-guard.sh` **blockt** die Git-Verbote aus `docs/workflow.md` hart:
   `--amend`, Force-Push, `git add -A`/`.`, `*.db` im Commit, Direktcommit auf `main`.
   Ein Block ist kein Fehler, den man umgeht – er nennt den vorgesehenen Weg.
+- `.claude/hooks/format-file.sh` formatiert jede per Edit/Write geänderte Frontend-Datei sofort
+  mit Prettier. Deshalb Code mit Edit/Write ändern, nicht per Shell-Skript.
+- `.claude/hooks/deps-sync.sh` gleicht beim Session-Start (und als Schritt 0 des Gates)
+  `frontend/node_modules` mit `package-lock.json` ab und fährt bei Abweichung `npm ci`.
 
 ### Umgangston
 

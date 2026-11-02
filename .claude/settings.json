@@ -1,6 +1,18 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/deps-sync.sh",
+            "timeout": 600,
+            "statusMessage": "Frontend-Abhaengigkeiten pruefen ..."
+          }
+        ]
+      }
+    ],
     "PreToolUse": [
       {
         "matcher": "Bash",
@@ -10,6 +22,18 @@
             "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/git-guard.sh",
             "timeout": 10,
             "statusMessage": "Git-Regeln pruefen ..."
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/format-file.sh",
+            "timeout": 30
           }
         ]
       }

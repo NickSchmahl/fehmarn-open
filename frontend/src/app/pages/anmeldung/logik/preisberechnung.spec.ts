@@ -1,4 +1,4 @@
-import { DISZIPLINEN } from '../../../shared/disziplin';
+import { DISZIPLINEN } from '@shared/disziplin';
 import { DisziplinFormWert } from '../model/anmeldung.model';
 import {
   berechneGesamtpreis,

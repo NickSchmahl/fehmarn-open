@@ -3,8 +3,8 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 
 import { Export } from './export';
-import { ToastService } from '../../core/services/toast.service';
-import { DateiDownloadService } from '../../core/services/datei-download.service';
+import { ToastService } from '@core/services/toast.service';
+import { DateiDownloadService } from '@core/services/datei-download.service';
 import { gruppe, meldung, mitId, ohneId, uebersicht } from './logik/export-testdaten';
 
 const ADMIN_URL = '/api/admin/teilnehmer';

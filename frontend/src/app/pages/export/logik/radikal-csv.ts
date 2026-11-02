@@ -1,8 +1,8 @@
 // Radikal-Export als CSV (#308). Format: UTF-8 mit BOM (Excel erkennt sonst keine Umlaute),
 // Trennzeichen `;` (deutsches Excel), CRLF und Quoting nach RFC 4180.
 
-import { alsLokalesIsoDatum } from '../../../shared/datum';
-import { FLYER_TURNIER } from '../../../shared/flyer-zeitplan';
+import { alsLokalesIsoDatum } from '@shared/datum';
+import { FLYER_TURNIER } from '@shared/flyer-zeitplan';
 import { RadikalZeile } from './radikal-zeilen';
 
 /**

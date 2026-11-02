@@ -1,7 +1,7 @@
 // Flache Zeilenliste für Radikal (#308/#309): eine Zeile je Spieler und Disziplin. CSV und
 // Radikal-Meldeliste werden beide daraus gebaut und können so nicht auseinanderlaufen.
 
-import { Disziplin } from '../../../shared/disziplin';
+import { Disziplin } from '@shared/disziplin';
 import { ExportDisziplin } from './export-daten';
 
 export type IdStatus = 'vorhanden' | 'neu';

@@ -1,4 +1,4 @@
-import { DISZIPLINEN } from '../../../shared/disziplin';
+import { DISZIPLINEN } from '@shared/disziplin';
 import { anzahlNeueIds, anzahlSpieler, bereiteExportAuf, ExportDisziplin } from './export-daten';
 import { gruppe, meldung, mitId, ohneId, uebersicht } from './export-testdaten';
 

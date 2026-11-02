@@ -1,5 +1,5 @@
 import { Component, input, output } from '@angular/core';
-import { DisziplinFilter, FilterChip } from '../../shared/disziplin-filter';
+import { DisziplinFilter, FilterChip } from '@shared/disziplin-filter';
 
 /**
  * Chip-Leiste zum Filtern nach Disziplin (#317). Präsentational: zeigt die Chips, markiert den

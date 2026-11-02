@@ -1,4 +1,4 @@
-import { DISZIPLINEN } from '../../../shared/disziplin';
+import { DISZIPLINEN } from '@shared/disziplin';
 import { AnmeldungFormWert, SpielerFormWert } from '../model/anmeldung.model';
 import { erstelleAnmeldungRequest, toSpielerPayload } from './anmeldung-payload';
 

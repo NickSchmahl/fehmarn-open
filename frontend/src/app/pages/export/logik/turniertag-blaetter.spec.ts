@@ -1,4 +1,4 @@
-import { Disziplin, DISZIPLINEN } from '../../../shared/disziplin';
+import { Disziplin, DISZIPLINEN } from '@shared/disziplin';
 import { bereiteExportAuf, ExportMeldung } from './export-daten';
 import {
   baueTurniertagListe,

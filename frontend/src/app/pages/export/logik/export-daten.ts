@@ -7,9 +7,9 @@ import {
   AdminMeldungEintrag,
   AdminSpielerEintrag,
   AdminUebersicht,
-} from '../../../shared/admin-uebersicht';
-import { Disziplin, DISZIPLINEN } from '../../../shared/disziplin';
-import { anzeigeRadikalId, istNeueRadikalId } from '../../../shared/radikal-id';
+} from '@shared/admin-uebersicht';
+import { Disziplin, DISZIPLINEN } from '@shared/disziplin';
+import { anzeigeRadikalId, istNeueRadikalId } from '@shared/radikal-id';
 
 export interface ExportSpieler {
   vorname: string;

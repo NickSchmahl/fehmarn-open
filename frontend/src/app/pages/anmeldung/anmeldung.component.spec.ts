@@ -5,7 +5,7 @@ import { FormGroup } from '@angular/forms';
 
 import { AnmeldungComponent } from './anmeldung.component';
 import { AnmeldungRequest } from './model/anmeldung.model';
-import { DISZIPLINEN } from '../../shared/disziplin';
+import { DISZIPLINEN } from '@shared/disziplin';
 
 // ── Testhilfen ─────────────────────────────────────────────────────────────
 

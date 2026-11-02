@@ -1,14 +1,14 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
-import { Disziplin, disziplinLabel } from '../../shared/disziplin';
+import { Disziplin, disziplinLabel } from '@shared/disziplin';
 import {
   baueFilterChips,
   DisziplinFilter,
   FilterChip,
   passtZumFilter,
-} from '../../shared/disziplin-filter';
-import { DisziplinGruppe, SpielerEintrag } from '../../shared/teilnehmer-uebersicht';
-import { BrandIconComponent } from '../../ui/brand-icon/brand-icon.component';
-import { DisziplinFilterComponent } from '../../ui/disziplin-filter/disziplin-filter.component';
+} from '@shared/disziplin-filter';
+import { DisziplinGruppe, SpielerEintrag } from '@shared/teilnehmer-uebersicht';
+import { BrandIconComponent } from '@ui/brand-icon/brand-icon.component';
+import { DisziplinFilterComponent } from '@ui/disziplin-filter/disziplin-filter.component';
 import { TeilnehmerApiService } from './services/teilnehmer-api.service';
 
 /** Aufbereitete Meldung für die Anzeige: Teamname + Spielernamen als Strings. */

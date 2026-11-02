@@ -2,7 +2,7 @@
 // pure Funktionen ohne Angular-DI, damit sie isoliert testbar bleiben.
 
 import { AbstractControl, FormArray, ValidationErrors } from '@angular/forms';
-import { istGueltigesIsoDatum, liegtInZukunft } from '../../../shared/datum';
+import { istGueltigesIsoDatum, liegtInZukunft } from '@shared/datum';
 import { normalisiereTeamname, TEAMNAME_MAX_LAENGE } from './teamname';
 
 /** Liest den Wert eines Controls typsicher als String (dynamisches `.value` ist sonst `any`). */

@@ -9,13 +9,13 @@ import {
   signal,
 } from '@angular/core';
 import { FormArray, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { DISZIPLINEN } from '../../shared/disziplin';
-import { formatiereIsoDatum } from '../../shared/datum';
-import { extrahiereFehlermeldung } from '../../shared/http-fehler';
-import { BrandIconComponent } from '../../ui/brand-icon/brand-icon.component';
+import { DISZIPLINEN } from '@shared/disziplin';
+import { formatiereIsoDatum } from '@shared/datum';
+import { extrahiereFehlermeldung } from '@shared/http-fehler';
+import { BrandIconComponent } from '@ui/brand-icon/brand-icon.component';
 import { PreisPosten } from './model/anmeldung.model';
-import { AnmeldeschlussStatus } from '../../shared/anmeldung-status';
-import { AnmeldungStatusApiService } from '../../core/api/anmeldung-status-api.service';
+import { AnmeldeschlussStatus } from '@shared/anmeldung-status';
+import { AnmeldungStatusApiService } from '@core/api/anmeldung-status-api.service';
 import { berechneGesamtpreis, berechnePreisPosten } from './logik/preisberechnung';
 import { erstelleAnmeldungRequest } from './logik/anmeldung-payload';
 import {

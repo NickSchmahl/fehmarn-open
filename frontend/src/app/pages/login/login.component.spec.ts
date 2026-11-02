@@ -4,7 +4,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { of, throwError } from 'rxjs';
 import { AdminLoginComponent } from './login.component';
-import { AuthService } from '../../auth/service/auth.service';
+import { AuthService } from '@auth/service/auth.service';
 
 describe('AdminLoginComponent', () => {
   let fixture: ComponentFixture<AdminLoginComponent>;

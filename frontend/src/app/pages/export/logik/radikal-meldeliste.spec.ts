@@ -1,4 +1,4 @@
-import { DISZIPLINEN } from '../../../shared/disziplin';
+import { DISZIPLINEN } from '@shared/disziplin';
 import { bereiteExportAuf } from './export-daten';
 import { berechneKennzahlen } from './kennzahlen';
 import { radikalZeilen } from './radikal-zeilen';

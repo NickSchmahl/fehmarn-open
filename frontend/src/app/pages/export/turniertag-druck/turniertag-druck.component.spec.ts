@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { euro, TurniertagDruckComponent } from './turniertag-druck.component';
-import { Disziplin } from '../../../shared/disziplin';
+import { Disziplin } from '@shared/disziplin';
 import { bereiteExportAuf } from '../logik/export-daten';
 import { baueTurniertagListe, LEERZEILEN } from '../logik/turniertag-blaetter';
 import { gruppe, meldung, mitId, ohneId, uebersicht, vieleEinzel } from '../logik/export-testdaten';

@@ -26,6 +26,10 @@ Reihenfolge = empfohlene Abarbeitung.
 ## Status (Stand 2026-07-06)
 
 - ✅ **Erledigt & auf `main`:** #44, #45, #46, #47, #48, #49, #50, #52, #53, #54.
+  - #46 (Frontend-Architekturgrenzen) war trotz Schließung **nie auf `main`** (weder
+    `eslint-plugin-boundaries` noch Konfiguration) – gleiches Muster wie #51. Über #320
+    (2026-11-02) nachgezogen: `eslint-plugin-boundaries` als `error` im Lint-Gate, Pfad-Aliase,
+    Gegentest mit absichtlichen Verstößen. Details: [frontend-architektur-tests](../quality/frontend-architektur-tests.md).
   - #49 (ArchUnit) über PR #93 wiederhergestellt (`archunit-junit5` + `ArchitekturTest.java`), verifiziert.
   - #50 (SpotBugs/FindSecBugs/PMD) über PR #91 auf `main`, verifiziert.
   - #54 (Branch Protection) via UI als Repository-Ruleset gesetzt und **funktional getestet**

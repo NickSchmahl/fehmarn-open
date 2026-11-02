@@ -1,6 +1,6 @@
 // Mapping der Formular-Rohwerte auf das Request-DTO für POST /api/anmeldung.
 
-import { DISZIPLINEN } from '../../../shared/disziplin';
+import { DISZIPLINEN } from '@shared/disziplin';
 import {
   AnmeldungFormWert,
   AnmeldungRequest,

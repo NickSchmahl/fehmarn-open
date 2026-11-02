@@ -2,8 +2,8 @@
 // im Code und nicht per CSS-Mehrspaltigkeit, weil `columns` über Seitengrenzen nicht verlässlich
 // umbricht – so stimmen auch „Blatt x von y" und der Nummernbereich im Fuß.
 
-import { Disziplin } from '../../../shared/disziplin';
-import { FLYER_ZEITPLAN, FlyerZeitplanEintrag } from '../../../shared/flyer-zeitplan';
+import { Disziplin } from '@shared/disziplin';
+import { FLYER_ZEITPLAN, FlyerZeitplanEintrag } from '@shared/flyer-zeitplan';
 import { ExportDisziplin, ExportMeldung } from './export-daten';
 
 /** Leerzeilen am Ende jeder Disziplin für Nachmeldungen vor Ort. */

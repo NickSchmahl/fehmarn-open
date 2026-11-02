@@ -2,7 +2,7 @@
 // Strukturtypen der Formular-Rohwerte (form.getRawValue()). Die Status-Antwort liegt in
 // shared/anmeldung-status.ts (#318).
 
-import { Disziplin } from '../../../shared/disziplin';
+import { Disziplin } from '@shared/disziplin';
 
 /** Spieler-DTO; je nach Umschalter wird Radikal ID oder Initialen+Geburtsdatum gesendet. */
 export interface SpielerPayload {

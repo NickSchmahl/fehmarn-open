@@ -3,7 +3,7 @@
 // Form-Controls übernimmt der Aufrufer (Formular-Schicht).
 
 import { HttpErrorResponse } from '@angular/common/http';
-import { DISZIPLINEN } from '../../../shared/disziplin';
+import { DISZIPLINEN } from '@shared/disziplin';
 
 /** Teamname-Dublette: Disziplin-Feldkennung (z. B. `"HERRENDOPPEL"`). */
 export interface TeamnameDuplikat {

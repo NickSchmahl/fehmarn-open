@@ -43,6 +43,17 @@ Details und Begründung: `docs/quality/frontend-code-qualitaet.md`, Abschnitt 5 
 - Kein `min-height: 100vh` in Seiten – `.seite` füllt den Platz zwischen Header und Footer.
 - Budget `anyComponentStyle` 4 kB / 8 kB **nicht** anheben; stattdessen schneiden oder teilen.
 
+## Architekturgrenzen
+
+Im Lint-Gate erzwungen (`eslint-plugin-boundaries`, #320), Details:
+`docs/quality/frontend-architektur-tests.md`.
+
+- `pages` → `auth`/`core`/`shared`/`ui`, **nie** eine andere Seite. Gemeinsames gehört nach
+  `shared` (Typen, reine Funktionen), `core` (Services, z. B. `core/api`) oder `ui` (Bausteine).
+- `ui` → nur `shared` (Daten per Input, keine Services). `core` → `shared`. `auth` → `core`/`shared`.
+- Über Schichtgrenzen per Alias importieren: `@auth/…`, `@core/…`, `@shared/…`, `@ui/…` – keine
+  `../../shared`-Ketten. Neue HTTP-Zugriffe nur in einem Service, nie per `HttpClient` in der Seite.
+
 ## Linting
 
 `eslint.config.js` fährt `typescript-eslint` **strict-type-checked** plus

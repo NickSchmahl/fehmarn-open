@@ -4,7 +4,7 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter, Router } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { routes } from './app.routes';
-import { authGuard } from './auth/guard/auth.guard';
+import { authGuard } from '@auth/guard/auth.guard';
 
 describe('routes', () => {
   const erwarteteTitelProPfad: Record<string, string> = {

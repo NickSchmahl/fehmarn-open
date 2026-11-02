@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { map, Observable } from 'rxjs';
-import { AdminUebersicht } from '../../shared/admin-uebersicht';
+import { AdminUebersicht } from '@shared/admin-uebersicht';
 
 /**
  * Admin-Endpunkte rund um die Meldungen (#318): Übersicht (Teilnehmerverwaltung und Export) und

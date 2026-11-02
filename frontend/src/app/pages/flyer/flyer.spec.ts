@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 
 import { Flyer } from './flyer';
-import { FLYER_TURNIER } from '../../shared/flyer-zeitplan';
+import { FLYER_TURNIER } from '@shared/flyer-zeitplan';
 
 describe('Flyer', () => {
   let component: Flyer;

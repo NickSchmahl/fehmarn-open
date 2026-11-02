@@ -1,23 +1,19 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Disziplin, disziplinLabel } from '../../shared/disziplin';
-import { formatiereIsoDatum } from '../../shared/datum';
+import { Disziplin, disziplinLabel } from '@shared/disziplin';
+import { formatiereIsoDatum } from '@shared/datum';
 import {
   baueFilterChips,
   DisziplinFilter,
   FilterChip,
   passtZumFilter,
-} from '../../shared/disziplin-filter';
-import {
-  AdminGruppe,
-  AdminMeldungEintrag,
-  AdminSpielerEintrag,
-} from '../../shared/admin-uebersicht';
-import { AdminTeilnehmerApiService } from '../../core/api/admin-teilnehmer-api.service';
-import { AnmeldungStatusApiService } from '../../core/api/anmeldung-status-api.service';
-import { MeldungAktionenComponent } from '../../ui/meldung-aktionen/meldung-aktionen.component';
-import { BrandIconComponent } from '../../ui/brand-icon/brand-icon.component';
-import { DisziplinFilterComponent } from '../../ui/disziplin-filter/disziplin-filter.component';
+} from '@shared/disziplin-filter';
+import { AdminGruppe, AdminMeldungEintrag, AdminSpielerEintrag } from '@shared/admin-uebersicht';
+import { AdminTeilnehmerApiService } from '@core/api/admin-teilnehmer-api.service';
+import { AnmeldungStatusApiService } from '@core/api/anmeldung-status-api.service';
+import { MeldungAktionenComponent } from '@ui/meldung-aktionen/meldung-aktionen.component';
+import { BrandIconComponent } from '@ui/brand-icon/brand-icon.component';
+import { DisziplinFilterComponent } from '@ui/disziplin-filter/disziplin-filter.component';
 
 export interface AdminAnzeigeGruppe {
   disziplin: Disziplin;

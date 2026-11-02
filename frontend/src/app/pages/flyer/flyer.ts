@@ -1,14 +1,14 @@
 import { Component, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
-import { BrandIconComponent } from '../../ui/brand-icon/brand-icon.component';
-import { Disziplin } from '../../shared/disziplin';
+import { BrandIconComponent } from '@ui/brand-icon/brand-icon.component';
+import { Disziplin } from '@shared/disziplin';
 import {
   FLYER_TURNIER,
   FlyerZeile,
   flyerZeilen,
   WEITERE_PLATZ_LABELS,
-} from '../../shared/flyer-zeitplan';
+} from '@shared/flyer-zeitplan';
 
 @Component({
   selector: 'app-flyer',

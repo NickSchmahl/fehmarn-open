@@ -3,7 +3,8 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { App } from './app';
 import { provideRouter, Router } from '@angular/router';
-import { AuthService } from './auth/service/auth.service';
+import { AuthService } from '@auth/service/auth.service';
+import { ToastService } from '@core/services/toast.service';
 
 describe('App', () => {
   beforeEach(async () => {
@@ -64,6 +65,18 @@ describe('App', () => {
     it('fehlt ohne Login', () => {
       expect(exportLinks(false)).toHaveLength(0);
     });
+  });
+
+  it('reicht die Toasts des ToastService an den Toast-Baustein weiter', () => {
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+    TestBed.inject(ToastService).show('Etwas ist schiefgelaufen.');
+    fixture.detectChanges();
+    const element = fixture.nativeElement as HTMLElement;
+    expect(element.querySelector('app-toast .toast-text')?.textContent).toContain(
+      'Etwas ist schiefgelaufen.',
+    );
+    TestBed.inject(ToastService).toasts.set([]);
   });
 
   describe('Teilnehmer-Link (#317)', () => {

@@ -1,7 +1,7 @@
 // Aufbereitung der Meldeliste für Radikal (#309) – das lesbare Gegenstück zur CSV. Baut auf
 // denselben RadikalZeilen auf wie die CSV, damit Übersichtszahlen und Inhalt übereinstimmen.
 
-import { Disziplin, DISZIPLINEN } from '../../../shared/disziplin';
+import { Disziplin, DISZIPLINEN } from '@shared/disziplin';
 import { RadikalZeile } from './radikal-zeilen';
 
 export interface MeldelisteKennzahlen {

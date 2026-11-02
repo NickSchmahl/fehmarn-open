@@ -1,6 +1,6 @@
 import { Component, computed, DestroyRef, DOCUMENT, effect, inject, input } from '@angular/core';
-import { formatiereIsoZeitstempel } from '../../../shared/datum';
-import { FLYER_TURNIER } from '../../../shared/flyer-zeitplan';
+import { formatiereIsoZeitstempel } from '@shared/datum';
+import { FLYER_TURNIER } from '@shared/flyer-zeitplan';
 import { RadikalZeile } from '../logik/radikal-zeilen';
 import { baueMeldeliste, Meldeliste } from '../logik/radikal-meldeliste';
 

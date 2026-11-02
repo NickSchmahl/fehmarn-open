@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { DisziplinFilterComponent } from './disziplin-filter.component';
-import { DisziplinFilter, FilterChip } from '../../shared/disziplin-filter';
+import { DisziplinFilter, FilterChip } from '@shared/disziplin-filter';
 
 const CHIPS: readonly FilterChip[] = [
   { value: 'ALLE', label: 'Alle', anzahl: 3 },

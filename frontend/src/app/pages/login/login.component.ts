@@ -1,8 +1,8 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { AuthService } from '../../auth/service/auth.service';
-import { BrandIconComponent } from '../../ui/brand-icon/brand-icon.component';
+import { AuthService } from '@auth/service/auth.service';
+import { BrandIconComponent } from '@ui/brand-icon/brand-icon.component';
 
 @Component({
   selector: 'app-admin-login',

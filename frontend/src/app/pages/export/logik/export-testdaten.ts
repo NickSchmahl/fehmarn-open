@@ -5,8 +5,8 @@ import {
   AdminMeldungEintrag,
   AdminSpielerEintrag,
   AdminUebersicht,
-} from '../../../shared/admin-uebersicht';
-import { Disziplin } from '../../../shared/disziplin';
+} from '@shared/admin-uebersicht';
+import { Disziplin } from '@shared/disziplin';
 
 let naechsteId = 1;
 

@@ -1,87 +1,89 @@
 # Frontend – Architekturtests (Import-Grenzen)
 
-Das Angular-Frontend hat eine klare Schichtung (`pages`, `core`, `auth`, `shared`,
-`ui`). Ohne erzwungene Grenzen zerfasert diese Struktur schleichend (Seite importiert
-Seite, UI-Komponente greift auf Service zu …). Architekturregeln halten die Grenzen
-maschinell – das Frontend-Pendant zu ArchUnit im Backend.
+Das Angular-Frontend ist in Schichten geschnitten (`pages`, `auth`, `core`, `shared`, `ui`).
+Ohne erzwungene Grenzen zerfasert diese Struktur schleichend (Seite importiert Seite,
+UI-Komponente greift auf einen Service zu …). Die Grenzen werden deshalb **maschinell im
+Lint-Gate** geprüft – das Frontend-Pendant zu ArchUnit im Backend.
 
-Zwei sich ergänzende Werkzeuge:
+> **Stand:** scharf seit #320 (Nachzug zu #46, das als erledigt geschlossen war, auf `main` aber
+> nie existierte). Werkzeug: [`eslint-plugin-boundaries`](https://www.jsboundaries.dev/) in
+> `frontend/eslint.config.js`, Regeln als `error` → `npm run lint` bricht, CI ebenso.
 
-## Option A – `eslint-plugin-boundaries` (import-level, in ESLint)
-Integriert sich in die bestehende ESLint-Konfiguration. Definiert „Element-Typen"
-und erlaubte Abhängigkeiten. Vorteil: läuft im selben `npm run lint`-Gate.
-
-## Option B – `dependency-cruiser` (modul-graph, separat)
-Analysiert den kompletten Abhängigkeitsgraphen, findet Zyklen, kann Graph
-visualisieren. Vorteil: mächtigere Graph-/Zyklus-Regeln, eigener Report.
-
-**Empfehlung:** `eslint-plugin-boundaries` als Pflicht-Gate (einfach, im Lint-Lauf) +
-`dependency-cruiser` optional für Zyklenprüfung und Visualisierung.
-
-## Ist-Schichtung (aus `frontend/src/app`)
+## Schichten (`frontend/src/app`)
 
 ```
-pages/      (anmeldung, teilnehmer, login, flyer)  – Feature-Seiten, geroutet
-  │  darf nutzen ↓
-core/       (interceptors, services: toast, error)  – app-weite Querschnittslogik
-auth/       (guard, interceptor, service)            – Authentifizierung
-shared/     (disziplin-modell)                       – geteilte Modelle/Utilities
-ui/         (toast-component)                        – präsentationale Bausteine
+app.ts, app.routes.ts, app.config.ts  – Wurzel: Shell, Routen, Provider
+pages/<seite>/   – geroutete Seiten (anmeldung, teilnehmer, admin-teilnehmer, export, …)
+                   inkl. seiteneigener Services/Logik/Komponenten in Unterordnern
+auth/            – Login-Status, Guard, Interceptor
+core/            – app-weite Querschnittslogik: API-Services (core/api), HTTP-Fehler,
+                   Toast-/Download-Services
+shared/          – Modelle/DTO-Typen und reine Funktionen (keine Angular-Abhängigkeit nötig)
+ui/              – präsentationale Bausteine (Toast, Disziplin-Filter, Brand-Icon, …)
 ```
 
-## Regeln, die erzwungen werden sollen
+## Regeln (erzwungen)
 
-- **`pages/*` importieren sich nicht gegenseitig.** Jede Seite ist unabhängig;
-  Gemeinsames wandert nach `shared`/`core`/`ui`.
-- **`ui/` importiert keine Services** aus `core`/`auth` (präsentational, „dumm";
-  Daten kommen per `@Input`).
-- **`shared/` importiert nichts aus `pages`/`core`/`auth`** (unterste, abhängigkeitsarme Schicht).
-- **`core/` und `auth/` importieren keine `pages`** (Querschnitt hängt nicht an Features).
-- **Keine tiefen Relativpfad-Importe** über Schichtgrenzen (`../../../pages/...`) –
-  Pfad-Aliase statt zerbrechlicher `../`-Ketten.
-- **Keine Zyklen** im Modulgraphen (dependency-cruiser).
+| Von ↓ darf importieren → | app | pages | auth | core | shared | ui |
+|---|:-:|:-:|:-:|:-:|:-:|:-:|
+| **app** (Wurzel) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **pages** | – | nur die **eigene** Seite | ✅ | ✅ | ✅ | ✅ |
+| **auth** | – | – | ✅ | ✅ | ✅ | – |
+| **core** | – | – | – | ✅ | ✅ | – |
+| **ui** | – | – | – | – | ✅ | ✅ |
+| **shared** | – | – | – | – | ✅ | – |
 
-## Skizze `eslint-plugin-boundaries`
+- **Seiten importieren sich nicht gegenseitig.** Jede Seite unter `pages/` ist ein eigenes
+  Element; was zwei Seiten brauchen, wandert nach `shared`/`core`/`ui` (Beispiel #317:
+  `ui/disziplin-filter`, `core/api/AdminTeilnehmerApiService`).
+- **`ui/` kennt keine Services.** Daten kommen per Input, Ereignisse gehen per Output. Der Toast
+  bekommt seine Liste deshalb von der App-Wurzel (`<app-toast [toasts]="toasts()" />`).
+- **`shared/` ist die unterste Schicht** und importiert keine andere.
+- Fremdpakete (`@angular/…`, `rxjs`) und Importe innerhalb desselben Elements sind frei.
+
+### Pfad-Aliase statt `../`-Ketten
+
+Über Schichtgrenzen wird per Alias importiert (`tsconfig.json` → `paths`, für Jest gespiegelt in
+`jest.config.ts` → `moduleNameMapper`):
+
+```ts
+import { AuthService } from '@auth/service/auth.service';
+import { ToastService } from '@core/services/toast.service';
+import { disziplinLabel } from '@shared/disziplin';
+import { ToastComponent } from '@ui/toast/toast.component';
+```
+
+Relativpfade bleiben für Importe **innerhalb** einer Schicht bzw. Seite (`./`, `../model/…`).
+Ein Relativpfad, der in eine Schicht hineinzeigt (`../../shared/…`), bricht den Lint
+(`no-restricted-imports`). Für Seiten gibt es bewusst keinen Alias – nur die Routen importieren sie.
+
+## Konfiguration (Auszug `eslint.config.js`)
 
 ```js
-settings: {
-  'boundaries/elements': [
-    { type: 'pages',  pattern: 'src/app/pages/*' },
-    { type: 'core',   pattern: 'src/app/core/*' },
-    { type: 'auth',   pattern: 'src/app/auth/*' },
-    { type: 'shared', pattern: 'src/app/shared/*' },
-    { type: 'ui',     pattern: 'src/app/ui/*' },
-  ],
-},
-rules: {
-  'boundaries/element-types': ['error', {
-    default: 'disallow',
-    rules: [
-      { from: 'pages',  allow: ['core', 'auth', 'shared', 'ui'] },
-      { from: 'core',   allow: ['shared'] },
-      { from: 'auth',   allow: ['core', 'shared'] },
-      { from: 'ui',     allow: ['shared'] },
-      { from: 'shared', allow: [] },
-    ],
-  }],
-  'boundaries/no-private': 'error',
-}
+const SCHICHTEN = [
+  { type: 'pages', pattern: 'src/app/pages/*', capture: ['seite'] },
+  { type: 'auth', pattern: 'src/app/auth' },
+  { type: 'core', pattern: 'src/app/core' },
+  { type: 'shared', pattern: 'src/app/shared' },
+  { type: 'ui', pattern: 'src/app/ui' },
+  { type: 'app', pattern: 'src/app' }, // zuletzt: alles übrige = Wurzel
+];
+// 'boundaries/dependencies': default 'disallow' + je Schicht eine allow-Policy (Tabelle oben);
+// 'import/resolver': typescript → löst die Aliase auf.
 ```
 
-## Skizze `dependency-cruiser` (Zyklen + Orphans)
+## Verifikation
 
-```js
-forbidden: [
-  { name: 'no-circular', severity: 'error',
-    from: {}, to: { circular: true } },
-  { name: 'no-orphans', severity: 'warn',
-    from: { orphan: true, pathNot: '\\.spec\\.ts$' }, to: {} },
-],
-```
+Bei Einführung (#320) wurden absichtliche Verstöße angelegt und wieder entfernt: Seite → andere
+Seite, `ui` → `core`, `shared` → `ui`/`auth`, `core` → `auth`/`pages` sowie ein `../../shared`-Import
+– alle acht brachen den Lint, eine Datei mit erlaubten Importen aus allen Schichten blieb grün.
+Wer die Regeln ändert, wiederholt diesen Gegentest.
 
-## Einführung (Big-Bang)
-Setzt ESLint voraus ([frontend-code-qualitaet.md](frontend-code-qualitaet.md)).
-Regeln sofort als `error`, evtl. nötige Umstrukturierungen (z.B. geteilter Code aus
-`pages` nach `shared`) im selben PR. Danach CI-Gate scharf.
+## Offen
 
-Ticket: **GitHub #46** (Übersicht: [quality-roadmap.md](../tickets/quality-roadmap.md)).
+- **Zyklen im Modulgraphen** prüft noch nichts (`dependency-cruiser` mit `no-circular` wäre die
+  Ergänzung). Die Schichtregeln verhindern Zyklen *zwischen* Schichten bereits; innerhalb einer
+  Schicht sind sie theoretisch möglich.
+
+Tickets: **#46** (Konzept), **#320** (scharf geschaltet). Übersicht:
+[quality-roadmap.md](../tickets/quality-roadmap.md).

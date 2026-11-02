@@ -1,7 +1,7 @@
 import { Component, computed, input } from '@angular/core';
-import { formatiereZeitstempel } from '../../../shared/datum';
-import { FLYER_TURNIER } from '../../../shared/flyer-zeitplan';
-import { BrandIconComponent } from '../../../ui/brand-icon/brand-icon.component';
+import { formatiereZeitstempel } from '@shared/datum';
+import { FLYER_TURNIER } from '@shared/flyer-zeitplan';
+import { BrandIconComponent } from '@ui/brand-icon/brand-icon.component';
 import { ExportMeldung } from '../logik/export-daten';
 import {
   startgeld,

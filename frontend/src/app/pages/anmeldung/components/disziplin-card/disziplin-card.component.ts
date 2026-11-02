@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, inject, input, output } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AbstractControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { DisziplinMeta } from '../../../../shared/disziplin';
+import { DisziplinMeta } from '@shared/disziplin';
 import { AnmeldungFormService } from '../../services/anmeldung-form.service';
 import { MeldungCardComponent } from '../meldung-card/meldung-card.component';
 

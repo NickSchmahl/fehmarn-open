@@ -8,14 +8,14 @@ import {
   OnInit,
   signal,
 } from '@angular/core';
-import { AdminUebersicht } from '../../shared/admin-uebersicht';
-import { Disziplin } from '../../shared/disziplin';
-import { FLYER_ZEITPLAN } from '../../shared/flyer-zeitplan';
-import { formatiereZeitstempel } from '../../shared/datum';
-import { ToastService } from '../../core/services/toast.service';
-import { DateiDownloadService } from '../../core/services/datei-download.service';
-import { AdminTeilnehmerApiService } from '../../core/api/admin-teilnehmer-api.service';
-import { AnmeldungStatusApiService } from '../../core/api/anmeldung-status-api.service';
+import { AdminUebersicht } from '@shared/admin-uebersicht';
+import { Disziplin } from '@shared/disziplin';
+import { FLYER_ZEITPLAN } from '@shared/flyer-zeitplan';
+import { formatiereZeitstempel } from '@shared/datum';
+import { ToastService } from '@core/services/toast.service';
+import { DateiDownloadService } from '@core/services/datei-download.service';
+import { AdminTeilnehmerApiService } from '@core/api/admin-teilnehmer-api.service';
+import { AnmeldungStatusApiService } from '@core/api/anmeldung-status-api.service';
 import { ExportKarteComponent } from './export-karte/export-karte.component';
 import { RadikalDruckComponent } from './radikal-druck/radikal-druck.component';
 import { TurniertagDruckComponent } from './turniertag-druck/turniertag-druck.component';

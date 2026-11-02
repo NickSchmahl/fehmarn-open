@@ -2,7 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { map, Observable, Subject } from 'rxjs';
-import { DISZIPLINEN } from '../../../shared/disziplin';
+import { DISZIPLINEN } from '@shared/disziplin';
 import {
   geburtsdatumValidator,
   initialenMusterValidator,

@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { TeilnehmerUebersicht } from '../../../shared/teilnehmer-uebersicht';
+import { TeilnehmerUebersicht } from '@shared/teilnehmer-uebersicht';
 
 /** Öffentliche Teilnehmerübersicht (GET /api/teilnehmer, #318) – nur die Teilnehmerseite nutzt sie. */
 @Injectable({ providedIn: 'root' })

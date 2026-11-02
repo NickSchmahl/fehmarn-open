@@ -36,7 +36,7 @@ Details je Schicht:
 | 2 | Linting | — (via statische Analyse) | angular-eslint + typescript-eslint | [frontend-code-qualitaet.md](frontend-code-qualitaet.md) |
 | 3 | Statische Analyse | SpotBugs + PMD (+ Error Prone/NullAway) | typescript-eslint type-checked | [backend-code-qualitaet.md](backend-code-qualitaet.md) |
 | 4 | Tests | JUnit 5, @WebMvcTest, @DataJpaTest | Jest, Angular Testing | [teststrategie.md](teststrategie.md) |
-| 5 | Architekturtests | ArchUnit | eslint-plugin-boundaries / dependency-cruiser | [backend-architektur-tests.md](backend-architektur-tests.md) · [frontend-architektur-tests.md](frontend-architektur-tests.md) |
+| 5 | Architekturtests | ArchUnit | eslint-plugin-boundaries (im Lint-Gate, #320) | [backend-architektur-tests.md](backend-architektur-tests.md) · [frontend-architektur-tests.md](frontend-architektur-tests.md) |
 | 6 | Coverage (nur messbar, **kein Gate** — bewusst) | JaCoCo (nicht aktiv) | Jest `--coverage` (keine Schwelle) | [coverage.md](coverage.md) |
 | 7–9 | CI/CD & Gates | GitHub Actions | GitHub Actions | [ci-cd.md](ci-cd.md) |
 

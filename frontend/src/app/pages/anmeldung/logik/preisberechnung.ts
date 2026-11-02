@@ -1,6 +1,6 @@
 // Preislogik der Anmeldung als pure Funktionen über den Formular-Rohwerten.
 
-import { DISZIPLINEN } from '../../../shared/disziplin';
+import { DISZIPLINEN } from '@shared/disziplin';
 import { DisziplinFormWert, PreisPosten } from '../model/anmeldung.model';
 
 /** Wie viele Disziplinen sind aktuell angehakt? */

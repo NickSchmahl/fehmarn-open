@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { DISZIPLINEN } from '../../../../shared/disziplin';
+import { DISZIPLINEN } from '@shared/disziplin';
 import { AnmeldungFormService } from '../../services/anmeldung-form.service';
 import { MeldungCardComponent } from './meldung-card.component';
 

@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { DISZIPLINEN } from '../../../shared/disziplin';
+import { DISZIPLINEN } from '@shared/disziplin';
 import { AnmeldungFormService } from './anmeldung-form.service';
 
 const HERRENEINZEL = DISZIPLINEN.findIndex((d) => d.value === 'HERRENEINZEL');

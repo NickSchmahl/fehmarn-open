@@ -1,6 +1,6 @@
 // Kennzahlen zum aktuellen Stand für die Export-Seite (#306).
 
-import { AdminUebersicht } from '../../../shared/admin-uebersicht';
+import { AdminUebersicht } from '@shared/admin-uebersicht';
 import { anzahlNeueIds, anzahlSpieler, bereiteExportAuf, ExportDisziplin } from './export-daten';
 
 export interface ExportKennzahlen {

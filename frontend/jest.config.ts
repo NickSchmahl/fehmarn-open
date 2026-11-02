@@ -14,6 +14,10 @@ const config: Config = {
     ],
   },
   moduleFileExtensions: ['ts', 'html', 'js', 'json', 'mjs'],
+  // Pfad-Aliase aus tsconfig.json (#320) – hier gespiegelt, Jest liest tsconfig-paths nicht.
+  moduleNameMapper: {
+    '^@(auth|core|shared|ui)/(.*)$': '<rootDir>/src/app/$1/$2',
+  },
   collectCoverageFrom: ['src/**/*.ts', '!src/**/*.spec.ts', '!src/main.ts'],
 };
 

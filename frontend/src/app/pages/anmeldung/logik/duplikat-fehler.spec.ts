@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { DISZIPLINEN } from '../../../shared/disziplin';
+import { DISZIPLINEN } from '@shared/disziplin';
 import {
   parseSpielerDuplikat,
   parseTeamlimitFehler,

@@ -7,7 +7,7 @@ import {
   meldungPasstZurSuche,
   sortiereAbgemeldeteAnsEnde,
 } from './admin-teilnehmer';
-import { AdminMeldungEintrag } from '../../shared/admin-uebersicht';
+import { AdminMeldungEintrag } from '@shared/admin-uebersicht';
 
 function adminMeldung(over: Partial<AdminMeldungEintrag>): AdminMeldungEintrag {
   return {

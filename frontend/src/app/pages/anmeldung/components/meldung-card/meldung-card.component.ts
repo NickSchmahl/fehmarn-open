@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, inject, input } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AbstractControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { DisziplinMeta } from '../../../../shared/disziplin';
+import { DisziplinMeta } from '@shared/disziplin';
 import { TEAMNAME_MAX_LAENGE } from '../../logik/teamname';
 import { AnmeldungFormService } from '../../services/anmeldung-form.service';
 import { SpielerZeileComponent } from '../spieler-zeile/spieler-zeile.component';

@@ -2,7 +2,7 @@ import { ChangeDetectorRef, Component, inject, input, output } from '@angular/co
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { switchMap } from 'rxjs';
-import { heuteAlsIso } from '../../../../shared/datum';
+import { heuteAlsIso } from '@shared/datum';
 
 /**
  * Präsentationskomponente: eine Spielerzeile (Vor-/Nachname + Radikal-ID-Angabe bzw.

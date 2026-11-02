@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>4.1.1</version>
+    <version>4.1.2</version>
     <relativePath/>
     <!-- lookup parent from repository -->
   </parent>
@@ -28,7 +28,7 @@
   </scm>
   <properties>
     <java.version>25</java.version>
-    <springboot.version>4.1.1</springboot.version>
+    <springboot.version>4.1.2</springboot.version>
     <maven.compiler.source>25</maven.compiler.source>
     <maven.compiler.target>25</maven.compiler.target>
     <lombok.version>1.18.48</lombok.version>
@@ -264,27 +264,27 @@
           <dependency>
             <groupId>org.ow2.asm</groupId>
             <artifactId>asm</artifactId>
-            <version>9.11</version>
+            <version>9.11.1</version>
           </dependency>
           <dependency>
             <groupId>org.ow2.asm</groupId>
             <artifactId>asm-tree</artifactId>
-            <version>9.11</version>
+            <version>9.11.1</version>
           </dependency>
           <dependency>
             <groupId>org.ow2.asm</groupId>
             <artifactId>asm-analysis</artifactId>
-            <version>9.11</version>
+            <version>9.11.1</version>
           </dependency>
           <dependency>
             <groupId>org.ow2.asm</groupId>
             <artifactId>asm-commons</artifactId>
-            <version>9.11</version>
+            <version>9.11.1</version>
           </dependency>
           <dependency>
             <groupId>org.ow2.asm</groupId>
             <artifactId>asm-util</artifactId>
-            <version>9.11</version>
+            <version>9.11.1</version>
           </dependency>
         </dependencies>
         <executions>

@@ -16,7 +16,6 @@ describe('AdminLoginComponent', () => {
     const authMock: Partial<jest.Mocked<AuthService>> = {
       login: jest.fn(),
       logout: jest.fn(),
-      isLoggedIn: jest.fn(),
       getToken: jest.fn(),
     };
 

@@ -1,3 +1,4 @@
+import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
@@ -98,7 +99,7 @@ function setup(isLoggedIn: boolean) {
     providers: [
       provideHttpClient(),
       provideHttpClientTesting(),
-      { provide: AuthService, useValue: { isLoggedIn: () => isLoggedIn } },
+      { provide: AuthService, useValue: { eingeloggt: signal(isLoggedIn) } },
     ],
   });
 

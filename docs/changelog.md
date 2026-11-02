@@ -8,6 +8,29 @@ hinweg. Architekturentscheidungen liegen als [ADR](adr/), Ticket-Status in
 > **Release-Konvention:** Pro Release ein datierter Abschnitt hier; das zugehörige
 > [GitHub Release](../../releases) (Tag `vX.Y.Z`) verlinkt auf diesen Changelog.
 
+## 2026-11-02 — v1.3.1: Frontend-Architektur aufgeräumt
+
+Die Folgetickets aus der Frontend-Analyse zu #126 sind komplett umgesetzt. Fachlich ändert sich
+für Teilnehmer nichts; sichtbar sind der reparierte Fehler-Toast und die neue Admin-URL.
+
+- **Fehler-Toast repariert (#322):** Das Template nutzte Tailwind-Klassen ohne Tailwind – ein
+  globaler Fehler landete als ungestylter Text im Seitenfluss. Jetzt eigenes SCSS: schwebt unten
+  rechts, mobil über der Tab-Leiste.
+- **Styles zentralisiert (#126):** Design-Tokens nur noch in `src/styles/_tokens.scss` (`:root`),
+  gemeinsame Bausteine global, Komponenten-Budget zurück auf 4/8 kB. Login und Flyer nutzen jetzt
+  das AA-konforme Grau; kurze Seiten scrollen nicht mehr unnötig.
+- **Teilnehmerverwaltung unter `/admin/teilnehmer` (#317):** öffentliche Liste und Admin-Sicht
+  sind getrennte Komponenten. Nach dem Login und über den Nav-Eintrag „Teilnehmer" landet der Admin
+  dort; `/teilnehmer` zeigt immer die öffentliche Liste.
+- **API-Zugriffe in Services (#318):** jede `/api`-URL hat genau einen typisierten Zugang
+  (`core/api`), keine Seite ruft `HttpClient` direkt auf.
+- **Login-Status als Signal (#319):** Header, Guard und Admin-Seiten reagieren ohne Reload auf
+  Login/Logout; ein abgelaufenes JWT gilt beim Start direkt als ausgeloggt.
+- **Kleinkram (#321):** `standalone: true` entfernt, Login-Seite lazy geladen.
+- **Architekturgrenzen scharf (#320):** `eslint-plugin-boundaries` im Lint-Gate, Pfad-Aliase
+  `@auth/@core/@shared/@ui` – Nachzug zu #46, das nie auf `main` war.
+- Außerdem seit v1.3.0: Turniertag-PDF-Korrekturen (#316, #323) und Backend-Abhängigkeiten (#324).
+
 ## 2026-09-12 — Teamlimit Teamwettbewerb: 96 Teams
 
 Spielplan und Boards geben 96 Teams her; darüber hinaus soll keine Online-Anmeldung mehr möglich sein.

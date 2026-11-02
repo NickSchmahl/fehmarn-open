@@ -40,6 +40,13 @@ export const routes: Routes = [
   },
   {
     // /admin/** deckt der SpaFallbackController bereits ab.
+    path: 'admin/teilnehmer',
+    title: `${BASISTITEL} – Teilnehmerverwaltung`,
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./pages/admin-teilnehmer/admin-teilnehmer').then((m) => m.AdminTeilnehmer),
+  },
+  {
     path: 'admin/export',
     title: `${BASISTITEL} – Export`,
     canActivate: [authGuard],

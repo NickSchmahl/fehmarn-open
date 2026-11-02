@@ -1,16 +1,15 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { map, Observable } from 'rxjs';
-import { AnmeldeschlussStatus, AnmeldungRequest } from '../model/anmeldung.model';
+import { AnmeldungRequest } from '../model/anmeldung.model';
 
-/** HTTP-Zugriffe der Anmeldung: Anmeldeschluss-Status laden und Anmeldung absenden. */
+/**
+ * Anmeldung absenden (POST /api/anmeldung). Den Anmeldeschluss-Status liefert der gemeinsame
+ * AnmeldungStatusApiService aus core/api (#318).
+ */
 @Injectable({ providedIn: 'root' })
 export class AnmeldungApiService {
   private readonly http = inject(HttpClient);
-
-  ladeStatus(): Observable<AnmeldeschlussStatus> {
-    return this.http.get<AnmeldeschlussStatus>('/api/anmeldung/status');
-  }
 
   sendeAnmeldung(request: AnmeldungRequest): Observable<void> {
     return this.http.post('/api/anmeldung', request).pipe(map(() => void 0));

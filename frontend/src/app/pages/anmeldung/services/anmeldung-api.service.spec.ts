@@ -20,23 +20,6 @@ describe('AnmeldungApiService', () => {
     httpMock.verify();
   });
 
-  it('lädt den Anmeldeschluss-Status per GET', () => {
-    let ergebnis: unknown;
-    service.ladeStatus().subscribe((status) => (ergebnis = status));
-
-    const req = httpMock.expectOne('/api/anmeldung/status');
-    expect(req.request.method).toBe('GET');
-    const status = {
-      anmeldungOffen: true,
-      anmeldeschluss: '2027-02-28',
-      teamwettbewerbAusgebucht: false,
-      maxTeams: 96,
-    };
-    req.flush(status);
-
-    expect(ergebnis).toEqual(status);
-  });
-
   it('sendet die Anmeldung per POST mit dem Request als Body', () => {
     const request: AnmeldungRequest = { disziplinen: [] };
     let abgeschlossen = false;

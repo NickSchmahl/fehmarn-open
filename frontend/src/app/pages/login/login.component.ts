@@ -37,7 +37,7 @@ export class AdminLoginComponent {
     this.authService.login(username, password).subscribe({
       next: () => {
         this.loading.set(false);
-        void this.router.navigate(['/teilnehmer']);
+        void this.router.navigate(['/admin/teilnehmer']);
       },
       error: (err: unknown) => {
         this.loading.set(false);

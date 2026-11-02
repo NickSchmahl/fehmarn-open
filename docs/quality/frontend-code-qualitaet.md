@@ -132,8 +132,10 @@ export default tseslint.config(
 
 **Budget** (`angular.json`, `anyComponentStyle`): Warnung **4 kB**, Fehler **8 kB**. Wird es
 knapp, ist die Antwort ein Komponentenschnitt oder ein globaler Baustein – nicht ein höheres
-Budget. Stand nach #126: Teilnehmer (~4,9 kB, Schnitt in #317), Flyer (~6,6 kB, reines
-Seitendesign) und Turniertag-Druck (~5,2 kB, Drucklayout) liegen über der Warnschwelle.
+Budget. Stand nach #317: nur Flyer (~6,6 kB, reines Seitendesign) und Turniertag-Druck
+(~5,2 kB, Drucklayout) liegen über der Warnschwelle. Die Teilnehmerseite (~4,9 kB) wurde in
+öffentliche Liste und Admin-Verwaltung geschnitten; den gemeinsamen Rahmen trägt
+`src/styles/_teilnehmer-liste.scss`, die Filter-Chips `ui/disziplin-filter`.
 
 **Regressionscheck bei Style-Umbauten:** Screenshots vorher/nachher (Playwright, gemockte
 `/api`, Desktop + Mobil) und Pixel-Diff. Unterschiede von 1–2 Farbstufen sind Render-Rauschen,

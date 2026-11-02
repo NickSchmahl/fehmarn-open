@@ -19,8 +19,8 @@ Flyer ansehen
 | Teil-Feature | Backend-Endpunkt | Status | Anmerkung |
 |--------------|------------------|--------|-----------|
 | Online-Anmeldung (1..n Disziplinen) | `POST /api/anmeldung` | ✅ implementiert | `AnmeldungController` → `AnmeldungService.anmeldenMitTeilnehmer` |
-| Öffentliche Teilnehmerliste | `GET /api/teilnehmer` | ✅ implementiert | `TeilnehmerController` → `oeffentlicheUebersicht()` |
-| Disziplin-Filter der Liste | (Frontend) | ✅ implementiert | Filter clientseitig, Ticket #23/#26 |
+| Öffentliche Teilnehmerliste | `GET /api/teilnehmer` | ✅ implementiert | `TeilnehmerController` → `oeffentlicheUebersicht()`; Frontend-Route `/teilnehmer` zeigt immer die öffentliche Sicht – die Admin-Verwaltung liegt seit #317 unter `/admin/teilnehmer` (siehe [admin.md](admin.md)) |
+| Disziplin-Filter der Liste | (Frontend) | ✅ implementiert | Filter clientseitig, Ticket #23/#26; Chips als `ui/disziplin-filter`, gemeinsam mit der Admin-Verwaltung (#317) |
 | Flyer-Ansicht | Frontend-Route `/flyer` | ✅ Anzeige | statische Seite; Upload durch Admin geplant (siehe [admin.md](admin.md)) |
 | ~~Bestätigungsmail bei Anmeldung~~ | — | ❌ **entfernt (#113)** | Mail-Layer, Events und `email`-Feld gelöscht → keine Mail, keine E-Mail-Erfassung (siehe [mail-benachrichtigungen.md](mail-benachrichtigungen.md)) |
 | ~~Selbst-Abmeldung per Link~~ | — | 🚫 **gestrichen** | Nicht mehr vorgesehen. Teil-Code (`AnmeldungService.abmelden(String token)`, Feld `abmeldetoken`, Repo-Query) bleibt **vorerst liegen**, wird nicht ausgebaut |

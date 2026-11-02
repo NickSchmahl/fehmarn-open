@@ -8,13 +8,14 @@ import {
   OnInit,
   signal,
 } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { AdminUebersicht } from '../../shared/admin-uebersicht';
 import { Disziplin } from '../../shared/disziplin';
 import { FLYER_ZEITPLAN } from '../../shared/flyer-zeitplan';
 import { formatiereZeitstempel } from '../../shared/datum';
 import { ToastService } from '../../core/services/toast.service';
 import { DateiDownloadService } from '../../core/services/datei-download.service';
+import { AdminTeilnehmerApiService } from '../../core/api/admin-teilnehmer-api.service';
+import { AnmeldungStatusApiService } from '../../core/api/anmeldung-status-api.service';
 import { ExportKarteComponent } from './export-karte/export-karte.component';
 import { RadikalDruckComponent } from './radikal-druck/radikal-druck.component';
 import { TurniertagDruckComponent } from './turniertag-druck/turniertag-druck.component';
@@ -29,11 +30,6 @@ const CSV_VORSCHAU_ZEILEN = 3;
 
 /** Welche Druckansicht gerade gedruckt wird. */
 export type DruckArt = 'turniertag' | 'radikal';
-
-/** Ausschnitt aus GET /api/anmeldung/status: Limit des Teamwettbewerbs für „8 / 96". */
-interface TeamlimitStatus {
-  maxTeams: number;
-}
 
 /** Disziplin-Chip der Turniertag-Karte: Kurztag (Fr/Sa/So), Name, Anzahl Meldungen. */
 export interface DisziplinChip {
@@ -63,7 +59,8 @@ function istAngehakt(event: Event): boolean {
   styleUrl: './export.scss',
 })
 export class Export implements OnInit {
-  private readonly http = inject(HttpClient);
+  private readonly adminApi = inject(AdminTeilnehmerApiService);
+  private readonly statusApi = inject(AnmeldungStatusApiService);
   private readonly toast = inject(ToastService);
   private readonly download = inject(DateiDownloadService);
   private readonly injector = inject(Injector);
@@ -148,7 +145,7 @@ export class Export implements OnInit {
   laden(): void {
     this.loading.set(true);
     this.error.set(false);
-    this.http.get<AdminUebersicht>('/api/admin/teilnehmer').subscribe({
+    this.adminApi.ladeUebersicht().subscribe({
       next: (daten) => {
         this.uebersicht.set(daten);
         this.stand.set(new Date());
@@ -181,7 +178,7 @@ export class Export implements OnInit {
 
   /** Teamlimit nur für die Anzeige „8 / 96" – fehlt es, druckt die Liste ohne Limit. */
   private ladeTeamlimit(): void {
-    this.http.get<TeamlimitStatus>('/api/anmeldung/status').subscribe({
+    this.statusApi.ladeStatus().subscribe({
       next: (status) => {
         this.maxTeams.set(status.maxTeams);
       },

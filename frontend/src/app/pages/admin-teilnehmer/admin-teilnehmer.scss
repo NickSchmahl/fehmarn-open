@@ -1,0 +1,183 @@
+/* Teilnehmerverwaltung (Admin). Karte, Kopf, Toolbar und Sektionen kommen global aus
+   src/styles/_teilnehmer-liste.scss, die Filter-Chips aus ui/disziplin-filter (#317). */
+
+/* ── Admin: Suche ───────────────────────────────────────── */
+.search-input {
+  width: 100%;
+  margin-bottom: 0.75rem; /* steht immer in der Toolbar über den Filter-Chips */
+  padding: 0.6rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.9rem;
+}
+.search-input::placeholder {
+  color: var(--text-muted);
+}
+.search-input:focus {
+  outline: none;
+  border-color: var(--border-focus);
+}
+
+/* ── Admin: Team-Block-Grid ─────────────────────────────── */
+.team-blocks-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 0.6rem 0.75rem;
+  align-items: start;
+}
+
+/* ── Admin: Team-Block ──────────────────────────────────── */
+.team-block {
+  margin-bottom: 0;
+}
+
+.team-block--named {
+  padding: 0.5rem 0;
+  border: 1px solid var(--border);
+  border-left: 2px solid var(--accent);
+  border-radius: var(--radius);
+  background: rgba(232, 197, 71, 0.04);
+}
+
+.team-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.25rem 0.35rem 0.6rem;
+}
+
+.team-head--abgemeldet {
+  opacity: 0.6;
+}
+
+/* Anwesend: dezenter grüner Akzent an der Kopfzeile. Wird nur gesetzt, wenn nicht
+   gleichzeitig abgemeldet – abgemeldet gewinnt immer (siehe Klassenbindung im Template). */
+.team-head--anwesend {
+  border-radius: var(--radius);
+  background: var(--success-dim);
+  box-shadow: inset 2px 0 0 var(--success);
+}
+
+.team-head-name {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.team-head-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.team-block-fehler {
+  margin: 0 0.35rem 0.5rem;
+}
+
+/* ── Admin: Zeilen ──────────────────────────────────────── */
+.admin-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* Feste Spalten: Name flexibel, Radikal-ID und Aktionen mit fester Breite, damit die
+   Spaltenkanten unabhängig von Namenslänge, Filter und Team-/Einzelmeldung stabil sind.
+   Aktionsspalte = 2×32px Icon-Buttons + 0.4rem Lücke = 72px. */
+.admin-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 9rem 72px;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+
+.admin-row--abgemeldet {
+  opacity: 0.55;
+}
+.admin-row--abgemeldet .admin-name {
+  text-decoration: line-through;
+}
+
+/* Anwesend: gleiche grüne Kennzeichnung für die Einzelmeldungs-Zeile, ebenfalls nur
+   ohne gleichzeitiges Abgemeldet-sein (siehe Klassenbindung im Template). */
+.admin-row--anwesend {
+  border-color: rgba(76, 175, 130, 0.4);
+  background: var(--success-dim);
+  box-shadow: inset 2px 0 0 var(--success);
+}
+
+.admin-name {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  color: var(--text);
+  font-size: 0.9rem;
+}
+
+/* Immer Spalte 2, auch bei Team-Mitgliedern (dort fehlt das Aktions-Element in Spalte 3).
+   Überlange IDs brechen um, die Spaltenkante bleibt stehen. */
+.admin-radikal-id {
+  grid-column: 2;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.status-badge,
+.neu-anlegen-badge {
+  padding: 0.05rem 0.4rem;
+  border-radius: 999px;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.status-badge {
+  background: var(--danger-dim);
+  color: var(--danger);
+}
+
+.neu-anlegen-badge {
+  background: var(--accent-dim);
+  color: var(--accent);
+}
+
+@media (max-width: 720px) {
+  /* Schmale Displays: Aktionen rutschen oben rechts in die Kopfzeile neben den Namen,
+     die Radikal-ID steht darunter. */
+  .admin-row {
+    grid-template-columns: 1fr auto;
+    align-items: start;
+    gap: 0.35rem 0.6rem;
+  }
+  .admin-name {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .admin-radikal-id {
+    grid-column: 1;
+    grid-row: 2;
+  }
+  .admin-row app-meldung-aktionen {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+  }
+}

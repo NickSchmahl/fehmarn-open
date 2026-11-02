@@ -25,6 +25,21 @@ Client speichert Token → sendet ihn als  Authorization: Bearer <token>
 | Admin-Accounts | `config/DataInitializer` + `entity/AdminUser` | Accounts aus Env-Variablen anlegen |
 | Konfiguration | `auth/JwtProperties`, `config/AdminProperties` | Secret, Ablaufzeit, Account-Daten |
 
+## Frontend
+
+| Baustein | Datei | Aufgabe |
+|----------|-------|---------|
+| Login-Status | `auth/service/auth.service.ts` | **einzige Quelle**: Token im Signal, `eingeloggt()` als `computed` (#319) |
+| Guard | `auth/guard/auth.guard.ts` | `/admin/**`-Seiten nur mit `eingeloggt()`, sonst `/admin/login` |
+| Interceptor | `auth/interceptor/auth.interceptor.ts` | hängt den Bearer-Token an; 401 (außer Login) → `logout()` |
+
+- Das Token liegt in `localStorage` (überlebt Reload) und gespiegelt in einem Signal.
+  Nur der `AuthService` liest/schreibt `localStorage`; Header, Guard und Admin-Seiten lesen
+  `eingeloggt()` und reagieren auf Login/Logout **ohne Reload**.
+- Beim App-Start wird ein laut `exp`-Claim abgelaufenes Token verworfen – die Admin-UI
+  erscheint dann gar nicht erst, statt bis zum ersten 401 sichtbar zu bleiben. Die Signatur
+  prüft weiterhin nur das Backend.
+
 ## Wichtige Eigenschaften
 
 - **Stateless**: keine Server-Session, `SessionCreationPolicy.STATELESS`

@@ -1,6 +1,8 @@
-import { TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { App } from './app';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import { AuthService } from './auth/service/auth.service';
 
 describe('App', () => {
@@ -61,6 +63,43 @@ describe('App', () => {
 
     it('fehlt ohne Login', () => {
       expect(exportLinks(false)).toHaveLength(0);
+    });
+  });
+
+  describe('Login-Status reaktiv (#319)', () => {
+    afterEach(() => {
+      localStorage.clear();
+    });
+
+    function navLinks(fixture: ComponentFixture<App>): (string | null)[] {
+      const element = fixture.nativeElement as HTMLElement;
+      return Array.from(element.querySelectorAll('.desktop-nav a'), (link) =>
+        link.getAttribute('href'),
+      );
+    }
+
+    it('zeigt die Admin-Navigation nach dem Login ohne Reload und entfernt sie beim Logout', () => {
+      localStorage.clear();
+      TestBed.configureTestingModule({
+        providers: [provideHttpClient(), provideHttpClientTesting()],
+      });
+      const fixture = TestBed.createComponent(App);
+      fixture.detectChanges();
+      expect(navLinks(fixture)).toContain('/admin/login');
+      expect(navLinks(fixture)).not.toContain('/admin/export');
+
+      const auth = TestBed.inject(AuthService);
+      auth.login('admin', 'pw').subscribe();
+      TestBed.inject(HttpTestingController).expectOne('/api/auth/login').flush({ token: 'tok' });
+      fixture.detectChanges();
+      expect(navLinks(fixture)).toContain('/admin/export');
+      expect(navLinks(fixture)).not.toContain('/admin/login');
+
+      jest.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+      auth.logout();
+      fixture.detectChanges();
+      expect(navLinks(fixture)).toContain('/admin/login');
+      expect(navLinks(fixture)).not.toContain('/admin/export');
     });
   });
 });

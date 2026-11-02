@@ -125,7 +125,8 @@ export class Teilnehmer implements OnInit {
   private http = inject(HttpClient);
   private authService = inject(AuthService);
 
-  readonly isAdmin = signal(this.authService.isLoggedIn());
+  // Login-Status reaktiv aus dem AuthService (#319), keine eigene Kopie.
+  readonly isAdmin = this.authService.eingeloggt;
 
   readonly loading = signal(false);
   readonly error = signal(false);

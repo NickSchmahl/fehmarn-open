@@ -1,3 +1,4 @@
+import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import {
   ActivatedRouteSnapshot,
@@ -8,34 +9,31 @@ import {
 } from '@angular/router';
 import { authGuard } from './auth.guard';
 import { AuthService } from '../service/auth.service';
-import { provideHttpClient } from '@angular/common/http';
-import { provideHttpClientTesting } from '@angular/common/http/testing';
 
 const mockRoute = {} as ActivatedRouteSnapshot;
 const mockState = {} as RouterStateSnapshot;
 
 describe('authGuard', () => {
-  let authService: AuthService;
+  const eingeloggt = signal(false);
   let router: Router;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()],
+      providers: [provideRouter([]), { provide: AuthService, useValue: { eingeloggt } }],
     });
 
-    authService = TestBed.inject(AuthService);
     router = TestBed.inject(Router);
   });
 
   const runGuard = () => TestBed.runInInjectionContext(() => authGuard(mockRoute, mockState));
 
   it('should return true when user is logged in', () => {
-    jest.spyOn(authService, 'isLoggedIn').mockReturnValue(true);
+    eingeloggt.set(true);
     expect(runGuard()).toBe(true);
   });
 
   it('should redirect to /admin/login when not logged in', () => {
-    jest.spyOn(authService, 'isLoggedIn').mockReturnValue(false);
+    eingeloggt.set(false);
     const result = runGuard();
 
     expect(result).toBeInstanceOf(UrlTree);
@@ -43,7 +41,7 @@ describe('authGuard', () => {
   });
 
   it('should not call createUrlTree when logged in', () => {
-    jest.spyOn(authService, 'isLoggedIn').mockReturnValue(true);
+    eingeloggt.set(true);
     const navSpy = jest.spyOn(router, 'createUrlTree');
 
     runGuard();

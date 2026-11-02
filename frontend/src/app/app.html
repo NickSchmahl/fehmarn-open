@@ -12,7 +12,7 @@
     <a routerLink="/teilnehmer" routerLinkActive="active">Teilnehmer</a>
     <a routerLink="/flyer" routerLinkActive="active">Flyer</a>
 
-    @if (authService.isLoggedIn()) {
+    @if (authService.eingeloggt()) {
       <a routerLink="/admin/export" routerLinkActive="active">Export</a>
       <button type="button" class="nav-action" (click)="logout()">Logout</button>
     } @else {
@@ -88,7 +88,7 @@
     <span>Flyer</span>
   </a>
 
-  @if (authService.isLoggedIn()) {
+  @if (authService.eingeloggt()) {
     <a routerLink="/admin/export" routerLinkActive="active">
       <svg
         class="tab-icon"

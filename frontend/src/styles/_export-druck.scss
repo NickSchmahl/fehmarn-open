@@ -1,0 +1,27 @@
+/* ── Druck der Export-PDFs (#305) ─────────────────────────────
+   Steht eine Druckansicht im DOM (.druck-bereich, nur auf der Export-Seite
+   nach einem Druckauftrag), druckt nur sie: App-Header, Tabs, Footer und
+   Toasts fallen weg, das Papier bleibt weiß. Ohne Druckansicht (z. B. Flyer)
+   greift nichts davon. */
+@media print {
+  html:has(.druck-bereich),
+  html:has(.druck-bereich) body,
+  body:has(.druck-bereich) app-root {
+    min-height: 0;
+    background: #fff;
+  }
+
+  body:has(.druck-bereich) {
+    .app-header,
+    .mobile-tabs,
+    .app-footer,
+    app-toast {
+      display: none;
+    }
+
+    .app-main {
+      min-height: 0;
+      padding: 0;
+    }
+  }
+}

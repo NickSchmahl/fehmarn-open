@@ -1,5 +1,5 @@
-<div class="anmeldung-page">
-  <div class="anmeldung-card">
+<div class="seite">
+  <div class="seiten-karte anmeldung-card">
     <!-- ── Header ──────────────────────────────────────────────────────── -->
     <header class="anmeldung-header">
       <app-brand-icon class="brand-logo" />
@@ -48,7 +48,9 @@
           </div>
 
           @if (form.errors?.['noDisziplin'] && submitted()) {
-            <div class="alert-error" role="alert">Bitte wähle mindestens eine Disziplin aus.</div>
+            <div class="alert-error alert-error--formular" role="alert">
+              Bitte wähle mindestens eine Disziplin aus.
+            </div>
           }
 
           <div class="disziplin-grid">
@@ -92,7 +94,7 @@
 
         <!-- ── Fehler-Banner ──────────────────────────────────────────────── -->
         @if (errorMessage()) {
-          <div class="alert-error" role="alert">{{ errorMessage() }}</div>
+          <div class="alert-error alert-error--formular" role="alert">{{ errorMessage() }}</div>
         }
 
         <!-- ── Submit ─────────────────────────────────────────────────────── -->

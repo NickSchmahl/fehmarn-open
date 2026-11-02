@@ -45,7 +45,8 @@ Tickets: [tickets/quality-roadmap.md](../tickets/quality-roadmap.md) (Abschnitt 
 ## Teilnehmerverwaltung (`/admin/teilnehmer`)
 
 Nur eingeloggt erreichbar (`authGuard`, sonst Redirect auf `/admin/login`); nach dem Login landet
-der Admin hier, und der Nav-Eintrag „Teilnehmer" führt eingeloggt hierher statt zur öffentlichen
+der Admin hier, sofern er nicht eine andere Admin-Seite aufgerufen hatte (dann führt die
+`returnUrl` dorthin zurück, z. B. `/admin/export`), und der Nav-Eintrag „Teilnehmer" führt eingeloggt hierher statt zur öffentlichen
 Liste. Seit #317 eine eigene Komponente (`pages/admin-teilnehmer`), vorher eine `isAdmin`-Weiche
 in der öffentlichen Teilnehmerseite.
 

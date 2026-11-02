@@ -3,7 +3,7 @@ import { provideRouter, Router } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { of, throwError } from 'rxjs';
-import { AdminLoginComponent } from './login.component';
+import { AdminLoginComponent, ruecksprungZiel } from './login.component';
 import { AuthService } from '@auth/service/auth.service';
 
 describe('AdminLoginComponent', () => {
@@ -65,14 +65,25 @@ describe('AdminLoginComponent', () => {
       expect(component.username.touched).toBe(true);
     });
 
-    it('navigiert nach erfolgreichem Login in die Teilnehmerverwaltung', () => {
+    it('navigiert nach erfolgreichem Login ohne returnUrl in die Teilnehmerverwaltung', () => {
       authService.login.mockReturnValue(of(void 0));
-      const navSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
+      const navSpy = jest.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
 
       component.form.setValue({ username: 'admin', password: 'password' });
       component.onSubmit();
 
-      expect(navSpy).toHaveBeenCalledWith(['/admin/teilnehmer']);
+      expect(navSpy).toHaveBeenCalledWith('/admin/teilnehmer');
+    });
+
+    it('navigiert nach erfolgreichem Login zur ursprünglich aufgerufenen Admin-Seite', async () => {
+      await router.navigateByUrl('/?returnUrl=%2Fadmin%2Fexport');
+      authService.login.mockReturnValue(of(void 0));
+      const navSpy = jest.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+
+      component.form.setValue({ username: 'admin', password: 'password' });
+      component.onSubmit();
+
+      expect(navSpy).toHaveBeenCalledWith('/admin/export');
     });
 
     it('should show 401 error message on wrong credentials', () => {
@@ -105,12 +116,32 @@ describe('AdminLoginComponent', () => {
     it('should clear previous error message on new submit attempt', () => {
       component.errorMessage.set('Alter Fehler');
       authService.login.mockReturnValue(of(void 0));
-      jest.spyOn(router, 'navigate').mockResolvedValue(true);
+      jest.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
 
       component.form.setValue({ username: 'admin', password: 'password' });
       component.onSubmit();
 
       expect(component.errorMessage()).toBeNull();
+    });
+  });
+
+  describe('ruecksprungZiel()', () => {
+    it.each([
+      ['/admin/export', '/admin/export'],
+      ['/admin/teilnehmer?filter=offen', '/admin/teilnehmer?filter=offen'],
+    ])('übernimmt die Admin-Seite %s', (returnUrl, erwartet) => {
+      expect(ruecksprungZiel(returnUrl)).toBe(erwartet);
+    });
+
+    it.each([
+      null,
+      '',
+      '/anmeldung',
+      '/admin/login',
+      '//evil.example/admin/',
+      'https://evil.example',
+    ])('fällt bei %p auf die Teilnehmerverwaltung zurück', (returnUrl) => {
+      expect(ruecksprungZiel(returnUrl)).toBe('/admin/teilnehmer');
     });
   });
 });

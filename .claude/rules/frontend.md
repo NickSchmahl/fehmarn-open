@@ -14,6 +14,13 @@ paths:
 ESLint ist ein eigenständiges CI-Gate – nur Jest und Prettier zu prüfen reicht **nicht**
 (`docs/workflow.md`). Vollständiges Gate: `/quality-gate`.
 
+## Dateien mit Edit/Write ändern
+
+Code unter `frontend/` mit den Tools **Edit/Write** schreiben, nicht per `sed`, Heredoc oder
+Python-Skript. Nur dann formatiert der PostToolUse-Hook (`.claude/hooks/format-file.sh`) die
+Datei sofort mit Prettier – sonst fällt die Abweichung erst im Gate auf und kostet einen
+kompletten zweiten Lauf.
+
 ## Signals halten unveränderliche Daten
 
 [ADR 0014](../../docs/adr/0014-signals-immutable-daten.md), verbindlich für neue und

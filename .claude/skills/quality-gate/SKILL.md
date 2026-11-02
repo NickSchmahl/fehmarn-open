@@ -5,6 +5,7 @@ argument-hint: "[backend|frontend]"
 allowed-tools:
   - Bash(cd backend && ./mvnw *)
   - Bash(cd frontend && npm *)
+  - Bash(.claude/hooks/deps-sync.sh)
   - Bash(git status *)
   - Bash(git diff *)
 ---
@@ -44,15 +45,18 @@ und **kein** grünes Gate – melden statt umgehen.
 
 In CI-Reihenfolge:
 
-1. `cd frontend && npm run format:check` — Prettier. Rot? → `npm run format` und erneut.
+0. `.claude/hooks/deps-sync.sh` — gleicht `node_modules` mit `package-lock.json` ab und
+   fährt bei Abweichung `npm ci` (z. B. nach `git merge origin/main` mit neuer Abhängigkeit).
+   Meldet es „FEHLGESCHLAGEN", ist das Gate rot – nicht mit alten `node_modules` weitermachen.
+1. `cd frontend && npm run format && npm run format:check` — Prettier. Lokal erst
+   formatieren, dann prüfen (analog `spotless:apply`); die CI fährt nur `format:check`.
+   Ändert `format` Dateien, gehören die mit in den Commit.
 2. `cd frontend && npm run lint` — ESLint `strict-type-checked`. **Das ist ein CI-Gate.**
    Nur Jest und Prettier zu prüfen reicht nicht (siehe `docs/workflow.md`).
    Autofix: `npm run lint:fix`, aber jede Änderung danach ansehen.
 3. `cd frontend && npm test` — Jest.
 4. `cd frontend && npm run build` — der Angular-Build ist Teil des Gates, nicht optional;
    `readonly`-Verstöße nach ADR 0014 fallen erst hier auf.
-
-Fehlen die Abhängigkeiten, vorher `cd frontend && npm ci`.
 
 ## Ergebnis berichten
 

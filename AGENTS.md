@@ -131,8 +131,10 @@ Der Ablauf ist nicht nur beschrieben, sondern im Repo verankert
   nicht `AGENTS.md`. Ohne die Datei wäre dieser Kontext in keiner Session geladen.
 - **Skills** (`.claude/skills/`): `/quality-gate` (CI-äquivalentes Gate, **die** Wahrheit),
   `/ticket-start <nr>`, `/ticket-pr <nr>`, `/db-schema`.
-- **Hook** (`.claude/hooks/git-guard.sh`): blockt `--amend`, Force-Push, `git add -A`/`.`,
-  `*.db` im Commit und Direktcommits/Pushes auf `main`.
+- **Hooks** (`.claude/hooks/`): `git-guard.sh` blockt `--amend`, Force-Push, `git add -A`/`.`,
+  `*.db` im Commit und Direktcommits/Pushes auf `main`. `format-file.sh` formatiert per
+  Edit/Write geänderte Frontend-Dateien sofort mit Prettier. `deps-sync.sh` hält
+  `frontend/node_modules` beim Session-Start passend zu `package-lock.json`.
 - **Path-Rules** (`.claude/rules/`): Backend-, Frontend- und Liquibase-Regeln, die nur laden,
   wenn passende Dateien angefasst werden.
 

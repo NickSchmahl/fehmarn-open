@@ -98,3 +98,28 @@ ausführliche Wahrheit; der Harness verweist dorthin, statt sie zu duplizieren.
   abgeschaltet werden. Bewusst nicht gemacht.
 - **Als Plugin/Marketplace verpacken**: sinnvoll erst, wenn mehrere Repos denselben Harness
   teilen. Für ein Projekt ist `.claude/` im Repo der direktere Weg. Zurückgestellt.
+
+## Nachtrag 2026-11-02 – Format- und Abhängigkeits-Hooks
+
+**Anlass:** Zwei Nachbesserungsrunden, die nichts mit dem eigentlichen Change zu tun hatten.
+(1) Das Gate lief gegen veraltete `frontend/node_modules`; `eslint-plugin-boundaries` (#320)
+fehlte, ESLint brach mit „Cannot find module" ab. (2) Per Skript geschriebene Dateien waren
+nicht Prettier-formatiert; Schritt 1 des Gates *prüfte* nur und erzwang einen kompletten
+zweiten Lauf.
+
+**Ergänzt:**
+
+- **`deps-sync.sh` als SessionStart-Hook und Schritt 0 des Gates.** Vergleicht den SHA-256 von
+  `package-lock.json` mit einer Marke in `node_modules/.lock-sha256` und fährt nur bei
+  Abweichung `npm ci`. Fehlt die Marke auf einer bestehenden Installation, entscheidet
+  `npm ls` – kein unnötiges Neuinstallieren. Blockiert nie (Exit 0), meldet aber laut.
+- **`format-file.sh` als PostToolUse-Hook auf Edit/Write/MultiEdit.** Formatiert die geänderte
+  Frontend-Datei sofort mit dem lokalen Prettier. Java bewusst nicht: Spotless pro Datei kostet
+  einen Maven-Start je Edit; das bleibt bei `spotless:apply` im Gate.
+- **Gate-Schritt 1 formatiert erst (`npm run format`), dann `format:check`** – analog zum
+  Backend (`spotless:apply` lokal, `spotless:check` in der CI).
+- **Path-Rule `frontend.md`:** Code mit Edit/Write ändern, nicht per Shell-Skript – sonst
+  sieht der Format-Hook die Datei nicht.
+
+**Konsequenz:** Formatabweichungen und veraltete Abhängigkeiten werden vor dem Gate behoben
+statt im Gate entdeckt. Die CI bleibt unverändert die letzte Prüfung.

@@ -14,7 +14,6 @@ export const FUSS_VARIABLE = '--radikal-druck-fuss';
  */
 @Component({
   selector: 'app-radikal-druck',
-  standalone: true,
   templateUrl: './radikal-druck.component.html',
   styleUrl: './radikal-druck.component.scss',
 })

@@ -58,7 +58,6 @@ function istAngehakt(event: Event): boolean {
  */
 @Component({
   selector: 'app-export',
-  standalone: true,
   imports: [ExportKarteComponent, RadikalDruckComponent, TurniertagDruckComponent],
   templateUrl: './export.html',
   styleUrl: './export.scss',

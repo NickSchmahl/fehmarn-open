@@ -25,6 +25,12 @@ describe('routes', () => {
     },
   );
 
+  it.each(Object.keys(erwarteteTitelProPfad))('lädt die Seite "%s" lazy', (pfad) => {
+    const route = routes.find((eintrag) => eintrag.path === pfad);
+    expect(route?.loadComponent).toBeDefined();
+    expect(route?.component).toBeUndefined();
+  });
+
   it('schützt /admin/export mit dem authGuard', () => {
     const route = routes.find((eintrag) => eintrag.path === 'admin/export');
     expect(route?.canActivate).toEqual([authGuard]);

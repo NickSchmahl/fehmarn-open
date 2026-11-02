@@ -14,7 +14,6 @@ import { heuteAlsIso } from '../../../../shared/datum';
  */
 @Component({
   selector: 'app-spieler-zeile',
-  standalone: true,
   imports: [ReactiveFormsModule],
   templateUrl: './spieler-zeile.component.html',
   styleUrl: './spieler-zeile.component.scss',

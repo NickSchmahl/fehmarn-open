@@ -6,7 +6,6 @@ import { BrandIconComponent } from '../../ui/brand-icon/brand-icon.component';
 
 @Component({
   selector: 'app-admin-login',
-  standalone: true,
   imports: [ReactiveFormsModule, BrandIconComponent],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',

@@ -35,7 +35,6 @@ import { DisziplinCardComponent } from './components/disziplin-card/disziplin-ca
  */
 @Component({
   selector: 'app-anmeldung',
-  standalone: true,
   imports: [
     ReactiveFormsModule,
     BrandIconComponent,

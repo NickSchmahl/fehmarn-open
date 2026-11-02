@@ -24,7 +24,6 @@ export function euro(betrag: number): string {
  */
 @Component({
   selector: 'app-turniertag-druck',
-  standalone: true,
   imports: [BrandIconComponent],
   templateUrl: './turniertag-druck.component.html',
   styleUrl: './turniertag-druck.component.scss',

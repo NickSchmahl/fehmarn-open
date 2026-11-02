@@ -13,7 +13,6 @@ import { MeldungCardComponent } from '../meldung-card/meldung-card.component';
  */
 @Component({
   selector: 'app-disziplin-card',
-  standalone: true,
   imports: [ReactiveFormsModule, MeldungCardComponent],
   templateUrl: './disziplin-card.component.html',
   styleUrl: './disziplin-card.component.scss',

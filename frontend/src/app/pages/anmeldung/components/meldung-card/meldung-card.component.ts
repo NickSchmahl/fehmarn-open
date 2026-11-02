@@ -13,7 +13,6 @@ import { SpielerZeileComponent } from '../spieler-zeile/spieler-zeile.component'
  */
 @Component({
   selector: 'app-meldung-card',
-  standalone: true,
   imports: [ReactiveFormsModule, SpielerZeileComponent],
   templateUrl: './meldung-card.component.html',
   styleUrl: './meldung-card.component.scss',

@@ -5,7 +5,6 @@ import { Component, input, output } from '@angular/core';
 // Meldungs-id noch HTTP; die Seite verdrahtet die Events mit den Service-Calls.
 @Component({
   selector: 'app-meldung-aktionen',
-  standalone: true,
   templateUrl: './meldung-aktionen.component.html',
   styleUrl: './meldung-aktionen.component.scss',
 })

@@ -7,7 +7,6 @@ import { Component, input } from '@angular/core';
  */
 @Component({
   selector: 'app-export-karte',
-  standalone: true,
   template: `
     <article class="karte" [class.karte--haupt]="haupt()">
       <div class="karte-kopf">

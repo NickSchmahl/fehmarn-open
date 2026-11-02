@@ -4,7 +4,6 @@ import { Component } from '@angular/core';
 // Rein dekorativ (aria-hidden); Größe steuert der Einbettungskontext per CSS.
 @Component({
   selector: 'app-brand-icon',
-  standalone: true,
   template: `
     <svg
       viewBox="0 0 334 250.3"

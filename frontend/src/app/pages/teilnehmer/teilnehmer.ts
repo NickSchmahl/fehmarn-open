@@ -117,7 +117,6 @@ export function sortiereAbgemeldeteAnsEnde(
 
 @Component({
   selector: 'app-teilnehmer',
-  standalone: true,
   imports: [MeldungAktionenComponent, BrandIconComponent],
   templateUrl: './teilnehmer.html',
   styleUrl: './teilnehmer.scss',

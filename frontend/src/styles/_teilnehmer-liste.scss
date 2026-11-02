@@ -1,0 +1,91 @@
+/* ── Rahmen der Teilnehmerlisten (#317) ──────────────────────
+   Öffentliche Liste (/teilnehmer) und Teilnehmerverwaltung (/admin/teilnehmer) teilen
+   Karte, Kopf, Toolbar und Disziplin-Sektionen. Seitenspezifisches (Namensliste bzw.
+   Admin-Zeilen) bleibt im jeweiligen Komponenten-Stylesheet, die Filter-Chips im
+   ui/disziplin-filter. */
+
+.teilnehmer-card {
+  max-width: 1600px;
+  padding: 2.5rem clamp(1.25rem, 3vw, 3rem) 3rem;
+}
+
+.teilnehmer-header {
+  display: grid;
+  place-items: center;
+  text-align: center;
+  gap: 0.4rem;
+  margin-bottom: 1.25rem;
+}
+
+.teilnehmer-header .brand-logo {
+  display: block;
+  width: 40px;
+  height: 40px;
+  color: var(--text);
+}
+
+.teilnehmer-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: var(--text);
+}
+
+.teilnehmer-card .state-row {
+  justify-content: center;
+}
+
+.teilnehmer-card .empty-state {
+  padding: 2.5rem 0;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+/* Bewusst nicht sticky: auf Mobil klebte die mehrzeilige Leiste unter dem
+   fixen App-Header und verdeckte einen Großteil des Viewports. */
+.teilnehmer-card .toolbar {
+  margin: 0 calc(-1 * clamp(1.25rem, 3vw, 3rem)) 1.75rem;
+  padding: 0.75rem clamp(1.25rem, 3vw, 3rem) 1rem;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.teilnehmer-card .disziplin-section {
+  margin-bottom: 2.25rem;
+}
+
+.teilnehmer-card .disziplin-section:last-child {
+  margin-bottom: 0;
+}
+
+.teilnehmer-card .section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.875rem;
+}
+
+.teilnehmer-card .section-count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding: 0 0.35rem;
+  border-radius: 999px;
+  background: var(--accent-dim);
+  color: var(--accent);
+  font-size: 0.7rem;
+}
+
+@media (max-width: 720px) {
+  .teilnehmer-card {
+    padding: 2rem 1.25rem 1.5rem;
+  }
+
+  .teilnehmer-card .toolbar {
+    margin: 0 -1.25rem 1.5rem;
+    padding: 0.6rem 1.25rem 0.85rem;
+  }
+}

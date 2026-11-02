@@ -66,6 +66,33 @@ describe('App', () => {
     });
   });
 
+  describe('Teilnehmer-Link (#317)', () => {
+    afterEach(() => {
+      localStorage.clear();
+    });
+
+    function teilnehmerLinks(eingeloggt: boolean): (string | null)[] {
+      localStorage.clear();
+      if (eingeloggt) {
+        localStorage.setItem(AuthService.TOKEN_KEY, 'token');
+      }
+      const fixture = TestBed.createComponent(App);
+      fixture.detectChanges();
+      const element = fixture.nativeElement as HTMLElement;
+      return Array.from(element.querySelectorAll('.desktop-nav a, .mobile-tabs a'))
+        .filter((link) => link.textContent.trim() === 'Teilnehmer')
+        .map((link) => link.getAttribute('href'));
+    }
+
+    it('führt ohne Login in Desktop- und Mobil-Navigation zur öffentlichen Liste', () => {
+      expect(teilnehmerLinks(false)).toEqual(['/teilnehmer', '/teilnehmer']);
+    });
+
+    it('führt eingeloggt in die Teilnehmerverwaltung', () => {
+      expect(teilnehmerLinks(true)).toEqual(['/admin/teilnehmer', '/admin/teilnehmer']);
+    });
+  });
+
   describe('Login-Status reaktiv (#319)', () => {
     afterEach(() => {
       localStorage.clear();

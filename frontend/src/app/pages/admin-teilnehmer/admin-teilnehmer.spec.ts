@@ -1,0 +1,737 @@
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+
+import {
+  AdminTeilnehmer,
+  meldungPasstZurSuche,
+  sortiereAbgemeldeteAnsEnde,
+} from './admin-teilnehmer';
+import { AdminMeldungEintrag } from '../../shared/admin-uebersicht';
+
+function adminMeldung(over: Partial<AdminMeldungEintrag>): AdminMeldungEintrag {
+  return {
+    id: 0,
+    teamName: null,
+    anwesend: false,
+    abgemeldet: false,
+    spieler: [
+      { vorname: 'V', nachname: 'N', radikalId: null, initialen: null, geburtsdatum: null },
+    ],
+    ...over,
+  };
+}
+
+describe('meldungPasstZurSuche', () => {
+  it('leerer Suchbegriff passt immer', () => {
+    expect(meldungPasstZurSuche(adminMeldung({}), '')).toBe(true);
+  });
+
+  it('trifft über den Teamnamen', () => {
+    const meldung = adminMeldung({ teamName: 'Die Bullseye Boys' });
+    expect(meldungPasstZurSuche(meldung, 'bullseye')).toBe(true);
+  });
+
+  it('trifft über den Namen eines beliebigen Spielers', () => {
+    const meldung = adminMeldung({
+      teamName: 'Team A',
+      spieler: [
+        { vorname: 'Anna', nachname: 'Schmidt', radikalId: null },
+        { vorname: 'Bert', nachname: 'Adam', radikalId: null },
+      ],
+    });
+    expect(meldungPasstZurSuche(meldung, 'adam')).toBe(true);
+  });
+
+  it('liefert false, wenn weder Team- noch Spielername passt', () => {
+    const meldung = adminMeldung({
+      teamName: 'Team A',
+      spieler: [{ vorname: 'Anna', nachname: 'Schmidt', radikalId: null }],
+    });
+    expect(meldungPasstZurSuche(meldung, 'xyz')).toBe(false);
+  });
+});
+
+describe('sortiereAbgemeldeteAnsEnde', () => {
+  it('schiebt abgemeldete Meldungen ans Ende', () => {
+    const eingabe = [
+      adminMeldung({ id: 1, abgemeldet: false }),
+      adminMeldung({ id: 2, abgemeldet: true }),
+      adminMeldung({ id: 3, abgemeldet: false }),
+    ];
+    expect(sortiereAbgemeldeteAnsEnde(eingabe).map((m) => m.id)).toEqual([1, 3, 2]);
+  });
+
+  it('hält die Reihenfolge aktiver Meldungen stabil', () => {
+    const eingabe = [
+      adminMeldung({ id: 10, abgemeldet: false }),
+      adminMeldung({ id: 20, abgemeldet: false }),
+      adminMeldung({ id: 30, abgemeldet: false }),
+    ];
+    expect(sortiereAbgemeldeteAnsEnde(eingabe).map((m) => m.id)).toEqual([10, 20, 30]);
+  });
+
+  it('hält die Reihenfolge abgemeldeter Meldungen untereinander stabil', () => {
+    const eingabe = [
+      adminMeldung({ id: 1, abgemeldet: true }),
+      adminMeldung({ id: 2, abgemeldet: false }),
+      adminMeldung({ id: 3, abgemeldet: true }),
+    ];
+    expect(sortiereAbgemeldeteAnsEnde(eingabe).map((m) => m.id)).toEqual([2, 1, 3]);
+  });
+
+  it('lässt eine Gruppe ganz ohne Abgemeldete unverändert', () => {
+    const eingabe = [adminMeldung({ id: 1 }), adminMeldung({ id: 2 })];
+    expect(sortiereAbgemeldeteAnsEnde(eingabe).map((m) => m.id)).toEqual([1, 2]);
+  });
+
+  it('mutiert die Eingabeliste nicht', () => {
+    const eingabe = [
+      adminMeldung({ id: 1, abgemeldet: true }),
+      adminMeldung({ id: 2, abgemeldet: false }),
+    ];
+    sortiereAbgemeldeteAnsEnde(eingabe);
+    expect(eingabe.map((m) => m.id)).toEqual([1, 2]);
+  });
+});
+
+// Integrationstest mit echten API-Services (AdminTeilnehmerApiService, AnmeldungStatusApiService):
+// HttpTestingController prüft, dass jede Aktion genau den erwarteten Request auslöst.
+function setup() {
+  TestBed.configureTestingModule({
+    imports: [AdminTeilnehmer],
+    providers: [provideHttpClient(), provideHttpClientTesting()],
+  });
+
+  const fixture = TestBed.createComponent(AdminTeilnehmer);
+  const component = fixture.componentInstance;
+  const httpTesting = TestBed.inject(HttpTestingController);
+  return { fixture, component, httpTesting };
+}
+
+describe('AdminTeilnehmer', () => {
+  let component: AdminTeilnehmer;
+  let fixture: ComponentFixture<AdminTeilnehmer>;
+  let httpTesting: HttpTestingController;
+
+  const adminResponse = {
+    disziplinen: [
+      {
+        disziplin: 'HERRENDOPPEL',
+        anzahl: 1,
+        meldungen: [
+          {
+            id: 5,
+            teamName: 'Team A',
+            anwesend: false,
+            abgemeldet: false,
+            spieler: [
+              {
+                vorname: 'Anna',
+                nachname: 'Schmidt',
+                radikalId: 'AS-1',
+                initialen: null,
+                geburtsdatum: null,
+              },
+              {
+                vorname: 'Bert',
+                nachname: 'Adam',
+                radikalId: 'BA-2',
+                initialen: null,
+                geburtsdatum: null,
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  };
+
+  beforeEach(() => {
+    ({ fixture, component, httpTesting } = setup());
+  });
+
+  afterEach(() => {
+    httpTesting.verify();
+  });
+
+  it('lädt die Admin-Übersicht von GET /api/admin/teilnehmer', () => {
+    fixture.detectChanges();
+
+    const req = httpTesting.expectOne('/api/admin/teilnehmer');
+    expect(req.request.method).toBe('GET');
+    req.flush(adminResponse);
+
+    expect(component.gruppen()).toHaveLength(1);
+    expect(component.gruppen()[0].meldungen).toHaveLength(1);
+    expect(component.gruppen()[0].meldungen[0].spieler).toHaveLength(2);
+  });
+
+  it('zeigt je Spieler die Radikal-ID', () => {
+    fixture.detectChanges();
+    httpTesting.expectOne('/api/admin/teilnehmer').flush(adminResponse);
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const ids = Array.from(root.querySelectorAll('.admin-radikal-id')).map((el) =>
+      el.textContent.trim(),
+    );
+    expect(ids).toEqual(['AS-1', 'BA-2']);
+  });
+
+  it('zeigt für Spieler ohne Radikal ID Initialen + Geburtsdatum und ein "neu anlegen"-Badge', () => {
+    fixture.detectChanges();
+    httpTesting.expectOne('/api/admin/teilnehmer').flush({
+      disziplinen: [
+        {
+          disziplin: 'HERRENDOPPEL',
+          anzahl: 1,
+          meldungen: [
+            {
+              id: 5,
+              teamName: 'Team A',
+              anwesend: false,
+              abgemeldet: false,
+              spieler: [
+                {
+                  vorname: 'Bert',
+                  nachname: 'Adam',
+                  radikalId: null,
+                  initialen: 'BA',
+                  geburtsdatum: '1990-03-14',
+                },
+                {
+                  vorname: 'Anna',
+                  nachname: 'Schmidt',
+                  radikalId: 'AS-1',
+                  initialen: null,
+                  geburtsdatum: null,
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const zeilen = Array.from(root.querySelectorAll('.admin-row'));
+
+    // Spieler ohne ID: Initialen + Geburtsdatum + Badge sichtbar.
+    const ohneId = zeilen.find((z) => z.textContent.includes('Bert Adam')) as HTMLElement;
+    expect(ohneId.querySelector('.neu-anlegen-badge')).not.toBeNull();
+    expect(ohneId.querySelector('.admin-radikal-id')?.textContent).toContain('BA');
+    expect(ohneId.querySelector('.admin-radikal-id')?.textContent).toContain('14.03.1990');
+
+    // Spieler mit ID: ID sichtbar, kein Badge.
+    const mitId = zeilen.find((z) => z.textContent.includes('Anna Schmidt')) as HTMLElement;
+    expect(mitId.querySelector('.neu-anlegen-badge')).toBeNull();
+    expect(mitId.querySelector('.admin-radikal-id')?.textContent).toContain('AS-1');
+  });
+
+  it('Anwesend-Schalter feuert genau einen Request pro Meldung (Team-Klick)', () => {
+    fixture.detectChanges();
+    httpTesting.expectOne('/api/admin/teilnehmer').flush(adminResponse);
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const toggles = root.querySelectorAll('.ma-btn--anwesend');
+    expect(toggles).toHaveLength(1); // genau ein Schalter je Meldung, nicht je Spieler
+
+    (toggles[0] as HTMLButtonElement).click();
+
+    const action = httpTesting.expectOne('/api/admin/anmeldung/5/anwesenheit');
+    expect(action.request.method).toBe('PUT');
+    expect(action.request.body).toEqual({ anwesend: true });
+    action.flush(null);
+
+    httpTesting.expectOne('/api/admin/teilnehmer').flush(adminResponse); // ein Reload
+  });
+
+  it('Abmelden-Button feuert einen POST pro Meldung', () => {
+    fixture.detectChanges();
+    httpTesting.expectOne('/api/admin/teilnehmer').flush(adminResponse);
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    root.querySelector<HTMLButtonElement>('.ma-btn--abmelden')?.click();
+
+    const action = httpTesting.expectOne('/api/admin/anmeldung/5/abmelden');
+    expect(action.request.method).toBe('POST');
+    action.flush(null);
+
+    httpTesting.expectOne('/api/admin/teilnehmer').flush(adminResponse); // ein Reload
+  });
+
+  it('reaktivieren feuert POST', () => {
+    fixture.detectChanges();
+    httpTesting.expectOne('/api/admin/teilnehmer').flush(adminResponse);
+
+    component.reaktivieren(5);
+
+    const action = httpTesting.expectOne('/api/admin/anmeldung/5/reaktivieren');
+    expect(action.request.method).toBe('POST');
+    action.flush(null);
+
+    httpTesting.expectOne('/api/admin/teilnehmer').flush(adminResponse);
+  });
+
+  describe('Reaktivieren im vollen Teamwettbewerb (96er-Limit)', () => {
+    /** Admin-Antwort mit einer abgemeldeten Teamwettbewerb-Meldung (id 9). */
+    const teamResponse = {
+      disziplinen: [
+        {
+          disziplin: 'TEAMWETTBEWERB',
+          anzahl: 96,
+          meldungen: [
+            {
+              id: 9,
+              teamName: 'Team X',
+              anwesend: false,
+              abgemeldet: true,
+              spieler: [
+                {
+                  vorname: 'Anna',
+                  nachname: 'Schmidt',
+                  radikalId: 'AS-1',
+                  initialen: null,
+                  geburtsdatum: null,
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+
+    let confirmSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      confirmSpy = jest.spyOn(window, 'confirm');
+      fixture.detectChanges();
+      httpTesting.expectOne('/api/admin/teilnehmer').flush(teamResponse);
+    });
+
+    afterEach(() => {
+      confirmSpy.mockRestore();
+    });
+
+    /** Beantwortet den Ausgebucht-Status, den das Reaktivieren vorab abfragt. */
+    function flusheStatus(ausgebucht: boolean): void {
+      httpTesting.expectOne('/api/anmeldung/status').flush({
+        anmeldungOffen: true,
+        anmeldeschluss: '2027-02-28',
+        teamwettbewerbAusgebucht: ausgebucht,
+        maxTeams: 96,
+      });
+    }
+
+    it('warnt vor dem Überziehen und reaktiviert nach Bestätigung', () => {
+      confirmSpy.mockReturnValue(true);
+
+      component.reaktivieren(9);
+      flusheStatus(true);
+
+      expect(confirmSpy).toHaveBeenCalledWith(expect.stringContaining('96'));
+      httpTesting.expectOne('/api/admin/anmeldung/9/reaktivieren').flush(null);
+      httpTesting.expectOne('/api/admin/teilnehmer').flush(teamResponse);
+    });
+
+    it('sendet nichts, wenn der Admin die Warnung abbricht', () => {
+      confirmSpy.mockReturnValue(false);
+
+      component.reaktivieren(9);
+      flusheStatus(true);
+
+      expect(confirmSpy).toHaveBeenCalled();
+      httpTesting.expectNone('/api/admin/anmeldung/9/reaktivieren');
+    });
+
+    it('warnt nicht, solange noch Plätze frei sind', () => {
+      component.reaktivieren(9);
+      flusheStatus(false);
+
+      expect(confirmSpy).not.toHaveBeenCalled();
+      httpTesting.expectOne('/api/admin/anmeldung/9/reaktivieren').flush(null);
+      httpTesting.expectOne('/api/admin/teilnehmer').flush(teamResponse);
+    });
+
+    it('reaktiviert trotzdem, wenn der Status-Abruf scheitert', () => {
+      component.reaktivieren(9);
+      httpTesting
+        .expectOne('/api/anmeldung/status')
+        .flush(null, { status: 500, statusText: 'Server Error' });
+
+      expect(confirmSpy).not.toHaveBeenCalled();
+      httpTesting.expectOne('/api/admin/anmeldung/9/reaktivieren').flush(null);
+      httpTesting.expectOne('/api/admin/teilnehmer').flush(teamResponse);
+    });
+  });
+
+  it('fragt bei anderen Disziplinen keinen Teamlimit-Status ab', () => {
+    fixture.detectChanges();
+    httpTesting.expectOne('/api/admin/teilnehmer').flush(adminResponse);
+
+    component.reaktivieren(5); // HERRENDOPPEL
+
+    httpTesting.expectNone('/api/anmeldung/status');
+    httpTesting.expectOne('/api/admin/anmeldung/5/reaktivieren').flush(null);
+    httpTesting.expectOne('/api/admin/teilnehmer').flush(adminResponse);
+  });
+
+  it('zeigt den Reaktivierungs-Konflikt (409) nur an der betroffenen Zeile', () => {
+    fixture.detectChanges();
+    httpTesting.expectOne('/api/admin/teilnehmer').flush(adminResponse);
+
+    component.reaktivieren(5);
+
+    const action = httpTesting.expectOne('/api/admin/anmeldung/5/reaktivieren');
+    action.flush(
+      { status: 409, message: 'Teamname ist in dieser Disziplin bereits vergeben: Team A' },
+      { status: 409, statusText: 'Conflict' },
+    );
+
+    expect(component.fehlerFuer(5)).toContain('bereits vergeben');
+    // Fehler ist zeilenbezogen: andere Zeilen bleiben sauber.
+    expect(component.fehlerFuer(999)).toBeNull();
+    // Kein Reload nach Fehler.
+    httpTesting.expectNone('/api/admin/teilnehmer');
+  });
+
+  it('räumt den Zeilen-Fehler weg, sobald eine andere Aktion startet', () => {
+    fixture.detectChanges();
+    httpTesting.expectOne('/api/admin/teilnehmer').flush(adminResponse);
+
+    component.reaktivieren(5);
+    httpTesting
+      .expectOne('/api/admin/anmeldung/5/reaktivieren')
+      .flush(
+        { status: 409, message: 'Teamname ist in dieser Disziplin bereits vergeben: Team A' },
+        { status: 409, statusText: 'Conflict' },
+      );
+    expect(component.fehlerFuer(5)).toContain('bereits vergeben');
+
+    // Andere Aktion (Abmelden) startet -> Fehler verschwindet sofort.
+    component.abmelden(5);
+    expect(component.fehlerFuer(5)).toBeNull();
+
+    httpTesting.expectOne('/api/admin/anmeldung/5/abmelden').flush(null);
+    httpTesting.expectOne('/api/admin/teilnehmer').flush(adminResponse);
+  });
+
+  it('rendert den Reaktivierungs-Fehler in der Zeile, nicht global', () => {
+    fixture.detectChanges();
+    httpTesting.expectOne('/api/admin/teilnehmer').flush(adminResponse);
+
+    component.reaktivieren(5);
+    httpTesting
+      .expectOne('/api/admin/anmeldung/5/reaktivieren')
+      .flush(
+        { status: 409, message: 'Teamname ist in dieser Disziplin bereits vergeben: Team A' },
+        { status: 409, statusText: 'Conflict' },
+      );
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const zeilenFehler = root.querySelectorAll('.team-block-fehler');
+    expect(zeilenFehler).toHaveLength(1);
+    expect(zeilenFehler[0].textContent).toContain('bereits vergeben');
+  });
+
+  it('filtert nach Suchbegriff über Spielernamen', () => {
+    fixture.detectChanges();
+    httpTesting.expectOne('/api/admin/teilnehmer').flush(adminResponse);
+
+    component.setSuche('adam');
+    expect(component.sichtbareGruppen()).toHaveLength(1);
+
+    component.setSuche('gibtsnicht');
+    expect(component.sichtbareGruppen()).toHaveLength(0);
+  });
+
+  it('Einzelmeldung: keine Team-Kopfzeile, Aktionen sitzen in der Spielerzeile', () => {
+    fixture.detectChanges();
+    httpTesting.expectOne('/api/admin/teilnehmer').flush({
+      disziplinen: [
+        {
+          disziplin: 'HERRENEINZEL',
+          anzahl: 1,
+          meldungen: [
+            {
+              id: 7,
+              teamName: null,
+              anwesend: false,
+              abgemeldet: false,
+              spieler: [
+                {
+                  vorname: 'Anna',
+                  nachname: 'Schmidt',
+                  radikalId: 'AS-1',
+                  initialen: null,
+                  geburtsdatum: null,
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.querySelector('.team-head')).toBeNull(); // keine redundante Kopfzeile
+
+    const toggle = root.querySelector<HTMLButtonElement>('.admin-row .ma-btn--anwesend');
+    expect(toggle).not.toBeNull();
+
+    toggle?.click();
+    const action = httpTesting.expectOne('/api/admin/anmeldung/7/anwesenheit');
+    expect(action.request.method).toBe('PUT');
+    expect(action.request.body).toEqual({ anwesend: true });
+    action.flush(null);
+    httpTesting.expectOne('/api/admin/teilnehmer').flush({ disziplinen: [] }); // Reload
+  });
+
+  it('anwesend hebt die Zeile farblich hervor (Team-Kopfzeile und Einzelzeile)', () => {
+    fixture.detectChanges();
+    httpTesting.expectOne('/api/admin/teilnehmer').flush({
+      disziplinen: [
+        {
+          disziplin: 'HERRENDOPPEL',
+          anzahl: 1,
+          meldungen: [
+            {
+              id: 5,
+              teamName: 'Team A',
+              anwesend: true,
+              abgemeldet: false,
+              spieler: [
+                {
+                  vorname: 'Anna',
+                  nachname: 'Schmidt',
+                  radikalId: 'AS-1',
+                  initialen: null,
+                  geburtsdatum: null,
+                },
+              ],
+            },
+          ],
+        },
+        {
+          disziplin: 'HERRENEINZEL',
+          anzahl: 1,
+          meldungen: [
+            {
+              id: 7,
+              teamName: null,
+              anwesend: true,
+              abgemeldet: false,
+              spieler: [
+                {
+                  vorname: 'Bert',
+                  nachname: 'Adam',
+                  radikalId: 'BA-2',
+                  initialen: null,
+                  geburtsdatum: null,
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.querySelector('.team-head')?.classList.contains('team-head--anwesend')).toBe(true);
+    const einzelRow = Array.from(root.querySelectorAll('.admin-row')).find((z) =>
+      z.textContent.includes('Bert Adam'),
+    ) as HTMLElement;
+    expect(einzelRow.classList.contains('admin-row--anwesend')).toBe(true);
+  });
+
+  it('abgemeldet überschreibt die Anwesend-Hervorhebung (Team-Kopfzeile und Einzelzeile)', () => {
+    fixture.detectChanges();
+    httpTesting.expectOne('/api/admin/teilnehmer').flush({
+      disziplinen: [
+        {
+          disziplin: 'HERRENDOPPEL',
+          anzahl: 1,
+          meldungen: [
+            {
+              id: 5,
+              teamName: 'Team A',
+              anwesend: true,
+              abgemeldet: true,
+              spieler: [
+                {
+                  vorname: 'Anna',
+                  nachname: 'Schmidt',
+                  radikalId: 'AS-1',
+                  initialen: null,
+                  geburtsdatum: null,
+                },
+              ],
+            },
+          ],
+        },
+        {
+          disziplin: 'HERRENEINZEL',
+          anzahl: 1,
+          meldungen: [
+            {
+              id: 7,
+              teamName: null,
+              anwesend: true,
+              abgemeldet: true,
+              spieler: [
+                {
+                  vorname: 'Bert',
+                  nachname: 'Adam',
+                  radikalId: 'BA-2',
+                  initialen: null,
+                  geburtsdatum: null,
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const teamHead = root.querySelector('.team-head');
+    expect(teamHead?.classList.contains('team-head--abgemeldet')).toBe(true);
+    expect(teamHead?.classList.contains('team-head--anwesend')).toBe(false);
+
+    const einzelRow = Array.from(root.querySelectorAll('.admin-row')).find((z) =>
+      z.textContent.includes('Bert Adam'),
+    ) as HTMLElement;
+    expect(einzelRow.classList.contains('admin-row--anwesend')).toBe(false);
+  });
+
+  it('deaktiviert den Anwesend-Toggle für abgemeldete Meldungen', () => {
+    fixture.detectChanges();
+    httpTesting.expectOne('/api/admin/teilnehmer').flush({
+      disziplinen: [
+        {
+          disziplin: 'HERRENDOPPEL',
+          anzahl: 1,
+          meldungen: [
+            {
+              id: 5,
+              teamName: 'Team A',
+              anwesend: false,
+              abgemeldet: true,
+              spieler: [
+                {
+                  vorname: 'Anna',
+                  nachname: 'Schmidt',
+                  radikalId: 'AS-1',
+                  initialen: null,
+                  geburtsdatum: null,
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const toggle = root.querySelector<HTMLButtonElement>('.ma-btn--anwesend');
+    expect(toggle?.disabled).toBe(true);
+  });
+
+  it('sortiert abgemeldete Teams ans Ende der Disziplin-Gruppe', () => {
+    fixture.detectChanges();
+    httpTesting.expectOne('/api/admin/teilnehmer').flush({
+      disziplinen: [
+        {
+          disziplin: 'HERRENDOPPEL',
+          anzahl: 3,
+          meldungen: [
+            { id: 1, teamName: 'Aktiv 1', anwesend: false, abgemeldet: false, spieler: [] },
+            { id: 2, teamName: 'Abgemeldet', anwesend: false, abgemeldet: true, spieler: [] },
+            { id: 3, teamName: 'Aktiv 2', anwesend: false, abgemeldet: false, spieler: [] },
+          ],
+        },
+      ],
+    });
+
+    const reihenfolge = component.sichtbareGruppen()[0].meldungen.map((m) => m.id);
+    expect(reihenfolge).toEqual([1, 3, 2]);
+  });
+
+  it('rutscht ein Team nach dem Abmelden ans Ende (Live-Update über Reload)', () => {
+    fixture.detectChanges();
+    httpTesting.expectOne('/api/admin/teilnehmer').flush({
+      disziplinen: [
+        {
+          disziplin: 'HERRENDOPPEL',
+          anzahl: 2,
+          meldungen: [
+            { id: 1, teamName: 'Team 1', anwesend: false, abgemeldet: false, spieler: [] },
+            { id: 2, teamName: 'Team 2', anwesend: false, abgemeldet: false, spieler: [] },
+          ],
+        },
+      ],
+    });
+
+    component.abmelden(1);
+    httpTesting.expectOne('/api/admin/anmeldung/1/abmelden').flush(null);
+    // Reload liefert Team 1 nun als abgemeldet zurück.
+    httpTesting.expectOne('/api/admin/teilnehmer').flush({
+      disziplinen: [
+        {
+          disziplin: 'HERRENDOPPEL',
+          anzahl: 2,
+          meldungen: [
+            { id: 1, teamName: 'Team 1', anwesend: false, abgemeldet: true, spieler: [] },
+            { id: 2, teamName: 'Team 2', anwesend: false, abgemeldet: false, spieler: [] },
+          ],
+        },
+      ],
+    });
+
+    expect(component.sichtbareGruppen()[0].meldungen.map((m) => m.id)).toEqual([2, 1]);
+  });
+
+  it('rutscht ein Team nach der Reaktivierung zurück in den aktiven Bereich', () => {
+    fixture.detectChanges();
+    httpTesting.expectOne('/api/admin/teilnehmer').flush({
+      disziplinen: [
+        {
+          disziplin: 'HERRENDOPPEL',
+          anzahl: 2,
+          meldungen: [
+            { id: 1, teamName: 'Team 1', anwesend: false, abgemeldet: false, spieler: [] },
+            { id: 2, teamName: 'Team 2', anwesend: false, abgemeldet: true, spieler: [] },
+          ],
+        },
+      ],
+    });
+    // Ausgangslage: abgemeldetes Team 2 steht hinten.
+    expect(component.sichtbareGruppen()[0].meldungen.map((m) => m.id)).toEqual([1, 2]);
+
+    component.reaktivieren(2);
+    httpTesting.expectOne('/api/admin/anmeldung/2/reaktivieren').flush(null);
+    httpTesting.expectOne('/api/admin/teilnehmer').flush({
+      disziplinen: [
+        {
+          disziplin: 'HERRENDOPPEL',
+          anzahl: 2,
+          meldungen: [
+            { id: 1, teamName: 'Team 1', anwesend: false, abgemeldet: false, spieler: [] },
+            { id: 2, teamName: 'Team 2', anwesend: false, abgemeldet: false, spieler: [] },
+          ],
+        },
+      ],
+    });
+
+    expect(component.sichtbareGruppen()[0].meldungen.map((m) => m.id)).toEqual([1, 2]);
+  });
+});

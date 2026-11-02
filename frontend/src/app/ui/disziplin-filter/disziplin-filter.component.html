@@ -1,0 +1,15 @@
+<div class="chip-row" role="tablist" aria-label="Disziplin filtern">
+  @for (chip of chips(); track chip.value) {
+    <button
+      type="button"
+      role="tab"
+      class="chip"
+      [class.chip--active]="aktiv() === chip.value"
+      [attr.aria-selected]="aktiv() === chip.value"
+      (click)="auswahl.emit(chip.value)"
+    >
+      {{ chip.label }}
+      <span class="chip-count">{{ chip.anzahl }}</span>
+    </button>
+  }
+</div>

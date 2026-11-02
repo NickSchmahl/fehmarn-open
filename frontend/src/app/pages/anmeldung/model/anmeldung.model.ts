@@ -1,5 +1,6 @@
-// Domänen- und DTO-Typen der Anmeldung: Request-Payloads (POST /api/anmeldung),
-// Status-Antwort sowie die Strukturtypen der Formular-Rohwerte (form.getRawValue()).
+// Domänen- und DTO-Typen der Anmeldung: Request-Payloads (POST /api/anmeldung) sowie die
+// Strukturtypen der Formular-Rohwerte (form.getRawValue()). Die Status-Antwort liegt in
+// shared/anmeldung-status.ts (#318).
 
 import { Disziplin } from '../../../shared/disziplin';
 
@@ -22,14 +23,6 @@ export interface MeldungPayload {
 /** Request-Body für POST /api/anmeldung. */
 export interface AnmeldungRequest {
   disziplinen: MeldungPayload[];
-}
-
-/** Antwort von GET /api/anmeldung/status. */
-export interface AnmeldeschlussStatus {
-  anmeldungOffen: boolean;
-  anmeldeschluss: string; // ISO YYYY-MM-DD
-  teamwettbewerbAusgebucht: boolean; // Teamlimit des Teamwettbewerbs erreicht
-  maxTeams: number; // Obergrenze Teams im Teamwettbewerb
 }
 
 /** Eine Zeile der Preisaufschlüsselung: eine gewählte Disziplin mit Spielerzahl und Betrag. */

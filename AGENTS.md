@@ -42,9 +42,9 @@ im kommenden Jahr statt.
 ├── frontend/                    # Angular 22
 │   └── src/app/
 │       ├── auth/                # Guard, Interceptor, Service
-│       ├── core/                # HTTP-Error-Interceptor, Toast-/Error-Services
-│       ├── pages/               # anmeldung, teilnehmer, flyer, login
-│       ├── shared/ + ui/        # Disziplin-Modell, Toast-Komponente
+│       ├── core/                # API-Services (core/api), HTTP-Error-Interceptor, Toast-/Error-Services
+│       ├── pages/               # anmeldung, teilnehmer, admin-teilnehmer, export, flyer, login, …
+│       ├── shared/ + ui/        # Modelle/DTO-Typen, reine Funktionen; Toast, Disziplin-Filter, …
 ├── docs/                        # Backlog, Entscheidungen, Requirements, Notizen
 └── AGENTS.md                    # DIESE DATEI
 ```

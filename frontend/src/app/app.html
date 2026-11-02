@@ -9,7 +9,7 @@
 
   <nav class="desktop-nav" aria-label="Hauptnavigation">
     <a routerLink="/anmeldung" routerLinkActive="active">Anmeldung</a>
-    <a routerLink="/teilnehmer" routerLinkActive="active">Teilnehmer</a>
+    <a [routerLink]="teilnehmerLink()" routerLinkActive="active">Teilnehmer</a>
     <a routerLink="/flyer" routerLinkActive="active">Flyer</a>
 
     @if (authService.eingeloggt()) {
@@ -52,7 +52,7 @@
     </svg>
     <span>Anmeldung</span>
   </a>
-  <a routerLink="/teilnehmer" routerLinkActive="active">
+  <a [routerLink]="teilnehmerLink()" routerLinkActive="active">
     <svg
       class="tab-icon"
       viewBox="0 0 24 24"

@@ -14,6 +14,7 @@ describe('routes', () => {
     impressum: '12. Fehmarn Open 2027 – Impressum',
     datenschutz: '12. Fehmarn Open 2027 – Datenschutz',
     'admin/login': '12. Fehmarn Open 2027 – Admin-Login',
+    'admin/teilnehmer': '12. Fehmarn Open 2027 – Teilnehmerverwaltung',
     'admin/export': '12. Fehmarn Open 2027 – Export',
   };
 
@@ -31,25 +32,36 @@ describe('routes', () => {
     expect(route?.component).toBeUndefined();
   });
 
-  it('schützt /admin/export mit dem authGuard', () => {
-    const route = routes.find((eintrag) => eintrag.path === 'admin/export');
+  it.each(['admin/teilnehmer', 'admin/export'])('schützt /%s mit dem authGuard', (pfad) => {
+    const route = routes.find((eintrag) => eintrag.path === pfad);
     expect(route?.canActivate).toEqual([authGuard]);
   });
 
-  it('steht vor der Wildcard-Route, damit /admin/export nicht umgeleitet wird', () => {
-    const pfade = routes.map((eintrag) => eintrag.path);
-    expect(pfade.indexOf('admin/export')).toBeLessThan(pfade.indexOf('**'));
+  it.each(['admin/teilnehmer', 'admin/export'])(
+    'steht /%s vor der Wildcard-Route, damit es nicht umgeleitet wird',
+    (pfad) => {
+      const pfade = routes.map((eintrag) => eintrag.path);
+      expect(pfade.indexOf(pfad)).toBeLessThan(pfade.indexOf('**'));
+    },
+  );
+
+  it('lässt /teilnehmer ohne Guard (öffentlich)', () => {
+    const route = routes.find((eintrag) => eintrag.path === 'teilnehmer');
+    expect(route?.canActivate).toBeUndefined();
   });
 
-  it('leitet /admin/export ohne Login auf /admin/login um', async () => {
-    localStorage.clear();
-    TestBed.configureTestingModule({
-      providers: [provideRouter(routes), provideHttpClient(), provideHttpClientTesting()],
-    });
-    const harness = await RouterTestingHarness.create();
+  it.each(['/admin/teilnehmer', '/admin/export'])(
+    'leitet %s ohne Login auf /admin/login um',
+    async (url) => {
+      localStorage.clear();
+      TestBed.configureTestingModule({
+        providers: [provideRouter(routes), provideHttpClient(), provideHttpClientTesting()],
+      });
+      const harness = await RouterTestingHarness.create();
 
-    await harness.navigateByUrl('/admin/export');
+      await harness.navigateByUrl(url);
 
-    expect(TestBed.inject(Router).url).toBe('/admin/login');
-  });
+      expect(TestBed.inject(Router).url).toBe('/admin/login');
+    },
+  );
 });

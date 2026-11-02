@@ -13,7 +13,9 @@ import { DISZIPLINEN } from '../../shared/disziplin';
 import { formatiereIsoDatum } from '../../shared/datum';
 import { extrahiereFehlermeldung } from '../../shared/http-fehler';
 import { BrandIconComponent } from '../../ui/brand-icon/brand-icon.component';
-import { AnmeldeschlussStatus, PreisPosten } from './model/anmeldung.model';
+import { PreisPosten } from './model/anmeldung.model';
+import { AnmeldeschlussStatus } from '../../shared/anmeldung-status';
+import { AnmeldungStatusApiService } from '../../core/api/anmeldung-status-api.service';
 import { berechneGesamtpreis, berechnePreisPosten } from './logik/preisberechnung';
 import { erstelleAnmeldungRequest } from './logik/anmeldung-payload';
 import {
@@ -29,7 +31,7 @@ import { DisziplinCardComponent } from './components/disziplin-card/disziplin-ca
 
 /**
  * Container der Anmeldeseite: orchestriert Formular (AnmeldungFormService), HTTP
- * (AnmeldungApiService), Klapp-UI-State (KollapsZustand) und die pure Logik aus `logik/`.
+ * (AnmeldungApiService, AnmeldungStatusApiService), Klapp-UI-State (KollapsZustand) und die pure Logik aus `logik/`.
  * Die „Formular-Fassade" delegiert nur an den FormService – sie ist die öffentliche API
  * des Integrations-Specs (anmeldung.component.spec.ts).
  */
@@ -47,6 +49,7 @@ import { DisziplinCardComponent } from './components/disziplin-card/disziplin-ca
 })
 export class AnmeldungComponent implements OnInit {
   private api = inject(AnmeldungApiService);
+  private statusApi = inject(AnmeldungStatusApiService);
   private formService = inject(AnmeldungFormService);
   private host = inject<ElementRef<HTMLElement>>(ElementRef);
   private injector = inject(Injector);
@@ -94,7 +97,7 @@ export class AnmeldungComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.api.ladeStatus().subscribe({
+    this.statusApi.ladeStatus().subscribe({
       next: (status: AnmeldeschlussStatus) => {
         this.anmeldungOffen.set(status.anmeldungOffen);
         this.anmeldeschlussAnzeige.set(formatiereIsoDatum(status.anmeldeschluss));

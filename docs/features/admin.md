@@ -42,6 +42,21 @@ Tickets: [tickets/quality-roadmap.md](../tickets/quality-roadmap.md) (Abschnitt 
   (Sicherheitsaspekt – kein beliebiger Upload).
 - **QR-Code:** kann evtl. ohne Backend rein im Frontend erzeugt werden (Bibliothek prüfen).
 
+## Teilnehmerverwaltung (`/admin/teilnehmer`)
+
+Nur eingeloggt erreichbar (`authGuard`, sonst Redirect auf `/admin/login`); nach dem Login landet
+der Admin hier, und der Nav-Eintrag „Teilnehmer" führt eingeloggt hierher statt zur öffentlichen
+Liste. Seit #317 eine eigene Komponente (`pages/admin-teilnehmer`), vorher eine `isAdmin`-Weiche
+in der öffentlichen Teilnehmerseite.
+
+- **Daten:** `GET /api/admin/teilnehmer`; nach jeder Aktion (Anwesenheit, Abmelden, Reaktivieren)
+  wird neu geladen. Alle Admin-Endpunkte laufen über `core/api/AdminTeilnehmerApiService`, der
+  Status für die Teamlimit-Warnung über `core/api/AnmeldungStatusApiService` (#318).
+- **Anzeige:** Disziplin-Filter (gemeinsamer Baustein `ui/disziplin-filter`) und Suche über
+  Team- und Spielernamen; je Spieler Radikal-ID oder Anlage-Grundlage (Initialen, Geburtsdatum)
+  mit „ID neu anlegen"-Badge; abgemeldete Meldungen stehen am Ende ihrer Disziplin.
+- **Fehler:** Ein 409 beim Reaktivieren (Teamname-Dublette) erscheint an der betroffenen Zeile.
+
 ## Export-Seite (`/admin/export`)
 
 Nur eingeloggt erreichbar (`authGuard`, sonst Redirect auf `/admin/login`); Nav-Eintrag „Export"

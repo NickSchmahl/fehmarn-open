@@ -8,6 +8,23 @@ hinweg. Architekturentscheidungen liegen als [ADR](adr/), Ticket-Status in
 > **Release-Konvention:** Pro Release ein datierter Abschnitt hier; das zugehörige
 > [GitHub Release](../../releases) (Tag `vX.Y.Z`) verlinkt auf diesen Changelog.
 
+## 2026-11-02 — v1.3.2: Login-Rücksprung, schnellerer Harness
+
+Kleines Folge-Release. Für Teilnehmer ändert sich nichts; Admins landen nach dem Login dort,
+wo sie hinwollten.
+
+- **Login führt zurück zur aufgerufenen Admin-Seite (#332):** Wer z. B. `/admin/export` ohne
+  Login öffnet, landet nach dem Einloggen wieder dort statt immer auf `/admin/teilnehmer`. Der
+  `authGuard` gibt die Ziel-URL als `returnUrl` an `/admin/login` mit; erlaubt sind nur Ziele
+  unter `/admin/…` (nicht der Login selbst), sonst geht es wie bisher in die
+  Teilnehmerverwaltung. Noch offen: Nach einem abgelaufenen Token (401 → Logout) gibt es
+  keinen Rücksprung.
+- **Harness: weniger Nachbesserungsrunden (#333, Nachtrag in ADR 0015):** `deps-sync.sh`
+  gleicht beim Session-Start `frontend/node_modules` mit `package-lock.json` ab und fährt nur
+  bei Abweichung `npm ci`; `format-file.sh` formatiert per Edit/Write geänderte Frontend-Dateien
+  sofort mit Prettier; `/quality-gate` formatiert zuerst und prüft dann. Vor dem Gate laufen
+  per `jest --findRelatedTests` nur die betroffenen Tests als schnelle Rückmeldung.
+
 ## 2026-11-02 — v1.3.1: Frontend-Architektur aufgeräumt
 
 Die Folgetickets aus der Frontend-Analyse zu #126 sind komplett umgesetzt. Fachlich ändert sich

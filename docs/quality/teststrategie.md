@@ -48,6 +48,7 @@ Schwerpunkt auf **Unit + Integration**. E2E bewusst sparsam (teuer, langsam, br�
 | `auth/interceptor` | Token wird angehängt | `auth.interceptor.spec.ts` |
 | `core/interceptors` | HTTP-Fehler → Toast/Meldung | `global-http-error.interceptor.spec.ts` |
 | `core/services` | Toast-/Fehler-Service-Verhalten | `toast.service.spec.ts`, `error-notification.service.spec.ts` |
+| `ui/*` Bausteine | Rendering, Inputs/Outputs, Barrierefreiheit | `toast.component.spec.ts`, `meldung-aktionen.component.spec.ts` |
 
 **Konventionen Frontend**
 - Jest (`jest-preset-angular`), `*.spec.ts` neben der Datei.

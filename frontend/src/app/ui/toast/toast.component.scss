@@ -1,0 +1,103 @@
+/* Fehler-Toast (#322). Schwebt fixiert über der Seite, unten rechts; mobil über der
+   Tab-Leiste. Farb-Tokens erbt die Komponente von app-root. --danger/--danger-dim sind
+   dort (noch) nicht global definiert, daher mit Fallback auf dieselben Werte wie in den
+   Seiten-Stylesheets. */
+
+.toast-stapel {
+  position: fixed;
+  z-index: 40; /* über Header (20) und mobiler Tab-Leiste (30) */
+  right: 1.5rem;
+  bottom: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: min(20rem, calc(100vw - 2rem));
+  /* Der leere Stapel darf keine Klicks auf die Seite darunter abfangen. */
+  pointer-events: none;
+}
+
+.toast {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 0.75rem 0.75rem 1rem;
+  border: 1px solid var(--danger, #e05c5c);
+  border-left-width: 4px;
+  border-radius: var(--radius, 6px);
+  background:
+    linear-gradient(
+      var(--danger-dim, rgba(224, 92, 92, 0.12)),
+      var(--danger-dim, rgba(224, 92, 92, 0.12))
+    ),
+    var(--surface, #141720);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.45);
+  color: var(--text, #eceef4);
+  font-size: 0.875rem;
+  line-height: 1.4;
+  pointer-events: auto;
+  animation: toast-einblenden 200ms ease-out;
+}
+
+.toast-text {
+  padding-top: 0.15rem;
+}
+
+.toast-schliessen {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--radius, 6px);
+  background: transparent;
+  color: var(--text-muted, #8c94b2);
+  cursor: pointer;
+  font: inherit;
+  line-height: 1;
+  transition:
+    color 150ms,
+    background-color 150ms;
+}
+
+.toast-schliessen:hover {
+  background: var(--danger-dim, rgba(224, 92, 92, 0.12));
+  color: var(--text, #eceef4);
+}
+
+.toast-schliessen:focus-visible {
+  outline: 2px solid var(--accent, #e8c547);
+  outline-offset: 2px;
+  color: var(--text, #eceef4);
+}
+
+@keyframes toast-einblenden {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast {
+    animation: none;
+  }
+}
+
+/* Mobil: volle Breite mit Seitenabstand, oberhalb der fixen Tab-Leiste
+   (84px + Safe-Area, siehe .mobile-tabs in app.scss). */
+@media (max-width: 720px) {
+  .toast-stapel {
+    right: 1rem;
+    bottom: calc(84px + env(safe-area-inset-bottom) + 0.75rem);
+    left: 1rem;
+    width: auto;
+  }
+}

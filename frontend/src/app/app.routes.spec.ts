@@ -51,7 +51,7 @@ describe('routes', () => {
   });
 
   it.each(['/admin/teilnehmer', '/admin/export'])(
-    'leitet %s ohne Login auf /admin/login um',
+    'leitet %s ohne Login auf /admin/login um und merkt sich das Ziel als returnUrl',
     async (url) => {
       localStorage.clear();
       TestBed.configureTestingModule({
@@ -61,7 +61,7 @@ describe('routes', () => {
 
       await harness.navigateByUrl(url);
 
-      expect(TestBed.inject(Router).url).toBe('/admin/login');
+      expect(TestBed.inject(Router).url).toBe(`/admin/login?returnUrl=${encodeURIComponent(url)}`);
     },
   );
 });

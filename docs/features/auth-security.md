@@ -30,7 +30,7 @@ Client speichert Token → sendet ihn als  Authorization: Bearer <token>
 | Baustein | Datei | Aufgabe |
 |----------|-------|---------|
 | Login-Status | `auth/service/auth.service.ts` | **einzige Quelle**: Token im Signal, `eingeloggt()` als `computed` (#319) |
-| Guard | `auth/guard/auth.guard.ts` | `/admin/**`-Seiten nur mit `eingeloggt()`, sonst `/admin/login` |
+| Guard | `auth/guard/auth.guard.ts` | `/admin/**`-Seiten nur mit `eingeloggt()`, sonst `/admin/login?returnUrl=<ziel>`; nach dem Login geht es dorthin zurück (nur `/admin/…`, sonst `/admin/teilnehmer`) |
 | Interceptor | `auth/interceptor/auth.interceptor.ts` | hängt den Bearer-Token an; 401 (außer Login) → `logout()` |
 
 - Das Token liegt in `localStorage` (überlebt Reload) und gespiegelt in einem Signal.

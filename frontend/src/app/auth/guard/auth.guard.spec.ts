@@ -11,7 +11,7 @@ import { authGuard } from './auth.guard';
 import { AuthService } from '../service/auth.service';
 
 const mockRoute = {} as ActivatedRouteSnapshot;
-const mockState = {} as RouterStateSnapshot;
+const mockState = { url: '/admin/export' } as RouterStateSnapshot;
 
 describe('authGuard', () => {
   const eingeloggt = signal(false);
@@ -32,12 +32,12 @@ describe('authGuard', () => {
     expect(runGuard()).toBe(true);
   });
 
-  it('should redirect to /admin/login when not logged in', () => {
+  it('leitet ohne Login auf /admin/login um und merkt sich die Ziel-URL', () => {
     eingeloggt.set(false);
     const result = runGuard();
 
     expect(result).toBeInstanceOf(UrlTree);
-    expect((result as UrlTree).toString()).toBe('/admin/login');
+    expect((result as UrlTree).toString()).toBe('/admin/login?returnUrl=%2Fadmin%2Fexport');
   });
 
   it('should not call createUrlTree when logged in', () => {
